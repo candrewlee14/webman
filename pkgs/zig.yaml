@@ -1,0 +1,25 @@
+info_url: https://ziglang.org/
+releases_url: https://ziglang.org/download/
+base_download_url: https://ziglang.org/download/[VER]/
+git_user: ziglang
+git_repo: zig
+source_url: https://github.com/ziglang/zig
+
+filename_format: zig-[OS]-[ARCH]-[VER].[EXT]
+tag_format: [VER]
+version_type: semantic
+latest_strategy: github-release # uses most recent github release tag to get the latest version number
+
+os_map:
+  linux:
+    name: linux
+    ext: tar.xz
+  macos: 
+    name: macos
+    ext: tar.xz
+  win: 
+    name: windows
+    ext: zip
+arch_map:
+  amd64: x86_64
+  arm64: aarch64

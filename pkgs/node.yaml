@@ -1,0 +1,25 @@
+info_url: https://nodejs.org/
+releases_url: https://nodejs.org/en/download/
+base_download_url: https://nodejs.org/dist/v[VER]/
+git_user: nodejs
+git_repo: node
+source_url: https://github.com/nodejs/node
+
+filename_format: node-v[VER]-[OS]-[ARCH].[EXT]
+version_type: semantic
+latest_strategy: arch-linux-community
+arch_linux_pkg_name: nodejs
+
+os_map:
+  linux: 
+    name: linux
+    ext: tar.xz
+  macos: 
+    name: darwin
+    ext: tar.gz
+  win: 
+    name: win
+    ext: zip
+arch_map:
+  amd64: x64
+  arm64: arm64
