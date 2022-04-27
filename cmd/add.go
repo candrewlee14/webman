@@ -40,11 +40,9 @@ func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync
     }
     stem, ext, url := pkgConf.GetAssetStemExtUrl(ver)
     fileName := stem + "." + ext
-    fmt.Println(pkg, ver, stem, ext, url)
     downloadPath := filepath.Join(webmanTmpDir, fileName)
     
     extractPath := filepath.Join(webmanPkgDir, pkg, stem)
-    fmt.Println("extractPath: ", extractPath)
     // If file exists
     if _, err := os.Stat(extractPath); !os.IsNotExist(err) {
         fmt.Println(pkg, "@", ver, "is already installed!")
@@ -109,7 +107,7 @@ to quickly create a Cobra application.`,
         webmanPkgDir := filepath.Join(webmanDir, "/pkg")
         webmanBinDir := filepath.Join(webmanDir, "/bin")
         webmanTmpDir := filepath.Join(webmanDir, "/tmp")
-        //defer os.RemoveAll(webmanTmpDir) TODO: reinstate
+        defer os.RemoveAll(webmanTmpDir)
         err = os.MkdirAll(webmanBinDir, os.ModePerm)
         if err != nil {
            panic(err);
