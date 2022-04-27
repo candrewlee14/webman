@@ -21,8 +21,17 @@ THE SOFTWARE.
 */
 package main
 
-import "webman/cmd"
+import (
+	"os"
+	"webman/cmd"
+
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
+)
 
 func main() {
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+
 	cmd.Execute()
 }

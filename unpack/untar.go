@@ -11,21 +11,22 @@ import (
 	"compress/gzip"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
 	"time"
-    "github.com/ulikunitz/xz"
+
+	"github.com/rs/zerolog/log"
+	"github.com/ulikunitz/xz"
 )
 
 func untarXz(src string, dir string) error {
-    return untar(src, dir, true)
+	return untar(src, dir, true)
 }
 
 func untarGz(src string, dir string) error {
-    return untar(src, dir, false)
+	return untar(src, dir, false)
 }
 
 // Untar reads the gzip-compressed tar file from r and writes it into dir.
@@ -36,29 +37,29 @@ func untar(src string, dir string, useXz bool) (err error) {
 	defer func() {
 		td := time.Since(t0)
 		if err == nil {
-			log.Printf("extracted tarball into %s: %d files, %d dirs (%v)", dir, nFiles, len(madeDir), td)
+			log.Info().Msgf("extracted tarball into %s: %d files, %d dirs (%v)", dir, nFiles, len(madeDir), td)
 		} else {
-			log.Printf("error extracting tarball into %s after %d files, %d dirs, %v: %v", dir, nFiles, len(madeDir), td, err)
+			log.Error().Msgf("error extracting tarball into %s after %d files, %d dirs, %v: %v", dir, nFiles, len(madeDir), td, err)
 		}
 	}()
-    f, err := os.Open(src)
-    if err != nil {
-        return fmt.Errorf("unable to open compressed file: %v", err)
-    }
-    var tr *tar.Reader
-    if useXz {
-        xr, err := xz.NewReader(f)
-        if err != nil {
-            return fmt.Errorf("requires xz-compressed body: %v", err)
-        }
-        tr = tar.NewReader(xr)
-    } else {
-        zr, err := gzip.NewReader(f)
-        if err != nil {
-            return fmt.Errorf("requires gzip-compressed body: %v", err)
-        }
-        tr = tar.NewReader(zr)
-    }
+	f, err := os.Open(src)
+	if err != nil {
+		return fmt.Errorf("unable to open compressed file: %v", err)
+	}
+	var tr *tar.Reader
+	if useXz {
+		xr, err := xz.NewReader(f)
+		if err != nil {
+			return fmt.Errorf("requires xz-compressed body: %v", err)
+		}
+		tr = tar.NewReader(xr)
+	} else {
+		zr, err := gzip.NewReader(f)
+		if err != nil {
+			return fmt.Errorf("requires gzip-compressed body: %v", err)
+		}
+		tr = tar.NewReader(zr)
+	}
 	loggedChtimesError := false
 	for {
 		f, err := tr.Next()
@@ -66,7 +67,7 @@ func untar(src string, dir string, useXz bool) (err error) {
 			break
 		}
 		if err != nil {
-			log.Printf("tar reading error: %v", err)
+			log.Info().Msgf("tar reading error: %v", err)
 			return fmt.Errorf("tar error: %v", err)
 		}
 		if !validRelPath(f.Name) {
@@ -119,7 +120,7 @@ func untar(src string, dir string, useXz bool) (err error) {
 					// on it anywhere (the gomote push command relies
 					// on digests only), so this is a little pointless
 					// for now.
-					log.Printf("error changing modtime: %v (further Chtimes errors suppressed)", err)
+					log.Info().Msgf("error changing modtime: %v (further Chtimes errors suppressed)", err)
 					loggedChtimesError = true // once is enough
 				}
 			}
