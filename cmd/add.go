@@ -36,11 +36,12 @@ func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync
 	} else {
 		panic("Packages should be in format 'pkg' or 'pkg@version'")
 	}
+	// log := log.With().Str("pkg", pkg).Logger()
 	pkgConf = pkgparse.ParsePkgConfig(pkg)
 	if len(ver) == 0 {
-		log.Info().Msgf("Finding latest version tag")
+		log.Info().Msgf("Finding latest %s version tag", color.CyanString(pkg))
 		ver = pkgConf.GetLatestVersion()
-		log.Info().Msgf("Found version tag: %s", color.MagentaString(ver))
+		log.Info().Msgf("Found %s version tag: %s", color.CyanString(pkg), color.MagentaString(ver))
 	}
 	stem, ext, url := pkgConf.GetAssetStemExtUrl(ver)
 	fileName := stem + "." + ext
@@ -50,7 +51,7 @@ func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync
 	// If file exists
 	if _, err := os.Stat(extractPath); !os.IsNotExist(err) {
 		log.Info().Msgf("%s@%s is already installed!", color.CyanString(pkg), color.MagentaString(ver))
-		os.Exit(0)
+		return
 	}
 	log.Debug().Msgf(downloadPath)
 	f, err := os.OpenFile(downloadPath,
@@ -86,7 +87,7 @@ func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync
 		panic(err)
 	}
 	log.Info().Msgf("Unpacking %s.%s", stem, ext)
-	err = unpack.Unpack(downloadPath, filepath.Join(webmanPkgDir, pkg), ext)
+	err = unpack.Unpack(downloadPath, webmanDir, pkg, stem, ext, pkgConf.ExtractHasRoot)
 	if err != nil {
 		panic(err)
 	}
@@ -126,8 +127,8 @@ to quickly create a Cobra application.`,
 			panic(err)
 		}
 		var wg sync.WaitGroup
+		wg.Add(len(args))
 		for i, arg := range args {
-			wg.Add(1)
 			go installPkg(arg, i+1, len(args), webmanDir, &wg)
 		}
 		wg.Wait()

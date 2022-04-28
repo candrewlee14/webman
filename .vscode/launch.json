@@ -12,7 +12,8 @@
             "program": "main.go",
             "args": [
                 "add",
-                "zig"
+                "zig",
+                "node"
             ]
         }
     ]

@@ -27,13 +27,19 @@ import (
 	"github.com/spf13/cobra"
 )
 
-
-
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "webman",
 	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
+	Long: `
+__          __  _                           
+\ \        / / | |                          
+ \ \  /\  / /__| |__  _ __ ___   __ _ _ __  
+  \ \/  \/ / _ \ '_ \| '_ ' _ \ / _' | '_ \ 
+   \  /\  /  __/ |_) | | | | | | (_| | | | |
+    \/  \/ \___|_.__/|_| |_| |_|\__,_|_| |_|
+
+	A longer description that spans multiple lines and likely contains
 examples and usage of using your application. For example:
 
 Cobra is a CLI library for Go that empowers applications.
@@ -64,5 +70,3 @@ func init() {
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
-
-

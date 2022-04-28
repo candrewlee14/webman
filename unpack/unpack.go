@@ -1,11 +1,72 @@
 package unpack
 
 import (
+	"archive/zip"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
+	"strings"
+
+	"github.com/rs/zerolog/log"
 )
+
+type UnpackFn func(src string, dir string) error
+
+var unpackMap = map[string]UnpackFn{
+	"tar.gz": untarExec,
+	"tar.xz": untarExec,
+	"zip":    unzip,
+}
+
+func Unpack(src string, webmanDir string, pkg string, stem string, ext string, hasRoot bool) error {
+	unpackFn, exists := unpackMap[ext]
+	if !exists {
+		return fmt.Errorf("no unpack function for extension: %q", ext)
+	}
+	pkgDir := filepath.Join(webmanDir, "pkg", pkg)
+	err := os.MkdirAll(pkgDir, 0777)
+	if err != nil {
+		return fmt.Errorf("unable to create dir %q: %v", pkgDir, err)
+	}
+	pkgDest := filepath.Join(pkgDir, stem)
+	if hasRoot {
+		tmpPkgDir := filepath.Join(webmanDir, "tmp", pkg)
+		err := os.MkdirAll(tmpPkgDir, 0777)
+		if err != nil {
+			return fmt.Errorf("unable to create dir %q: %v", tmpPkgDir, err)
+		}
+		err = unpackFn(src, tmpPkgDir)
+		if err != nil {
+			return fmt.Errorf("failed to extract file: %v", err)
+		}
+		f, err := os.Open(tmpPkgDir)
+		if err != nil {
+			return fmt.Errorf("unable to open dir %q: %v", tmpPkgDir, err)
+		}
+		dir, err := f.ReadDir(1)
+		if err != nil {
+			return fmt.Errorf("unable to read dir %q: %v", tmpPkgDir, err)
+		}
+		extractFolder := filepath.Join(tmpPkgDir, dir[0].Name())
+		err = os.Rename(extractFolder, pkgDest)
+		if err != nil {
+			return fmt.Errorf("unable to move %q to %q: %v", extractFolder, pkgDest, err)
+		}
+	} else {
+		err := os.MkdirAll(pkgDest, 0777)
+		if err != nil {
+			return fmt.Errorf("unable to create pkg destination dir %q: %v", pkgDest, err)
+		}
+		err = unpackFn(src, pkgDest)
+		if err != nil {
+			return fmt.Errorf("failed to extract file: %v", err)
+		}
+	}
+	return nil
+}
 
 func untarExec(src string, dir string) error {
 	if runtime.GOOS == "windows" {
@@ -17,22 +78,48 @@ func untarExec(src string, dir string) error {
 	return cmd.Run()
 }
 
-type UnpackFn func(src string, dir string) error
-
-var unpackMap = map[string]UnpackFn{
-	"tar.gz": untarExec,
-	"tar.xz": untarExec,
-	"zip":    unzip,
-}
-
-func Unpack(src string, dir string, ext string) error {
-	unpackFn, exists := unpackMap[ext]
-	err := os.MkdirAll(dir, 0777)
+func unzip(src string, dir string) error {
+	archive, err := zip.OpenReader(src)
 	if err != nil {
-		return fmt.Errorf("Unable to create dir %q: %v", dir, err)
+		panic(err)
 	}
-	if !exists {
-		return fmt.Errorf("No unpack function for extension: %q", ext)
+	defer archive.Close()
+
+	for _, f := range archive.File {
+		fileName := f.Name
+
+		filePath := filepath.Join(dir, fileName)
+		log.Trace().Msgf("unzipping file %s", filePath)
+
+		if !strings.HasPrefix(filePath, filepath.Clean(dir)+string(os.PathSeparator)) {
+			return fmt.Errorf("invalid file path")
+		}
+		if f.FileInfo().IsDir() {
+			log.Trace().Msgf("creating directory...")
+			os.MkdirAll(filePath, os.ModePerm)
+			continue
+		}
+
+		if err := os.MkdirAll(filepath.Dir(filePath), os.ModePerm); err != nil {
+			panic(err)
+		}
+
+		dstFile, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+		if err != nil {
+			panic(err)
+		}
+
+		fileInArchive, err := f.Open()
+		if err != nil {
+			panic(err)
+		}
+
+		if _, err := io.Copy(dstFile, fileInArchive); err != nil {
+			panic(err)
+		}
+
+		dstFile.Close()
+		fileInArchive.Close()
 	}
-	return unpackFn(src, dir)
+	return nil
 }

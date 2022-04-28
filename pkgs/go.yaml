@@ -5,7 +5,15 @@ git_user: golang
 git_repo: go
 source_url: https://github.com/golang/go
 
+# this is the format of downloads appended to base_download_url.
 filename_format: go[VER].[OS]-[ARCH].[EXT]
+
+# This is either a folder with binaries, or a single binary file.
+# ROOT is a special keyword here representing the root folder after extracting (if it exists)
+# Ex: go1.18.1.windows-amd64.zip extracts to a single folder called go/, which is ROOT here
+# Ex: go/bin has the executables
+bin_path_format: ROOT/bin/
+extract_has_root: true
 
 # uses most recent arch linux community package version to get latest tag
 latest_strategy: arch-linux-community 

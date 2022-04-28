@@ -10,6 +10,9 @@ version_type: semantic
 latest_strategy: arch-linux-community
 arch_linux_pkg_name: nodejs
 
+bin_path_format: ROOT/
+extract_has_root: true
+
 os_map:
   linux: 
     name: linux

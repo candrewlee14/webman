@@ -1,0 +1,27 @@
+info_url: https://blog.burntsushi.net/ripgrep/
+releases_url: https://github.com/BurntSushi/ripgrep/releases/
+git_user: BurntSushi
+git_repo: ripgrep
+source_url: https://github.com/BurntSushi/ripgrep
+
+base_download_url: https://github.com/BurntSushi/ripgrep/releases/download/[VER]/
+filename_format: ripgrep-[VER]-[ARCH]-[OS].[EXT]
+version_type: semantic
+latest_strategy: github-release # uses most recent github release tag to get the latest version number
+
+bin_path_format: ROOT/bin/
+extract_has_root: true
+
+os_map:
+  linux:
+    name: unknown-linux-musl
+    ext: tar.xz
+  macos: 
+    name: apple-darwin
+    ext: tar.xz
+  win: 
+    name: pc-windows-gnu
+    ext: zip
+arch_map:
+  amd64: x86_64
+  # arm64: Unsupported
