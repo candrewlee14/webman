@@ -3,23 +3,24 @@ package cmd
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 	"time"
+	"webman/multiline"
 	"webman/pkgparse"
 	"webman/unpack"
 
 	"github.com/fatih/color"
-	"github.com/rs/zerolog/log"
 
 	progressbar "github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
 )
 
-func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync.WaitGroup) {
+func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync.WaitGroup, ml *multiline.MultiLogger) {
 	defer wg.Done()
 	webmanPkgDir := filepath.Join(webmanDir, "/pkg")
 	//webmanBinDir := filepath.Join(webmanDir, "/bin")
@@ -34,14 +35,15 @@ func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync
 		pkg = parts[0]
 		ver = parts[1]
 	} else {
-		panic("Packages should be in format 'pkg' or 'pkg@version'")
+		ml.Printf(argNum, "Packages should be in format 'pkg' or 'pkg@version'")
+		return
 	}
 	// log := log.With().Str("pkg", pkg).Logger()
 	pkgConf = pkgparse.ParsePkgConfig(pkg)
 	if len(ver) == 0 {
-		log.Info().Msgf("Finding latest %s version tag", color.CyanString(pkg))
+		ml.Printf(argNum, "Finding latest %s version tag", color.CyanString(pkg))
 		ver = pkgConf.GetLatestVersion()
-		log.Info().Msgf("Found %s version tag: %s", color.CyanString(pkg), color.MagentaString(ver))
+		ml.Printf(argNum, "Found %s version tag: %s", color.CyanString(pkg), color.MagentaString(ver))
 	}
 	stem, ext, url := pkgConf.GetAssetStemExtUrl(ver)
 	fileName := stem + "." + ext
@@ -50,48 +52,72 @@ func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync
 	extractPath := filepath.Join(webmanPkgDir, pkg, stem)
 	// If file exists
 	if _, err := os.Stat(extractPath); !os.IsNotExist(err) {
-		log.Info().Msgf("%s@%s is already installed!", color.CyanString(pkg), color.MagentaString(ver))
+		ml.Printf(argNum, "%s@%s is already installed!", color.CyanString(pkg), color.MagentaString(ver))
 		return
 	}
-	log.Debug().Msgf(downloadPath)
+	ml.Printf(argNum, downloadPath)
 	f, err := os.OpenFile(downloadPath,
 		os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		panic(err)
+		ml.Printf(argNum, color.RedString("%v", err))
+		return
 	}
 	defer f.Close()
 
 	r, err := http.Get(url)
 	if err != nil {
-		panic(err)
+		ml.Printf(argNum, color.RedString("%v", err))
+		return
 	}
 	defer r.Body.Close()
-
 	bar := progressbar.NewOptions64(r.ContentLength,
 		progressbar.OptionEnableColorCodes(true),
+		progressbar.OptionSetWriter(ioutil.Discard),
 		progressbar.OptionShowBytes(true),
 		progressbar.OptionFullWidth(),
 		progressbar.OptionSetDescription(
-			fmt.Sprintf("[cyan][%d/%d][reset] Downloading [cyan]"+pkg+"[reset] file...", argNum, argCount)),
-		progressbar.OptionThrottle(20*time.Millisecond),
+			fmt.Sprintf("[cyan][%d/%d][reset] Downloading [cyan]"+pkg+"[reset] file...", argNum+1, argCount)),
 		progressbar.OptionSetTheme(progressbar.Theme{
-			Saucer:        "[green]=[reset]",
-			SaucerHead:    "[green]>[reset]",
+			Saucer:        "=",
+			SaucerHead:    ">",
 			SaucerPadding: " ",
 			BarStart:      "[",
 			BarEnd:        "]",
-		}))
+		}),
+	)
+	go func() {
+		for !bar.IsFinished() {
+			barStr := bar.String()
+			ml.Printf(argNum, "%s", barStr)
+			time.Sleep(100 * time.Millisecond)
+		}
+	}()
 	_, err = io.Copy(io.MultiWriter(f, bar), r.Body)
-	fmt.Println("")
 	if err != nil {
-		panic(err)
+		ml.Printf(argNum, color.RedString("%v", err))
+		return
 	}
-	log.Info().Msgf("Unpacking %s.%s", stem, ext)
+	hasUnpacked := make(chan bool)
+	go func() {
+		i := 0
+		for {
+			select {
+			case <-hasUnpacked:
+				return
+			default:
+				ml.Printf(argNum, "Unpacking %s.%s "+strings.Repeat(".", i), stem, ext)
+			}
+			time.Sleep(500 * time.Millisecond)
+			i += 1
+		}
+	}()
 	err = unpack.Unpack(downloadPath, webmanDir, pkg, stem, ext, pkgConf.ExtractHasRoot)
+	hasUnpacked <- true
 	if err != nil {
-		panic(err)
+		ml.Printf(argNum, color.RedString("%v", err))
+		return
 	}
-
+	ml.Printf(argNum, "Completed unpacking %s@%s", color.CyanString(pkg), color.MagentaString(pkg))
 }
 
 // addCmd represents the add command
@@ -127,9 +153,10 @@ to quickly create a Cobra application.`,
 			panic(err)
 		}
 		var wg sync.WaitGroup
+		ml := multiline.New(len(args), os.Stdout)
 		wg.Add(len(args))
 		for i, arg := range args {
-			go installPkg(arg, i+1, len(args), webmanDir, &wg)
+			go installPkg(arg, i, len(args), webmanDir, &wg, &ml)
 		}
 		wg.Wait()
 	},
