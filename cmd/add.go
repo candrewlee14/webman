@@ -76,7 +76,7 @@ func init() {
 	// addCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync.WaitGroup, ml *multiline.MultiLogger) {
+func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync.WaitGroup, ml *multiline.MultiLogger) bool {
 	defer wg.Done()
 	webmanPkgDir := filepath.Join(webmanDir, "/pkg")
 	//webmanBinDir := filepath.Join(webmanDir, "/bin")
@@ -84,7 +84,6 @@ func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync
 	parts := strings.Split(arg, "@")
 	var pkg string
 	var ver string
-	var pkgConf pkgparse.PkgConfig
 	if len(parts) == 1 {
 		pkg = parts[0]
 	} else if len(parts) == 2 {
@@ -92,17 +91,33 @@ func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync
 		ver = parts[1]
 	} else {
 		ml.Printf(argNum, "Packages should be in format 'pkg' or 'pkg@version'")
-		return
+		return false
 	}
 	ml.SetPrefix(argNum, color.YellowString(pkg)+": ")
 	// log := log.With().Str("pkg", pkg).Logger()
-	pkgConf = pkgparse.ParsePkgConfig(pkg)
+	pkgConf, err := pkgparse.ParsePkgConfig(pkg)
+	if err != nil {
+		ml.Printf(argNum, color.RedString("%v", err))
+		return false
+	}
 	if len(ver) == 0 {
 		ml.Printf(argNum, "Finding latest %s version tag", color.CyanString(pkg))
-		ver = pkgConf.GetLatestVersion()
+		verPtr, err := pkgConf.GetLatestVersion()
+		if err != nil {
+			ml.Printf(argNum, color.RedString("unable to find latest version tag: %v", err))
+			return false
+		}
+		ver = *verPtr
 		ml.Printf(argNum, "Found %s version tag: %s", color.CyanString(pkg), color.MagentaString(ver))
 	}
-	stem, ext, url := pkgConf.GetAssetStemExtUrl(ver)
+	stemPtr, extPtr, urlPtr, err := pkgConf.GetAssetStemExtUrl(ver)
+	if err != nil {
+		ml.Printf(argNum, color.RedString("%v", err))
+		return false
+	}
+	stem := *stemPtr
+	ext := *extPtr
+	url := *urlPtr
 	fileName := stem + "." + ext
 	downloadPath := filepath.Join(webmanTmpDir, fileName)
 
@@ -110,23 +125,60 @@ func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync
 	// If file exists
 	if _, err := os.Stat(extractPath); !os.IsNotExist(err) {
 		ml.Printf(argNum, "%s@%s is already installed!", color.CyanString(pkg), color.MagentaString(ver))
-		return
+		return false
 	}
 	ml.Printf(argNum, downloadPath)
 	f, err := os.OpenFile(downloadPath,
 		os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		ml.Printf(argNum, color.RedString("%v", err))
-		return
+		return false
 	}
 	defer f.Close()
+	if !DownloadUrl(url, f, pkg, ver, argNum, argCount, ml) {
+		return false
+	}
+	hasUnpacked := make(chan bool)
+	// This is for threaded printing "..." while unpacking
+	go func() {
+		i := 0
+		for {
+			select {
+			case <-hasUnpacked:
+				return
+			default:
+				ml.Printf(argNum, "Unpacking %s.%s "+strings.Repeat(".", i), stem, ext)
+			}
+			time.Sleep(500 * time.Millisecond)
+			i += 1
+		}
+	}()
+	err = unpack.Unpack(downloadPath, webmanDir, pkg, stem, ext, pkgConf.ExtractHasRoot)
+	hasUnpacked <- true
+	if err != nil {
+		ml.Printf(argNum, color.RedString("%v", err))
+		return false
+	}
+	ml.Printf(argNum, "Completed unpacking %s@%s", color.CyanString(pkg), color.MagentaString(ver))
+	return true
+}
 
+func DownloadUrl(url string, f io.Writer, pkg string, ver string, argNum int, argCount int, ml *multiline.MultiLogger) bool {
 	r, err := http.Get(url)
 	if err != nil {
 		ml.Printf(argNum, color.RedString("%v", err))
-		return
+		return false
 	}
 	defer r.Body.Close()
+	if !(r.StatusCode >= 200 && r.StatusCode < 300) {
+		switch r.StatusCode {
+		case 404:
+			ml.Printf(argNum, color.RedString("unable to find %s@%s on the web. Is that a full, valid version number?", pkg, ver))
+		default:
+			ml.Printf(argNum, color.RedString("bad HTTP Response: %s", r.Status))
+		}
+		return false
+	}
 	bar := progressbar.NewOptions64(r.ContentLength,
 		progressbar.OptionEnableColorCodes(true),
 		progressbar.OptionSetWriter(ioutil.Discard),
@@ -152,28 +204,7 @@ func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync
 	_, err = io.Copy(io.MultiWriter(f, bar), r.Body)
 	if err != nil {
 		ml.Printf(argNum, color.RedString("%v", err))
-		return
+		return false
 	}
-	hasUnpacked := make(chan bool)
-	// This is for threaded printing "..." while unpacking
-	go func() {
-		i := 0
-		for {
-			select {
-			case <-hasUnpacked:
-				return
-			default:
-				ml.Printf(argNum, "Unpacking %s.%s "+strings.Repeat(".", i), stem, ext)
-			}
-			time.Sleep(500 * time.Millisecond)
-			i += 1
-		}
-	}()
-	err = unpack.Unpack(downloadPath, webmanDir, pkg, stem, ext, pkgConf.ExtractHasRoot)
-	hasUnpacked <- true
-	if err != nil {
-		ml.Printf(argNum, color.RedString("%v", err))
-		return
-	}
-	ml.Printf(argNum, "Completed unpacking %s@%s", color.CyanString(pkg), color.MagentaString(ver))
+	return true
 }

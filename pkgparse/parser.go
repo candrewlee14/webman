@@ -35,22 +35,22 @@ type PkgConfig struct {
 	ArchMap map[string]string `yaml:"arch_map"`
 }
 
-func ParsePkgConfig(pkg string) PkgConfig {
+func ParsePkgConfig(pkg string) (*PkgConfig, error) {
 	curDir, err := os.Getwd()
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("unable to get working dir: %v", err)
 	}
 	pkgConfPath := filepath.Join(curDir, "/pkgs/"+pkg+".yaml")
 	dat, err := os.ReadFile(pkgConfPath)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("unable find package recipe for %s", pkg)
 	}
 	var pkgConf PkgConfig
 	err = yaml.UnmarshalStrict(dat, &pkgConf)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("unable parse package recipe for %s: %v", pkg, err)
 	}
-	return pkgConf
+	return &pkgConf, nil
 }
 
 var goOsToPkgOs = map[string]string{
@@ -59,30 +59,38 @@ var goOsToPkgOs = map[string]string{
 	"linux":   "linux",
 }
 
-func (pkgConf *PkgConfig) GetLatestVersion() string {
+func (pkgConf *PkgConfig) GetLatestVersion() (*string, error) {
 	switch pkgConf.LatestStrategy {
 	case "github-release":
-		return getLatestGithubReleaseTag(pkgConf.GitUser, pkgConf.GitRepo).TagName
+		rel, err := getLatestGithubReleaseTag(pkgConf.GitUser, pkgConf.GitRepo)
+		if err != nil {
+			return nil, err
+		}
+		return &rel.TagName, nil
 	case "arch-linux-community":
-		return getLatestArchLinuxPkgVersion(pkgConf.ArchLinuxPkgName).PkgVer
+		rel, err := getLatestArchLinuxPkgVersion(pkgConf.ArchLinuxPkgName)
+		if err != nil {
+			return nil, err
+		}
+		return &rel.PkgVer, nil
 	}
-	panic(fmt.Sprintf("No implemented latest version resolution strategy for %q",
-		pkgConf.LatestStrategy))
+	return nil, fmt.Errorf("no implemented latest version resolution strategy for %q",
+		pkgConf.LatestStrategy)
 }
 
 ///
-func (pkgConf *PkgConfig) GetAssetStemExtUrl(version string) (string, string, string) {
+func (pkgConf *PkgConfig) GetAssetStemExtUrl(version string) (*string, *string, *string, error) {
 	pkgOs, exists := goOsToPkgOs[runtime.GOOS]
 	if !exists {
-		panic("Unsupported operating system")
+		return nil, nil, nil, fmt.Errorf("unsupported operating system")
 	}
 	osInf, exists := pkgConf.OsMap[pkgOs]
 	if !exists {
-		panic(fmt.Sprintf("Package has no binary for operating system: %s", pkgOs))
+		return nil, nil, nil, fmt.Errorf("package has no binary for operating system: %s", pkgOs)
 	}
 	archStr, exists := pkgConf.ArchMap[runtime.GOARCH]
 	if !exists {
-		panic(fmt.Sprintf("Package has no binary for architecture: %s", archStr))
+		return nil, nil, nil, fmt.Errorf("package has no binary for architecture: %s", archStr)
 	}
 	baseUrl := pkgConf.BaseDownloadUrl
 	baseUrl = strings.ReplaceAll(baseUrl, "[VER]", version)
@@ -95,5 +103,6 @@ func (pkgConf *PkgConfig) GetAssetStemExtUrl(version string) (string, string, st
 	fileStem = strings.ReplaceAll(fileStem, "[OS]", osInf.Name)
 	fileStem = strings.ReplaceAll(fileStem, "[ARCH]", archStr)
 	fileStem = strings.ReplaceAll(fileStem, ".[EXT]", "")
-	return fileStem, osInf.Ext, baseUrl + fileStem + "." + osInf.Ext
+	stem := baseUrl + fileStem + "." + osInf.Ext
+	return &fileStem, &osInf.Ext, &stem, nil
 }
