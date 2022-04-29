@@ -9,7 +9,7 @@ filename_format: zig-[OS]-[ARCH]-[VER].[EXT]
 version_type: semantic
 latest_strategy: github-release # uses most recent github release tag to get the latest version number
 
-bin_path_format: ROOT/zig
+bin_path: zig
 extract_has_root: true
 
 os_map:

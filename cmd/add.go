@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -79,7 +80,7 @@ func init() {
 func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync.WaitGroup, ml *multiline.MultiLogger) bool {
 	defer wg.Done()
 	webmanPkgDir := filepath.Join(webmanDir, "/pkg")
-	//webmanBinDir := filepath.Join(webmanDir, "/bin")
+	webmanBinDir := filepath.Join(webmanDir, "/bin")
 	webmanTmpDir := filepath.Join(webmanDir, "/tmp")
 	parts := strings.Split(arg, "@")
 	var pkg string
@@ -160,7 +161,84 @@ func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync
 		return false
 	}
 	ml.Printf(argNum, "Completed unpacking %s@%s", color.CyanString(pkg), color.MagentaString(ver))
+	binExt := ""
+	if runtime.GOOS == "windows" {
+		binExt = ".exe"
+	}
+	binPath := filepath.Join(webmanPkgDir, pkg, stem, pkgConf.BinPath+binExt)
+	f, err = os.Open(binPath)
+	if err == nil {
+		didLink, err := AddLinkIfExec(binPath,
+			filepath.Join(webmanBinDir, pkgConf.BinPath))
+		if didLink {
+			ml.Printf(argNum, "Created symlink for %s", binPath)
+		}
+		if err != nil {
+			ml.Printf(argNum, color.RedString("%v", err))
+			return false
+		}
+	} else {
+		f.Close()
+		binDir := filepath.Join(webmanPkgDir, pkg, stem, pkgConf.BinPath)
+		binDirEntries, err := os.ReadDir(binDir)
+		if err != nil {
+			ml.Printf(argNum, color.RedString("%v", err))
+			return false
+		}
+		for _, entry := range binDirEntries {
+			if !entry.Type().IsDir() {
+				trueBinPath := filepath.Join(binDir, entry.Name())
+				didLink, err := AddLinkIfExec(trueBinPath,
+					filepath.Join(webmanBinDir, entry.Name()))
+				if didLink {
+					ml.Printf(argNum, "Created symlink for %s", trueBinPath)
+				}
+				if err != nil {
+					ml.Printf(argNum, color.RedString("%v", err))
+					return false
+				}
+			}
+		}
+	}
 	return true
+}
+
+func AddLinkIfExec(old string, new string) (bool, error) {
+	if runtime.GOOS == "windows" {
+		switch filepath.Ext(old) {
+		case ".bat", ".exe", ".cmd":
+			break
+		default:
+			return false, nil
+		}
+		newStem := new[:len(new)-len(filepath.Ext(new))]
+
+		f, err := os.Create(newStem + ".bat")
+		if err != nil {
+			return false, err
+		}
+		defer f.Close()
+		_, err = f.WriteString(
+			fmt.Sprintf("@echo off\n%s", old) + ` %*`,
+		)
+		if err != nil {
+			return false, err
+		}
+	} else {
+		fi, err := os.Stat(old)
+		if err != nil {
+			return false, err
+		}
+		// If it isn't executable
+		if !(fi.Mode()&0111 != 0) {
+			return false, nil
+		}
+		err = os.Symlink(old, new)
+		if err != nil {
+			return false, err
+		}
+	}
+	return true, nil
 }
 
 func DownloadUrl(url string, f io.Writer, pkg string, ver string, argNum int, argCount int, ml *multiline.MultiLogger) bool {

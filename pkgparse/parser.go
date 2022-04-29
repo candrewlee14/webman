@@ -28,7 +28,7 @@ type PkgConfig struct {
 	LatestStrategy   string `yaml:"latest_strategy"`
 	ArchLinuxPkgName string `yaml:"arch_linux_pkg_name"`
 
-	BinPathFormat  string `yaml:"bin_path_format"`
+	BinPath        string `yaml:"bin_path"`
 	ExtractHasRoot bool   `yaml:"extract_has_root"`
 
 	OsMap   map[string]OsInfo `yaml:"os_map"`
