@@ -129,7 +129,7 @@ func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync
 	extractPath := filepath.Join(webmanPkgDir, pkg, stem)
 	// If file exists
 	if _, err := os.Stat(extractPath); !os.IsNotExist(err) {
-		ml.Printf(argNum, "%s@%s is already installed!", color.CyanString(pkg), color.MagentaString(ver))
+		ml.Printf(argNum, color.HiBlackString("Already installed!"))
 		return false
 	}
 	f, err := os.OpenFile(downloadPath,

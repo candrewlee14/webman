@@ -20,16 +20,15 @@ func GetBinPathsAndLinkPaths(
 		binExt = ".exe"
 	}
 	binPath := filepath.Join(webmanDir, "pkg", pkg, stem, confBinPath+binExt)
-	f, err := os.Open(binPath)
+	fileInfo, err := os.Stat(binPath)
 	// If config binary path points to a file
-	if err == nil {
+	if err == nil && !fileInfo.IsDir() {
 		linkPath := GetLinkPathIfExec(binPath, webmanDir)
 		if linkPath != nil {
 			binPaths = append(binPaths, binPath)
 			linkPaths = append(linkPaths, *linkPath)
 		}
 	} else {
-		f.Close()
 		binDir := filepath.Join(webmanDir, "pkg", pkg, stem, confBinPath)
 		binDirEntries, err := os.ReadDir(binDir)
 		if err != nil {
