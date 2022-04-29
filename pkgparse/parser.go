@@ -46,8 +46,7 @@ func ParsePkgConfig(pkg string) (*PkgConfig, error) {
 		return nil, fmt.Errorf("unable find package recipe for %s", pkg)
 	}
 	var pkgConf PkgConfig
-	err = yaml.UnmarshalStrict(dat, &pkgConf)
-	if err != nil {
+	if err = yaml.UnmarshalStrict(dat, &pkgConf); err != nil {
 		return nil, fmt.Errorf("unable parse package recipe for %s: %v", pkg, err)
 	}
 	return &pkgConf, nil

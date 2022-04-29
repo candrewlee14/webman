@@ -34,12 +34,10 @@ func Unpack(src string, webmanDir string, pkg string, stem string, ext string, h
 	pkgDest := filepath.Join(pkgDir, stem)
 	if hasRoot {
 		tmpPkgDir := filepath.Join(webmanDir, "tmp", pkg)
-		err := os.MkdirAll(tmpPkgDir, 0777)
-		if err != nil {
+		if err := os.MkdirAll(tmpPkgDir, 0777); err != nil {
 			return fmt.Errorf("unable to create dir %q: %v", tmpPkgDir, err)
 		}
-		err = unpackFn(src, tmpPkgDir)
-		if err != nil {
+		if err = unpackFn(src, tmpPkgDir); err != nil {
 			return fmt.Errorf("failed to extract file: %v", err)
 		}
 		f, err := os.Open(tmpPkgDir)
@@ -51,17 +49,14 @@ func Unpack(src string, webmanDir string, pkg string, stem string, ext string, h
 			return fmt.Errorf("unable to read dir %q: %v", tmpPkgDir, err)
 		}
 		extractFolder := filepath.Join(tmpPkgDir, dir[0].Name())
-		err = os.Rename(extractFolder, pkgDest)
-		if err != nil {
+		if err = os.Rename(extractFolder, pkgDest); err != nil {
 			return fmt.Errorf("unable to move %q to %q: %v", extractFolder, pkgDest, err)
 		}
 	} else {
-		err := os.MkdirAll(pkgDest, 0777)
-		if err != nil {
+		if err := os.MkdirAll(pkgDest, 0777); err != nil {
 			return fmt.Errorf("unable to create pkg destination dir %q: %v", pkgDest, err)
 		}
-		err = unpackFn(src, pkgDest)
-		if err != nil {
+		if err = unpackFn(src, pkgDest); err != nil {
 			return fmt.Errorf("failed to extract file: %v", err)
 		}
 	}

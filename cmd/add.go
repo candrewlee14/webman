@@ -42,16 +42,13 @@ to quickly create a Cobra application.`,
 		webmanBinDir := filepath.Join(webmanDir, "/bin")
 		webmanTmpDir := filepath.Join(webmanDir, "/tmp")
 		defer os.RemoveAll(webmanTmpDir)
-		err = os.MkdirAll(webmanBinDir, os.ModePerm)
-		if err != nil {
+		if err = os.MkdirAll(webmanBinDir, os.ModePerm); err != nil {
 			panic(err)
 		}
-		err = os.MkdirAll(webmanPkgDir, os.ModePerm)
-		if err != nil {
+		if err = os.MkdirAll(webmanPkgDir, os.ModePerm); err != nil {
 			panic(err)
 		}
-		err = os.MkdirAll(webmanTmpDir, os.ModePerm)
-		if err != nil {
+		if err = os.MkdirAll(webmanTmpDir, os.ModePerm); err != nil {
 			panic(err)
 		}
 		var wg sync.WaitGroup
@@ -230,8 +227,7 @@ func DownloadUrl(url string, f io.Writer, pkg string, ver string, argNum int, ar
 			time.Sleep(100 * time.Millisecond)
 		}
 	}()
-	_, err = io.Copy(io.MultiWriter(f, bar), r.Body)
-	if err != nil {
+	if _, err = io.Copy(io.MultiWriter(f, bar), r.Body); err != nil {
 		ml.Printf(argNum, color.RedString("%v", err))
 		return false
 	}

@@ -40,8 +40,7 @@ func getLatestGithubReleaseTag(user string, repo string) (*ReleaseTagInfo, error
 		return nil, err
 	}
 	var releases []ReleaseTagInfo
-	err = json.Unmarshal(body, &releases)
-	if err != nil {
+	if err = json.Unmarshal(body, &releases); err != nil {
 		return nil, fmt.Errorf("github releases JSON response not in expected format")
 	}
 	if len(releases) == 0 {
