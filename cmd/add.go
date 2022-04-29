@@ -16,6 +16,7 @@ import (
 	"webman/unpack"
 
 	"github.com/fatih/color"
+	"golang.org/x/sync/errgroup"
 
 	progressbar "github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
@@ -166,22 +167,29 @@ func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync
 		ml.Printf(argNum, color.RedString("%v", err))
 		return false
 	}
-	success := true
+
+	var eg errgroup.Group
 	for i, linkPath := range linkPaths {
-		didLink, err := link.AddLink(binPaths[i], linkPath)
-		if err != nil {
-			ml.Printf(argNum, color.RedString("%v", err))
-			return false
-		}
-		ml.Printf(argNum, "Created link to %s", binPaths[i])
-		success = success && didLink
+		binPath := binPaths[i]
+		linkPath := linkPath // this supresses the warning for linkPath closure capture
+		eg.Go(func() error {
+			didLink, err := link.AddLink(binPath, linkPath)
+			if err != nil {
+				return err
+			}
+			if !didLink {
+				return fmt.Errorf("failed to create link to %s", binPath)
+			}
+			ml.Printf(argNum, "Created link to %s", binPath)
+			return nil
+		})
 	}
-	if success {
-		ml.Printf(argNum, color.GreenString("Successfully installed!"))
-	} else {
-		ml.Printf(argNum, color.RedString("Failed to create all links"))
+	if err := eg.Wait(); err != nil {
+		ml.Printf(argNum, color.RedString("%v", err))
+		return false
 	}
-	return success
+	ml.Printf(argNum, color.GreenString("Successfully installed!"))
+	return true
 }
 
 func DownloadUrl(url string, f io.Writer, pkg string, ver string, argNum int, argCount int, ml *multiline.MultiLogger) bool {
