@@ -81,7 +81,12 @@ webman remove rg`,
 			panic(err)
 		}
 		if using != nil && *using == pkgVerStem {
-			_, linkPaths, err := link.GetBinPathsAndLinkPaths(webmanDir, pkg, pkgVerStem, pkgConf.BinPath)
+			binPath, err := pkgConf.GetMyBinPath()
+			if err != nil {
+				fmt.Println(color.RedString("%v", err))
+				return
+			}
+			_, linkPaths, err := link.GetBinPathsAndLinkPaths(webmanDir, pkg, pkgVerStem, binPath)
 			if err != nil {
 				panic(err)
 			}

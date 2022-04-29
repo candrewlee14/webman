@@ -10,19 +10,21 @@ version_type: semantic
 latest_strategy: arch-linux-community
 arch_linux_pkg_name: nodejs
 
-bin_path: ""
 extract_has_root: true
 
 os_map:
   linux: 
     name: linux
     ext: tar.xz
+    bin_path: bin/
   macos: 
     name: darwin
     ext: tar.gz
+    bin_path: bin/
   win: 
     name: win
     ext: zip
+    bin_path: ""
 arch_map:
   amd64: x64
   arm64: arm64

@@ -9,19 +9,21 @@ filename_format: zig-[OS]-[ARCH]-[VER].[EXT]
 version_type: semantic
 latest_strategy: github-release # uses most recent github release tag to get the latest version number
 
-bin_path: zig
 extract_has_root: true
 
 os_map:
   linux:
     name: linux
     ext: tar.xz
+    bin_path: zig
   macos: 
     name: macos
     ext: tar.xz
+    bin_path: zig
   win: 
     name: windows
     ext: zip
+    bin_path: zig
 arch_map:
   amd64: x86_64
   arm64: aarch64

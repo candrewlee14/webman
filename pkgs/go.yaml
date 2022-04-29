@@ -25,12 +25,15 @@ os_map:
   linux:
     name: linux
     ext: tar.gz
+    bin_path: bin/
   macos: 
     name: darwin
     ext: tar.gz
+    bin_path: bin/
   win: 
     name: windows
     ext: zip
+    bin_path: bin/
 arch_map:
   amd64: amd64
   arm64: arm64

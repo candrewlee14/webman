@@ -170,7 +170,12 @@ func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync
 		panic(err)
 	}
 	if using == nil {
-		madeLinks, err := CreateLinks(webmanDir, pkg, stem, pkgConf.BinPath)
+		binPath, err := pkgConf.GetMyBinPath()
+		if err != nil {
+			ml.Printf(argNum, color.RedString("%v", err))
+			return false
+		}
+		madeLinks, err := CreateLinks(webmanDir, pkg, stem, binPath)
 		if err != nil {
 			ml.Printf(argNum, color.RedString("Failed creating links: %v", err))
 			return false

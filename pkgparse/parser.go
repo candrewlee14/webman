@@ -15,8 +15,9 @@ type UsingInfo struct {
 }
 
 type OsInfo struct {
-	Name string `yaml:"name"`
-	Ext  string `yaml:"ext"`
+	Name    string `yaml:"name"`
+	Ext     string `yaml:"ext"`
+	BinPath string `yaml:"bin_path"`
 }
 
 type PkgConfig struct {
@@ -32,11 +33,28 @@ type PkgConfig struct {
 	LatestStrategy   string `yaml:"latest_strategy"`
 	ArchLinuxPkgName string `yaml:"arch_linux_pkg_name"`
 
-	BinPath        string `yaml:"bin_path"`
-	ExtractHasRoot bool   `yaml:"extract_has_root"`
+	ExtractHasRoot bool `yaml:"extract_has_root"`
 
 	OsMap   map[string]OsInfo `yaml:"os_map"`
 	ArchMap map[string]string `yaml:"arch_map"`
+}
+
+var goOsToPkgOs = map[string]string{
+	"darwin":  "macos",
+	"windows": "win",
+	"linux":   "linux",
+}
+
+func (pkgConf *PkgConfig) GetMyBinPath() (string, error) {
+	osStr, exists := goOsToPkgOs[runtime.GOOS]
+	if !exists {
+		return "", fmt.Errorf("unsupported OS")
+	}
+	osInfo, exists := pkgConf.OsMap[osStr]
+	if !exists {
+		return "", fmt.Errorf("package does not support this OS")
+	}
+	return osInfo.BinPath, nil
 }
 
 // Check using file.
@@ -94,12 +112,6 @@ func ParsePkgConfig(pkg string) (*PkgConfig, error) {
 	return &pkgConf, nil
 }
 
-var goOsToPkgOs = map[string]string{
-	"darwin":  "macos",
-	"windows": "win",
-	"linux":   "linux",
-}
-
 func (pkgConf *PkgConfig) GetLatestVersion() (*string, error) {
 	switch pkgConf.LatestStrategy {
 	case "github-release":
@@ -131,7 +143,7 @@ func (pkgConf *PkgConfig) GetAssetStemExtUrl(version string) (*string, *string, 
 	}
 	archStr, exists := pkgConf.ArchMap[runtime.GOARCH]
 	if !exists {
-		return nil, nil, nil, fmt.Errorf("package has no binary for architecture: %s", archStr)
+		return nil, nil, nil, fmt.Errorf("package has no binary for architecture: %s", runtime.GOARCH)
 	}
 	baseUrl := pkgConf.BaseDownloadUrl
 	baseUrl = strings.ReplaceAll(baseUrl, "[VER]", version)

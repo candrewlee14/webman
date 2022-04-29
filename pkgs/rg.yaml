@@ -9,19 +9,21 @@ filename_format: ripgrep-[VER]-[ARCH]-[OS].[EXT]
 version_type: semantic
 latest_strategy: github-release # uses most recent github release tag to get the latest version number
 
-bin_path: rg
 extract_has_root: true
 
 os_map:
   linux:
     name: unknown-linux-musl
     ext: tar.gz
+    bin_path: rg
   macos: 
     name: apple-darwin
     ext: tar.gz
+    bin_path: rg
   win: 
     name: pc-windows-gnu
     ext: zip
+    bin_path: rg
 arch_map:
   amd64: x86_64
   # arm64: Unsupported
