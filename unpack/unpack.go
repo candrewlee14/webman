@@ -9,8 +9,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-
-	"github.com/rs/zerolog/log"
 )
 
 type UnpackFn func(src string, dir string) error
@@ -84,13 +82,11 @@ func unzip(src string, dir string) error {
 		fileName := f.Name
 
 		filePath := filepath.Join(dir, fileName)
-		log.Trace().Msgf("unzipping file %s", filePath)
 
 		if !strings.HasPrefix(filePath, filepath.Clean(dir)+string(os.PathSeparator)) {
 			return fmt.Errorf("invalid file path")
 		}
 		if f.FileInfo().IsDir() {
-			log.Trace().Msgf("creating directory...")
 			os.MkdirAll(filePath, os.ModePerm)
 			continue
 		}

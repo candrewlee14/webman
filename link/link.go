@@ -7,7 +7,7 @@ import (
 	"runtime"
 )
 
-func GetBinPathsAndLinkPaths(argNum int,
+func GetBinPathsAndLinkPaths(
 	webmanDir string,
 	pkg string,
 	stem string,

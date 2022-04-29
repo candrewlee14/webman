@@ -25,14 +25,18 @@ import (
 // addCmd represents the add command
 var addCmd = &cobra.Command{
 	Use:   "add",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "install packages",
+	Long: `
+The "add" subcommand installs packages.`,
+	Example: `webman add go
+webman add go@18.0.0
+webman add go zig rg
+webman add go@18.0.0 zig@9.1.0 rg@13.0.0`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if len(args) == 0 {
+			cmd.Help()
+			os.Exit(0)
+		}
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
 			panic(err)
@@ -63,7 +67,6 @@ to quickly create a Cobra application.`,
 
 func init() {
 	rootCmd.AddCommand(addCmd)
-
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
@@ -92,7 +95,6 @@ func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync
 		return false
 	}
 	ml.SetPrefix(argNum, color.YellowString(pkg)+": ")
-	// log := log.With().Str("pkg", pkg).Logger()
 	pkgConf, err := pkgparse.ParsePkgConfig(pkg)
 	if err != nil {
 		ml.Printf(argNum, color.RedString("%v", err))
@@ -159,31 +161,21 @@ func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync
 	}
 	ml.Printf(argNum, "Completed unpacking %s@%s", color.CyanString(pkg), color.MagentaString(ver))
 
-	binPaths, linkPaths, err := link.GetBinPathsAndLinkPaths(argNum, webmanDir, pkg, stem, pkgConf.BinPath)
+	using, err := pkgparse.CheckUsing(pkg, webmanDir)
 	if err != nil {
-		ml.Printf(argNum, color.RedString("%v", err))
-		return false
+		panic(err)
 	}
-
-	var eg errgroup.Group
-	for i, linkPath := range linkPaths {
-		binPath := binPaths[i]
-		linkPath := linkPath // this supresses the warning for linkPath closure capture
-		eg.Go(func() error {
-			didLink, err := link.AddLink(binPath, linkPath)
-			if err != nil {
-				return err
-			}
-			if !didLink {
-				return fmt.Errorf("failed to create link to %s", binPath)
-			}
-			ml.Printf(argNum, "Created link to %s", binPath)
-			return nil
-		})
-	}
-	if err := eg.Wait(); err != nil {
-		ml.Printf(argNum, color.RedString("%v", err))
-		return false
+	if using == nil {
+		madeLinks, err := CreateLinks(webmanDir, pkg, stem, pkgConf.BinPath)
+		if err != nil {
+			ml.Printf(argNum, color.RedString("Failed creating links: %v", err))
+			return false
+		}
+		if !madeLinks {
+			ml.Printf(argNum, color.RedString("Failed creating links"))
+			return false
+		}
+		ml.Printf(argNum, "Now using %s@%s", color.CyanString(pkg), color.MagentaString(ver))
 	}
 	ml.Printf(argNum, color.GreenString("Successfully installed!"))
 	return true
@@ -232,4 +224,34 @@ func DownloadUrl(url string, f io.Writer, pkg string, ver string, argNum int, ar
 		return false
 	}
 	return true
+}
+
+func CreateLinks(webmanDir string, pkg string, stem string, confBinPath string) (bool, error) {
+	binPaths, linkPaths, err := link.GetBinPathsAndLinkPaths(webmanDir, pkg, stem, confBinPath)
+	if err != nil {
+		return false, err
+	}
+
+	var eg errgroup.Group
+	for i, linkPath := range linkPaths {
+		binPath := binPaths[i]
+		linkPath := linkPath // this supresses the warning for linkPath closure capture
+		eg.Go(func() error {
+			didLink, err := link.AddLink(binPath, linkPath)
+			if err != nil {
+				return err
+			}
+			if !didLink {
+				return fmt.Errorf("failed to create link to %s", binPath)
+			}
+			return nil
+		})
+	}
+	if err := eg.Wait(); err != nil {
+		return false, err
+	}
+	if err = pkgparse.WriteUsing(pkg, webmanDir, stem); err != nil {
+		panic(err)
+	}
+	return true, nil
 }

@@ -4,9 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
-	"webman/link"
-	"webman/multiline"
 	"webman/pkgparse"
 
 	"github.com/fatih/color"
@@ -15,13 +12,13 @@ import (
 )
 
 // removeCmd represents the remove command
-var removeCmd = &cobra.Command{
-	Use:   "remove",
-	Short: "remove a package",
-	Long:  `The "remove" subcommand removes a prompt-selected version of a given package.`,
-	Example: `webman remove go
-webman remove zig
-webman remove rg`,
+var switchCmd = &cobra.Command{
+	Use:   "switch",
+	Short: "switch to a specific version of a package",
+	Long:  `The "switch" subcommand changes path to a prompt-selected version of a given package.`,
+	Example: `webman switch go
+webman switch zig
+webman switch rg`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) != 1 {
 			cmd.Help()
@@ -43,6 +40,7 @@ webman remove rg`,
 			}
 			panic(err)
 		}
+
 		using, err := pkgparse.CheckUsing(pkg, webmanDir)
 		if err != nil {
 			panic(err)
@@ -59,65 +57,41 @@ webman remove rg`,
 				pkgVersions = append(pkgVersions, entry.Name())
 			}
 		}
-		var pkgVerStem string
-		if len(pkgVersions) == 1 {
-			pkgVerStem = pkgVersions[0]
-		} else {
-
-			prompt := promptui.Select{
-				Label: "Select " + color.CyanString(pkg) + " version to " + color.RedString("remove"),
-				Items: pkgVersions,
-			}
-			_, pkgVerStem, err = prompt.Run()
-		}
-
-		if err != nil {
-			fmt.Printf("Prompt failed %v\n", err)
-			return
-		}
-		pkgVerDir := filepath.Join(pkgDir, pkgVerStem)
 		pkgConf, err := pkgparse.ParsePkgConfig(pkg)
 		if err != nil {
 			panic(err)
 		}
-		if using != nil && *using == pkgVerStem {
-			_, linkPaths, err := link.GetBinPathsAndLinkPaths(webmanDir, pkg, pkgVerStem, pkgConf.BinPath)
+		var pkgVerStem string
+		if len(pkgVersions) == 1 {
+			pkgVerStem = pkgVersions[0]
+			if using != nil && *using == pkgVerStem {
+				fmt.Printf("Only one version of %s installed, which is already in use.\n", pkg)
+				os.Exit(0)
+			}
+		} else {
+			prompt := promptui.Select{
+				Label: "Select " + color.CyanString(pkg) + " version to switch to use",
+				Items: pkgVersions,
+			}
+			_, pkgVerStem, err = prompt.Run()
 			if err != nil {
 				panic(err)
 			}
-			fmt.Println("Removing links ...")
-			for _, linkPath := range linkPaths {
-				if runtime.GOOS == "windows" {
-					linkPath = linkPath + ".bat"
-				}
-				err := os.Remove(linkPath)
-				if err != nil {
-					panic(err)
-				}
-			}
-			fmt.Printf("%s%sRemoved links!\n", multiline.MoveUp, multiline.ClearLine)
-			if err = pkgparse.RemoveUsing(pkg, webmanDir); err != nil {
-				panic(err)
-			}
 		}
-		// Remove directory
-		fmt.Printf("Removing %s ...\n", pkgVerStem)
-		// if this is the only version of this package installed, remove this pkg's whole dir
-		if len(pkgVersions) == 1 {
-			if err := os.RemoveAll(pkgDir); err != nil {
-				panic(err)
-			}
-		} else { // otherwise just remove the pkg version's dir
-			if err := os.RemoveAll(pkgVerDir); err != nil {
-				panic(err)
-			}
+		madeLinks, err := CreateLinks(webmanDir, pkg, pkgVerStem, pkgConf.BinPath)
+		if err != nil {
+			panic(err)
 		}
-		fmt.Printf("%s%sRemoved %s!\n", multiline.MoveUp, multiline.ClearLine, pkgVerStem)
+		if !madeLinks {
+			panic("Unable to create all links")
+		}
+		fmt.Printf("Created links for %s\n", pkgVerStem)
+		color.Green("Successfully switched, %s now using %s\n", pkg, color.YellowString(pkgVerStem))
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(removeCmd)
+	rootCmd.AddCommand(switchCmd)
 
 	// Here you will define your flags and configuration settings.
 

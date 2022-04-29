@@ -10,6 +10,10 @@ import (
 	"github.com/go-yaml/yaml"
 )
 
+type UsingInfo struct {
+	Using string
+}
+
 type OsInfo struct {
 	Name string `yaml:"name"`
 	Ext  string `yaml:"ext"`
@@ -33,6 +37,44 @@ type PkgConfig struct {
 
 	OsMap   map[string]OsInfo `yaml:"os_map"`
 	ArchMap map[string]string `yaml:"arch_map"`
+}
+
+// Check using file.
+// If using.yaml file doesn't exist, it is not using anything
+func CheckUsing(pkg string, webmanDir string) (*string, error) {
+	usingPath := filepath.Join(webmanDir, "pkg", pkg, "using.yaml")
+	usingContent, err := os.ReadFile(usingPath)
+	if err != nil {
+		return nil, nil
+	}
+	var usingInfo UsingInfo
+	if err = yaml.UnmarshalStrict(usingContent, &usingInfo); err != nil {
+		return nil, err
+	}
+	return &usingInfo.Using, nil
+}
+
+func WriteUsing(pkg string, webmanDir string, using string) error {
+	usingInfo := UsingInfo{
+		Using: using,
+	}
+	data, err := yaml.Marshal(usingInfo)
+	if err != nil {
+		return err
+	}
+	usingPath := filepath.Join(webmanDir, "pkg", pkg, "using.yaml")
+	if err := os.WriteFile(usingPath, data, os.ModePerm); err != nil {
+		return err
+	}
+	return nil
+}
+
+func RemoveUsing(pkg string, webmanDir string) error {
+	usingPath := filepath.Join(webmanDir, "pkg", pkg, "using.yaml")
+	if err := os.Remove(usingPath); err != nil {
+		return err
+	}
+	return nil
 }
 
 func ParsePkgConfig(pkg string) (*PkgConfig, error) {

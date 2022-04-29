@@ -9,9 +9,9 @@ import (
 const esc = "\033["
 
 var (
-	clearLine = []byte(esc + "2K\r")
-	moveUp    = []byte(esc + "1F")
-	moveDown  = []byte(esc + "1E")
+	ClearLine = []byte(esc + "2K\r")
+	MoveUp    = []byte(esc + "1F")
+	MoveDown  = []byte(esc + "1E")
 )
 
 type LineLogger struct {
@@ -27,12 +27,12 @@ func (l *LineLogger) SetPrefix(pref string) {
 
 func (l *LineLogger) Printf(format string, a ...any) {
 	for i := 0; i < l.count-l.index; i++ {
-		fmt.Fprintf(l.w, "%s", moveUp)
+		fmt.Fprintf(l.w, "%s", MoveUp)
 	}
-	fmt.Fprintf(l.w, "%s", clearLine)
+	fmt.Fprintf(l.w, "%s", ClearLine)
 	fmt.Fprintf(l.w, l.prefix+format, a...)
 	for i := 0; i < l.count-l.index; i++ {
-		fmt.Fprintf(l.w, "%s", moveDown)
+		fmt.Fprintf(l.w, "%s", MoveDown)
 	}
 }
 
