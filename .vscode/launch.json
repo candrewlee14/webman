@@ -12,8 +12,8 @@
             "program": "main.go",
             "args": [
                 "add",
-                "zig",
-                "node"
+                "rg@11.0.0",
+                // "node"
             ]
         }
     ]

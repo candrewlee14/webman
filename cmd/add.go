@@ -94,7 +94,12 @@ func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync
 		ml.Printf(argNum, "Packages should be in format 'pkg' or 'pkg@version'")
 		return false
 	}
-	ml.SetPrefix(argNum, color.YellowString(pkg)+": ")
+	if len(ver) == 0 {
+		ml.SetPrefix(argNum, color.YellowString(pkg)+": ")
+
+	} else {
+		ml.SetPrefix(argNum, color.YellowString(pkg)+"@"+color.YellowString(ver)+": ")
+	}
 	pkgConf, err := pkgparse.ParsePkgConfig(pkg)
 	if err != nil {
 		ml.Printf(argNum, color.RedString("%v", err))
@@ -127,7 +132,6 @@ func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync
 		ml.Printf(argNum, "%s@%s is already installed!", color.CyanString(pkg), color.MagentaString(ver))
 		return false
 	}
-	ml.Printf(argNum, downloadPath)
 	f, err := os.OpenFile(downloadPath,
 		os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
