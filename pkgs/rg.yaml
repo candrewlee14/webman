@@ -15,10 +15,10 @@ extract_has_root: true
 os_map:
   linux:
     name: unknown-linux-musl
-    ext: tar.xz
+    ext: tar.gz
   macos: 
     name: apple-darwin
-    ext: tar.xz
+    ext: tar.gz
   win: 
     name: pc-windows-gnu
     ext: zip
