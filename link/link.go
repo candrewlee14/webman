@@ -92,8 +92,13 @@ func AddLink(old string, new string) (bool, error) {
 			return false, err
 		}
 	} else {
-		err := os.Symlink(old, new)
-		if err != nil {
+		if err := os.Remove(new); err != nil {
+			// if the file did exist and it's a different error, return it
+			if !os.IsNotExist(err) {
+				return false, err
+			}
+		}
+		if err := os.Symlink(old, new); err != nil {
 			return false, err
 		}
 	}
