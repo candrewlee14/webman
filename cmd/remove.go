@@ -76,7 +76,7 @@ webman remove rg`,
 			return
 		}
 		pkgVerDir := filepath.Join(pkgDir, pkgVerStem)
-		pkgConf, err := pkgparse.ParsePkgConfig(pkg)
+		pkgConf, err := pkgparse.ParsePkgConfigLocal(webmanDir, pkg)
 		if err != nil {
 			panic(err)
 		}

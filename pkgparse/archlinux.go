@@ -29,7 +29,7 @@ func getLatestArchLinuxPkgVersion(archpkg string) (*ArchLinuxPkgInfo, error) {
 	}
 	defer r.Body.Close()
 	if !(r.StatusCode >= 200 && r.StatusCode < 300) {
-		panic("Bad HTTP Response: " + r.Status)
+		return nil, fmt.Errorf("Bad HTTP Response: " + r.Status)
 	}
 	scanner := bufio.NewScanner(r.Body)
 	var pkgInfo ArchLinuxPkgInfo

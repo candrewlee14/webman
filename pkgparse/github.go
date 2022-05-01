@@ -3,8 +3,15 @@ package pkgparse
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"path/filepath"
+	"time"
+	"webman/unpack"
+
+	"github.com/go-yaml/yaml"
 )
 
 type ReleaseInfo struct {
@@ -47,4 +54,94 @@ func getLatestGithubReleaseTag(user string, repo string) (*ReleaseTagInfo, error
 		return nil, fmt.Errorf("expected at least one release listed at %s, unable to resolve latest", url)
 	}
 	return &releases[0], nil
+}
+
+type GithubDir struct {
+	Name        string
+	DownloadUrl string `yaml:"download_url"`
+}
+
+type RefreshFile struct {
+	LastUpdated *time.Time
+}
+
+func ShouldRefreshRecipes(webmanDir string) (bool, error) {
+	recipeDir := filepath.Join(webmanDir, "recipes")
+	refreshFileDir := filepath.Join(recipeDir, "refresh.yaml")
+	data, err := os.ReadFile(refreshFileDir)
+	if err != nil {
+		// if err occured and file does exist
+		if !os.IsNotExist(err) {
+			return false, err
+		}
+	}
+	var refreshFile RefreshFile
+	if err = yaml.UnmarshalStrict(data, &refreshFile); err != nil {
+		return true, err
+	}
+	if refreshFile.LastUpdated == nil {
+		return true, nil
+	}
+	timeSince := time.Since(*refreshFile.LastUpdated)
+	if timeSince > (time.Hour * 6) {
+		return true, nil
+	}
+	return false, nil
+}
+
+func RefreshRecipes(webmanDir string) error {
+	recipeDir := filepath.Join(webmanDir, "recipes")
+	tempDir := filepath.Join(webmanDir, "tmp")
+
+	if err := os.RemoveAll(recipeDir); err != nil {
+		return err
+	}
+	url := "https://api.github.com/repos/candrewlee14/webman-pkgs/zipball/main"
+	r, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer r.Body.Close()
+	if !(r.StatusCode >= 200 && r.StatusCode < 300) {
+		return fmt.Errorf("Bad HTTP Response: " + r.Status)
+	}
+	if err = os.RemoveAll(recipeDir); err != nil {
+		return err
+	}
+	if err = os.MkdirAll(tempDir, os.ModePerm); err != nil {
+		return err
+	}
+	tmpZipFile, err := os.CreateTemp(tempDir, "recipes-*.zip")
+	if err != nil {
+		fmt.Println("Made refresh.zip file")
+		return err
+	}
+	if _, err = io.Copy(tmpZipFile, r.Body); err != nil {
+		return err
+	}
+	tmpRecipeDir := filepath.Join(webmanDir, "tmp", "recipes")
+	if err = unpack.Unzip(tmpZipFile.Name(), tmpRecipeDir); err != nil {
+		return err
+	}
+	fdir, err := os.ReadDir(tmpRecipeDir)
+	if err != nil {
+		return err
+	}
+	if len(fdir) != 1 {
+		return fmt.Errorf("expected unzipped refresh to have a single root folder")
+	}
+	innerTmpFolder := filepath.Join(tmpRecipeDir, fdir[0].Name())
+	if err = os.Rename(innerTmpFolder, recipeDir); err != nil {
+		return err
+	}
+	refreshFilePath := filepath.Join(recipeDir, "refresh.yaml")
+	curTime := time.Now()
+	data, err := yaml.Marshal(RefreshFile{&curTime})
+	if err != nil {
+		return nil
+	}
+	if err = os.WriteFile(refreshFilePath, data, os.ModePerm); err != nil {
+		return err
+	}
+	return nil
 }

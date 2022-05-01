@@ -55,6 +55,16 @@ webman add go@18.0.0 zig@9.1.0 rg@13.0.0`,
 		if err = os.MkdirAll(webmanTmpDir, os.ModePerm); err != nil {
 			panic(err)
 		}
+		shouldRefresh, err := pkgparse.ShouldRefreshRecipes(webmanDir)
+		if err != nil {
+			panic(err)
+		}
+		if shouldRefresh {
+			fmt.Println("Refreshing package recipes")
+			if err = pkgparse.RefreshRecipes(webmanDir); err != nil {
+				fmt.Println(err)
+			}
+		}
 		var wg sync.WaitGroup
 		ml := multiline.New(len(args), os.Stdout)
 		wg.Add(len(args))
@@ -100,15 +110,27 @@ func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync
 	} else {
 		ml.SetPrefix(argNum, color.YellowString(pkg)+"@"+color.YellowString(ver)+": ")
 	}
-	ml.Printf(argNum, "Finding package recipe for %s", color.CyanString(pkg))
-	pkgConf, err := pkgparse.ParsePkgConfig(pkg)
+	foundRecipe := make(chan bool)
+	ml.PrintUntilDone(argNum,
+		fmt.Sprintf("Finding package recipe for %s", color.CyanString(pkg)),
+		foundRecipe,
+		500,
+	)
+	pkgConf, err := pkgparse.ParsePkgConfigLocal(webmanDir, pkg)
+	foundRecipe <- true
 	if err != nil {
 		ml.Printf(argNum, color.RedString("%v", err))
 		return false
 	}
 	if len(ver) == 0 {
-		ml.Printf(argNum, "Finding latest %s version tag", color.CyanString(pkg))
+		foundLatest := make(chan bool)
+		ml.PrintUntilDone(argNum,
+			fmt.Sprintf("Finding latest %s version tag", color.CyanString(pkg)),
+			foundLatest,
+			500,
+		)
 		verPtr, err := pkgConf.GetLatestVersion()
+		foundLatest <- true
 		if err != nil {
 			ml.Printf(argNum, color.RedString("unable to find latest version tag: %v", err))
 			return false
@@ -144,20 +166,11 @@ func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync
 		return false
 	}
 	hasUnpacked := make(chan bool)
-	// This is for threaded printing "..." while unpacking
-	go func() {
-		i := 0
-		for {
-			select {
-			case <-hasUnpacked:
-				return
-			default:
-				ml.Printf(argNum, "Unpacking %s.%s "+strings.Repeat(".", i), stem, ext)
-			}
-			time.Sleep(500 * time.Millisecond)
-			i += 1
-		}
-	}()
+	ml.PrintUntilDone(argNum,
+		fmt.Sprintf("Unpacking %s.%s", stem, ext),
+		hasUnpacked,
+		500,
+	)
 	err = unpack.Unpack(downloadPath, webmanDir, pkg, stem, ext, pkgConf.ExtractHasRoot)
 	hasUnpacked <- true
 	if err != nil {

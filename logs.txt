@@ -1,0 +1,2 @@
+
+[1F[2Krg: Found rg version tag: 13.0.0[1E[1F[2Krg: Already installed![1E

@@ -16,7 +16,7 @@ type UnpackFn func(src string, dir string) error
 var unpackMap = map[string]UnpackFn{
 	"tar.gz": untarExec,
 	"tar.xz": untarExec,
-	"zip":    unzip,
+	"zip":    Unzip,
 }
 
 func Unpack(src string, webmanDir string, pkg string, stem string, ext string, hasRoot bool) error {
@@ -71,10 +71,10 @@ func untarExec(src string, dir string) error {
 	return cmd.Run()
 }
 
-func unzip(src string, dir string) error {
+func Unzip(src string, dir string) error {
 	archive, err := zip.OpenReader(src)
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("unable to unzip: %v", err)
 	}
 	defer archive.Close()
 

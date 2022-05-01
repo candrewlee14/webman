@@ -57,7 +57,7 @@ webman switch rg`,
 				pkgVersions = append(pkgVersions, entry.Name())
 			}
 		}
-		pkgConf, err := pkgparse.ParsePkgConfig(pkg)
+		pkgConf, err := pkgparse.ParsePkgConfigLocal(webmanDir, pkg)
 		if err != nil {
 			panic(err)
 		}

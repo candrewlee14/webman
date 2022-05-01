@@ -3,7 +3,11 @@ package multiline
 import (
 	"fmt"
 	"io"
+	"strings"
 	"sync"
+	"time"
+
+	"github.com/fatih/color"
 )
 
 const esc = "\033["
@@ -62,4 +66,20 @@ func (ml *MultiLogger) Printf(index int, format string, a ...any) {
 
 func (ml *MultiLogger) SetPrefix(index int, pref string) {
 	ml.loggers[index].SetPrefix(pref)
+}
+
+func (ml *MultiLogger) PrintUntilDone(index int, printStr string, done <-chan bool, millis int) {
+	go func() {
+		i := 0
+		for {
+			select {
+			case <-done:
+				return
+			default:
+				ml.Printf(index, printStr+" "+color.HiBlackString(strings.Repeat(".", i)))
+			}
+			time.Sleep(time.Duration(millis) * time.Millisecond)
+			i += 1
+		}
+	}()
 }

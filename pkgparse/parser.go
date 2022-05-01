@@ -96,12 +96,7 @@ func RemoveUsing(pkg string, webmanDir string) error {
 	return nil
 }
 
-type GithubDir struct {
-	Name        string
-	DownloadUrl string `yaml:"download_url"`
-}
-
-func ParsePkgConfig(pkg string) (*PkgConfig, error) {
+func ParsePkgConfigOnline(pkg string) (*PkgConfig, error) {
 	pkgConfUrl := "https://raw.githubusercontent.com/candrewlee14/webman-pkgs/main/pkgs/" + pkg + ".yaml"
 	r, err := http.Get(pkgConfUrl)
 	if err != nil {
@@ -120,6 +115,22 @@ func ParsePkgConfig(pkg string) (*PkgConfig, error) {
 	dat, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return nil, fmt.Errorf("unable to download %s package recipe: %v", pkg, err)
+	}
+	var pkgConf PkgConfig
+	if err = yaml.UnmarshalStrict(dat, &pkgConf); err != nil {
+		return nil, fmt.Errorf("unable parse package recipe for %s: %v", pkg, err)
+	}
+	return &pkgConf, nil
+}
+
+func ParsePkgConfigLocal(webmanDir string, pkg string) (*PkgConfig, error) {
+	pkgConfPath := filepath.Join(webmanDir, "recipes", "pkgs", pkg+".yaml")
+	dat, err := os.ReadFile(pkgConfPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, fmt.Errorf("no package recipe exists for %s", pkg)
+		}
+		return nil, err
 	}
 	var pkgConf PkgConfig
 	if err = yaml.UnmarshalStrict(dat, &pkgConf); err != nil {
