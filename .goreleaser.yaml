@@ -19,8 +19,6 @@ builds:
       - arm64
 archives:
   - 
-    builds:
-    - default
     format_overrides:
     - goos: windows
       format: zip
