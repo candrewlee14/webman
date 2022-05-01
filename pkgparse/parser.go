@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 
@@ -31,6 +32,7 @@ type PkgConfig struct {
 	SourceUrl       string `yaml:"source_url"`
 
 	FilenameFormat   string `yaml:"filename_format"`
+	VersionFormat    string `yaml:"version_format"`
 	LatestStrategy   string `yaml:"latest_strategy"`
 	ArchLinuxPkgName string `yaml:"arch_linux_pkg_name"`
 
@@ -140,22 +142,46 @@ func ParsePkgConfigLocal(recipeDir string, pkg string) (*PkgConfig, error) {
 }
 
 func (pkgConf *PkgConfig) GetLatestVersion() (*string, error) {
+	var version string
 	switch pkgConf.LatestStrategy {
 	case "github-release":
 		rel, err := getLatestGithubReleaseTag(pkgConf.GitUser, pkgConf.GitRepo)
 		if err != nil {
 			return nil, err
 		}
-		return &rel.TagName, nil
+		version = rel.TagName
 	case "arch-linux-community":
 		rel, err := getLatestArchLinuxPkgVersion(pkgConf.ArchLinuxPkgName)
 		if err != nil {
 			return nil, err
 		}
-		return &rel.PkgVer, nil
+		version = rel.PkgVer
 	}
-	return nil, fmt.Errorf("no implemented latest version resolution strategy for %q",
-		pkgConf.LatestStrategy)
+	if version == "" {
+		return nil, fmt.Errorf("no implemented latest version resolution strategy for %q",
+			pkgConf.LatestStrategy)
+	}
+	parsedVer, err := ParseVersion(version, pkgConf.VersionFormat)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse version: %v", err)
+	}
+	return parsedVer, nil
+}
+
+func ParseVersion(versionStr string, versionFmt string) (*string, error) {
+	if versionFmt == "" {
+		versionFmt = "[VER]"
+	}
+	versionMatchExp := strings.Replace(versionFmt, "[VER]", "(.+)", 1)
+	exp, err := regexp.Compile(versionMatchExp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to compile regex based on version_format: %v", err)
+	}
+	matchedVer := exp.FindStringSubmatch(versionStr)
+	if len(matchedVer) != 2 || matchedVer[1] == "" {
+		return nil, fmt.Errorf("failed to match version %q with given version_format", versionStr)
+	}
+	return &matchedVer[1], nil
 }
 
 ///
