@@ -184,26 +184,31 @@ func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync
 	hasUnpacked <- true
 	if err != nil {
 		ml.Printf(argNum, color.RedString("%v", err))
+		cleanUpFailedInstall(webmanDir, pkg, extractPath)
 		return false
 	}
 	ml.Printf(argNum, "Completed unpacking %s@%s", color.CyanString(pkg), color.MagentaString(ver))
 
 	using, err := pkgparse.CheckUsing(pkg, webmanDir)
 	if err != nil {
+		cleanUpFailedInstall(webmanDir, pkg, extractPath)
 		panic(err)
 	}
 	if using == nil {
 		binPath, err := pkgConf.GetMyBinPath()
 		if err != nil {
+			cleanUpFailedInstall(webmanDir, pkg, extractPath)
 			ml.Printf(argNum, color.RedString("%v", err))
 			return false
 		}
 		madeLinks, err := CreateLinks(webmanDir, pkg, extractStem, binPath)
 		if err != nil {
+			cleanUpFailedInstall(webmanDir, pkg, extractPath)
 			ml.Printf(argNum, color.RedString("Failed creating links: %v", err))
 			return false
 		}
 		if !madeLinks {
+			cleanUpFailedInstall(webmanDir, pkg, extractPath)
 			ml.Printf(argNum, color.RedString("Failed creating links"))
 			return false
 		}
@@ -211,6 +216,15 @@ func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync
 	}
 	ml.Printf(argNum, color.GreenString("Successfully installed!"))
 	return true
+}
+
+func cleanUpFailedInstall(webmanDir string, pkg string, extractPath string) {
+	os.RemoveAll(extractPath) // clean up failed installation
+	pkgDir := filepath.Join(webmanDir, "pkg", pkg)
+	dirs, err := os.ReadDir(pkgDir)
+	if err == nil && len(dirs) == 0 {
+		os.RemoveAll(pkgDir)
+	}
 }
 
 func DownloadUrl(url string, f io.Writer, pkg string, ver string, argNum int, argCount int, ml *multiline.MultiLogger) bool {
