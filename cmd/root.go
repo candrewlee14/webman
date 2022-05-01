@@ -40,7 +40,8 @@ __          __  _
    \  /\  /  __/ |_) | | | | | | (_| | | | |
     \/  \/ \___|_.__/|_| |_| |_|\__,_|_| |_|
 
-A cross-platform package manager for the web
+A cross-platform package manager for the web!
+	Created by candrewlee14
 
 `,
 	// Uncomment the following line if your bare application

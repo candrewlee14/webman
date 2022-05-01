@@ -45,6 +45,9 @@ func GetBinPathsAndLinkPaths(
 			}
 		}
 	}
+	if len(linkPaths) == 0 {
+		return []string{}, []string{}, fmt.Errorf("given binary path had no executable files")
+	}
 	return binPaths, linkPaths, nil
 }
 
