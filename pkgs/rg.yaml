@@ -25,4 +25,4 @@ os_map:
     bin_path: rg
 arch_map:
   amd64: x86_64
-  # arm64: Unsupported
+  arm64: aarch64

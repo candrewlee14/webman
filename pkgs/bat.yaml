@@ -1,0 +1,28 @@
+info_url: https://github.com/sharkdp/bat/
+releases_url: https://github.com/sharkdp/bat/releases/
+git_user: sharkdp
+git_repo: bat
+source_url:  https://github.com/sharkdp/bat/
+
+base_download_url: https://github.com/sharkdp/bat/releases/download/[VER]/
+filename_format: bat-[VER]-[ARCH]-[OS].[EXT]
+latest_strategy: github-release # uses most recent github release tag to get the latest version number
+
+extract_has_root: true
+
+os_map:
+  linux:
+    name: unknown-linux-gnu
+    ext: tar.gz
+    bin_path: bat
+  macos: 
+    name: apple-darwin
+    ext: tar.gz
+    bin_path: bat
+  win: 
+    name: pc-windows-gnu
+    ext: zip
+    bin_path: bat
+arch_map:
+  amd64: x86_64
+  arm64: aarch64
