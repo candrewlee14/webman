@@ -100,6 +100,7 @@ func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync
 	} else {
 		ml.SetPrefix(argNum, color.YellowString(pkg)+"@"+color.YellowString(ver)+": ")
 	}
+	ml.Printf(argNum, "Finding package recipe for %s", color.CyanString(pkg))
 	pkgConf, err := pkgparse.ParsePkgConfig(pkg)
 	if err != nil {
 		ml.Printf(argNum, color.RedString("%v", err))
