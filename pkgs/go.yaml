@@ -19,7 +19,6 @@ extract_has_root: true
 # uses most recent arch linux community package version to get latest tag
 latest_strategy: arch-linux-community 
 arch_linux_pkg_name: go
-version_type: semantic
 
 os_map:
   linux:

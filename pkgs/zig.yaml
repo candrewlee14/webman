@@ -6,7 +6,6 @@ source_url: https://github.com/ziglang/zig
 
 base_download_url: https://ziglang.org/download/[VER]/
 filename_format: zig-[OS]-[ARCH]-[VER].[EXT]
-version_type: semantic
 latest_strategy: github-release # uses most recent github release tag to get the latest version number
 
 extract_has_root: true

@@ -6,7 +6,6 @@ git_repo: node
 source_url: https://github.com/nodejs/node
 
 filename_format: node-v[VER]-[OS]-[ARCH].[EXT]
-version_type: semantic
 latest_strategy: arch-linux-community
 arch_linux_pkg_name: nodejs
 

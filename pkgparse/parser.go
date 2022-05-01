@@ -29,7 +29,6 @@ type PkgConfig struct {
 	SourceUrl       string `yaml:"source_url"`
 
 	FilenameFormat   string `yaml:"filename_format"`
-	VersionType      string `yaml:"version_type"`
 	LatestStrategy   string `yaml:"latest_strategy"`
 	ArchLinuxPkgName string `yaml:"arch_linux_pkg_name"`
 

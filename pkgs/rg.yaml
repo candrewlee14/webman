@@ -6,7 +6,6 @@ source_url: https://github.com/BurntSushi/ripgrep
 
 base_download_url: https://github.com/BurntSushi/ripgrep/releases/download/[VER]/
 filename_format: ripgrep-[VER]-[ARCH]-[OS].[EXT]
-version_type: semantic
 latest_strategy: github-release # uses most recent github release tag to get the latest version number
 
 extract_has_root: true
