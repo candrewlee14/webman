@@ -59,7 +59,8 @@ webman switch rg`,
 		}
 		pkgConf, err := pkgparse.ParsePkgConfigLocal(webmanDir, pkg)
 		if err != nil {
-			panic(err)
+			color.Red("%v", err)
+			os.Exit(1)
 		}
 		var pkgVerStem string
 		if len(pkgVersions) == 1 {

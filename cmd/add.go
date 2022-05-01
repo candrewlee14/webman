@@ -22,6 +22,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var doRefresh bool
+
 // addCmd represents the add command
 var addCmd = &cobra.Command{
 	Use:   "add",
@@ -59,8 +61,8 @@ webman add go@18.0.0 zig@9.1.0 rg@13.0.0`,
 		if err != nil {
 			panic(err)
 		}
-		if shouldRefresh {
-			fmt.Println("Refreshing package recipes")
+		if shouldRefresh || doRefresh {
+			color.HiBlue("Refreshing package recipes")
 			if err = pkgparse.RefreshRecipes(webmanDir); err != nil {
 				fmt.Println(err)
 			}
@@ -77,6 +79,8 @@ webman add go@18.0.0 zig@9.1.0 rg@13.0.0`,
 
 func init() {
 	rootCmd.AddCommand(addCmd)
+	addCmd.Flags().BoolVar(&doRefresh, "refresh", false, "force refresh of package recipes")
+
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
