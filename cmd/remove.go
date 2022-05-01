@@ -76,7 +76,8 @@ webman remove rg`,
 			return
 		}
 		pkgVerDir := filepath.Join(pkgDir, pkgVerStem)
-		pkgConf, err := pkgparse.ParsePkgConfigLocal(webmanDir, pkg)
+		recipeDir = filepath.Join(webmanDir, "recipes")
+		pkgConf, err := pkgparse.ParsePkgConfigLocal(recipeDir, pkg)
 		if err != nil {
 			panic(err)
 		}

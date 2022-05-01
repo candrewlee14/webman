@@ -123,8 +123,8 @@ func ParsePkgConfigOnline(pkg string) (*PkgConfig, error) {
 	return &pkgConf, nil
 }
 
-func ParsePkgConfigLocal(webmanDir string, pkg string) (*PkgConfig, error) {
-	pkgConfPath := filepath.Join(webmanDir, "recipes", "pkgs", pkg+".yaml")
+func ParsePkgConfigLocal(recipeDir string, pkg string) (*PkgConfig, error) {
+	pkgConfPath := filepath.Join(recipeDir, "pkgs", pkg+".yaml")
 	dat, err := os.ReadFile(pkgConfPath)
 	if err != nil {
 		if os.IsNotExist(err) {

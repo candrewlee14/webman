@@ -57,7 +57,8 @@ webman switch rg`,
 				pkgVersions = append(pkgVersions, entry.Name())
 			}
 		}
-		pkgConf, err := pkgparse.ParsePkgConfigLocal(webmanDir, pkg)
+		recipeDir = filepath.Join(webmanDir, "recipes")
+		pkgConf, err := pkgparse.ParsePkgConfigLocal(recipeDir, pkg)
 		if err != nil {
 			color.Red("%v", err)
 			os.Exit(1)

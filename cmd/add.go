@@ -23,6 +23,7 @@ import (
 )
 
 var doRefresh bool
+var recipeDir string
 
 // addCmd represents the add command
 var addCmd = &cobra.Command{
@@ -80,7 +81,7 @@ webman add go@18.0.0 zig@9.1.0 rg@13.0.0`,
 func init() {
 	rootCmd.AddCommand(addCmd)
 	addCmd.Flags().BoolVar(&doRefresh, "refresh", false, "force refresh of package recipes")
-
+	addCmd.Flags().StringVarP(&recipeDir, "local-recipes", "l", "", "use given local recipe directory")
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
@@ -120,7 +121,10 @@ func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync
 		foundRecipe,
 		500,
 	)
-	pkgConf, err := pkgparse.ParsePkgConfigLocal(webmanDir, pkg)
+	if recipeDir == "" {
+		recipeDir = filepath.Join(webmanDir, "recipes")
+	}
+	pkgConf, err := pkgparse.ParsePkgConfigLocal(recipeDir, pkg)
 	foundRecipe <- true
 	if err != nil {
 		ml.Printf(argNum, color.RedString("%v", err))
@@ -153,7 +157,8 @@ func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync
 	fileName := stem + "." + ext
 	downloadPath := filepath.Join(webmanTmpDir, fileName)
 
-	extractPath := filepath.Join(webmanPkgDir, pkg, stem)
+	extractStem := fmt.Sprintf("%s-%s", pkg, ver)
+	extractPath := filepath.Join(webmanPkgDir, pkg, extractStem)
 	// If file exists
 	if _, err := os.Stat(extractPath); !os.IsNotExist(err) {
 		ml.Printf(argNum, color.HiBlackString("Already installed!"))
@@ -175,7 +180,7 @@ func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync
 		hasUnpacked,
 		500,
 	)
-	err = unpack.Unpack(downloadPath, webmanDir, pkg, stem, ext, pkgConf.ExtractHasRoot)
+	err = unpack.Unpack(downloadPath, webmanDir, pkg, extractStem, ext, pkgConf.ExtractHasRoot)
 	hasUnpacked <- true
 	if err != nil {
 		ml.Printf(argNum, color.RedString("%v", err))
@@ -193,7 +198,7 @@ func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync
 			ml.Printf(argNum, color.RedString("%v", err))
 			return false
 		}
-		madeLinks, err := CreateLinks(webmanDir, pkg, stem, binPath)
+		madeLinks, err := CreateLinks(webmanDir, pkg, extractStem, binPath)
 		if err != nil {
 			ml.Printf(argNum, color.RedString("Failed creating links: %v", err))
 			return false
@@ -210,6 +215,7 @@ func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync
 
 func DownloadUrl(url string, f io.Writer, pkg string, ver string, argNum int, argCount int, ml *multiline.MultiLogger) bool {
 	r, err := http.Get(url)
+	ml.Printf(argNum, "Downloading file at %s", url)
 	if err != nil {
 		ml.Printf(argNum, color.RedString("%v", err))
 		return false
@@ -217,8 +223,8 @@ func DownloadUrl(url string, f io.Writer, pkg string, ver string, argNum int, ar
 	defer r.Body.Close()
 	if !(r.StatusCode >= 200 && r.StatusCode < 300) {
 		switch r.StatusCode {
-		case 404:
-			ml.Printf(argNum, color.RedString("unable to find %s@%s on the web. Is that a full, valid version number?", pkg, ver))
+		case 404, 403:
+			ml.Printf(argNum, color.RedString("unable to find %s@%s on the web at %s", pkg, ver, url))
 		default:
 			ml.Printf(argNum, color.RedString("bad HTTP Response: %s", r.Status))
 		}

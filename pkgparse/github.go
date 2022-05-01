@@ -28,8 +28,10 @@ type AssetInfo struct {
 }
 
 type ReleaseTagInfo struct {
-	TagName string `json:"tag_name"`
-	Date    string `json:"published_at"`
+	TagName    string `json:"tag_name"`
+	Date       string `json:"published_at"`
+	Prerelease bool
+	Draft      bool
 }
 
 func getLatestGithubReleaseTag(user string, repo string) (*ReleaseTagInfo, error) {
@@ -53,7 +55,12 @@ func getLatestGithubReleaseTag(user string, repo string) (*ReleaseTagInfo, error
 	if len(releases) == 0 {
 		return nil, fmt.Errorf("expected at least one release listed at %s, unable to resolve latest", url)
 	}
-	return &releases[0], nil
+	for _, release := range releases {
+		if !release.Prerelease && !release.Draft {
+			return &release, nil
+		}
+	}
+	return nil, fmt.Errorf("found no stable releases for %s/%s", user, repo)
 }
 
 type GithubDir struct {
