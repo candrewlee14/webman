@@ -63,7 +63,7 @@ func Unpack(src string, webmanDir string, pkg string, stem string, ext string, h
 
 func untarExec(src string, dir string) error {
 	if runtime.GOOS == "windows" {
-		panic("Windows doesn't have support for tarballs")
+		return fmt.Errorf("windows doesn't have support for tarballs")
 	}
 	cmd := exec.Command("tar", "-xf", src, "--directory="+dir)
 	cmd.Stdout = os.Stdout
@@ -92,21 +92,21 @@ func Unzip(src string, dir string) error {
 		}
 
 		if err := os.MkdirAll(filepath.Dir(filePath), os.ModePerm); err != nil {
-			panic(err)
+			return err
 		}
 
 		dstFile, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
 		if err != nil {
-			panic(err)
+			return err
 		}
 
 		fileInArchive, err := f.Open()
 		if err != nil {
-			panic(err)
+			return err
 		}
 
 		if _, err := io.Copy(dstFile, fileInArchive); err != nil {
-			panic(err)
+			return err
 		}
 
 		dstFile.Close()
