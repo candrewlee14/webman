@@ -10,9 +10,11 @@ Package recipes parse version numbers from the web, so you'll always have the mo
 
 Windows, Linux, and MacOS are all supported.
 
-## Examples
+# Examples
 
-### Add Software
+Below are examples of adding, removing, and switching.
+
+## Add Software
 
 `webman add go` will install the latest version of `go`
 
@@ -20,14 +22,21 @@ Windows, Linux, and MacOS are all supported.
 
 `webman add rg lsd zig node go rg@12.0.0` will install each of the package versions listed
 
-### Remove Software
+<img alt="webman add example" src="/assets/addNodeZigGoRg.gif" width=600/>
+
+## Remove Software
 
 `webman remove go` will allow you to select an installed version of the `go` package to uninstall
 
-### Switch to Other Version of Software
+<img alt="webman remove example" src="/assets/removeNode.gif" width=600/>
+
+## Switch to Other Version of Software
 
 `webman switch go` will allow you to select an installed version of the `go` package to switch to use.
 If `rg --version` previously showed `13.0.0`, try running `webman switch rg` and selecting version `12.0.0` (after it has been installed).
 Running `rg --version` again will say `12.0.0`. 
 
 Webman does version management :) 
+
+<img alt="webman switch example" src="/assets/switchRg.gif" width=600/>
+
