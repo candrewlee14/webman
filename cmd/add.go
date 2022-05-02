@@ -72,10 +72,22 @@ webman add go@18.0.0 zig@9.1.0 rg@13.0.0`,
 		var wg sync.WaitGroup
 		ml := multiline.New(len(args), os.Stdout)
 		wg.Add(len(args))
+		success := true
 		for i, arg := range args {
-			go installPkg(arg, i, len(args), webmanDir, &wg, &ml)
+			i := i
+			arg := arg
+			go func() {
+				if !installPkg(arg, i, len(args), webmanDir, &wg, &ml) {
+					success = false
+				}
+			}()
 		}
 		wg.Wait()
+		if !success {
+			color.Magenta("Not all packages installed successfully")
+			os.Exit(1)
+		}
+		color.Green("All packages installed successfully!")
 	},
 }
 
@@ -125,6 +137,11 @@ func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync
 	if recipeDir == "" {
 		recipeDir = filepath.Join(webmanDir, "recipes")
 	}
+	recipeDir, err := filepath.Abs(recipeDir)
+	if err != nil {
+		ml.Printf(argNum, "Failed converting local package directory to absolute path")
+		return false
+	}
 	pkgConf, err := pkgparse.ParsePkgConfigLocal(recipeDir, pkg)
 	foundRecipe <- true
 	if err != nil {
@@ -169,7 +186,7 @@ func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync
 	// If file exists
 	if _, err := os.Stat(extractPath); !os.IsNotExist(err) {
 		ml.Printf(argNum, color.HiBlackString("Already installed!"))
-		return false
+		return true
 	}
 	f, err := os.OpenFile(downloadPath,
 		os.O_CREATE|os.O_WRONLY, 0644)
