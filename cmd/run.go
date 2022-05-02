@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"webman/pkgparse"
 
@@ -19,10 +19,13 @@ var runCmd = &cobra.Command{
 	Use:   "run",
 	Short: "run installed packages",
 	Long: `
-The "run" subcommand run packages.`,
+The "run" subcommand runs installed package binary with the name of the package.
+Pass a double dash before commands you want to forward to the binary.`,
 	Example: `webman run go
-webman run bat
-webman add go@18.0.0`,
+webman run bat -- [FILE]
+webman run go@18.0.0
+webman run node@17.0.0 -- --version
+webman run node@17.0.0 --select-bin npm -- --version`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
 			cmd.Help()
@@ -39,11 +42,14 @@ webman add go@18.0.0`,
 		runPackage(args, webmanPkgDir, webmanBinDir, webmanDir)
 
 	},
-	DisableFlagParsing: true,
 }
+
+var selectBin string
 
 func init() {
 	rootCmd.AddCommand(runCmd)
+	runCmd.Flags().StringVarP(&selectBin, "select-bin", "s", "",
+		"select a given binary from the package, rather than running the default binary")
 }
 
 func runPackage(args []string, webmanPkgDir, webmanBinDir, webmanDir string) {
@@ -51,7 +57,7 @@ func runPackage(args []string, webmanPkgDir, webmanBinDir, webmanDir string) {
 	var pkg string
 	var ver string
 	var pkgRunFolder string
-	var pkgBinFile string
+	var pkgBinDirOrFile string
 	var argsApp []string
 
 	// Version information
@@ -74,15 +80,15 @@ func runPackage(args []string, webmanPkgDir, webmanBinDir, webmanDir string) {
 		exitPrint(1, color.RedString(err.Error()))
 	}
 
-	bin, err := pkgConf.GetMyBinPath()
+	binPath, err := pkgConf.GetMyBinPath()
 	if err != nil {
 		exitPrint(1, color.RedString(err.Error()))
 	}
 
 	// Is custom version
+	var pkgDirName string
 	if ver != "" {
-		packageFolderName := fmt.Sprintf("%s-%s", pkg, ver)
-		pkgRunFolder = path.Join(webmanPkgDir, pkg, packageFolderName)
+		pkgDirName = fmt.Sprintf("%s-%s", pkg, ver)
 	}
 	// Default version
 	if ver == "" {
@@ -93,23 +99,55 @@ func runPackage(args []string, webmanPkgDir, webmanBinDir, webmanDir string) {
 		if usingVersion == nil {
 			exitPrint(0, fmt.Sprintf("Not currently using any %s version\n", color.CyanString(pkg)))
 		}
-		pkgRunFolder = path.Join(webmanPkgDir, pkg, *usingVersion)
+		pkgDirName = *usingVersion
 	}
-	pkgBinFile = path.Join(pkgRunFolder, bin)
-
+	pkgRunFolder = filepath.Join(webmanPkgDir, pkg, pkgDirName)
+	pkgBinDirOrFile = filepath.Join(pkgRunFolder, binPath)
+	// default executable to run is the package name
+	binName := pkg
+	if selectBin != "" {
+		binName = selectBin
+	}
 	// Is folder, pkgBinFile
-	pkgBinFileInfo, err := os.Stat(pkgBinFile)
+	pkgBinFileInfo, err := os.Stat(pkgBinDirOrFile)
 	if err != nil {
 		if os.IsNotExist(err) {
-			IsNotExist(ver)
+			if runtime.GOOS == "windows" {
+				if selectBin != "" {
+					exitPrint(1, color.RedString("bin path for package is a file, "+
+						"so cannot use --select-bin flag to select a different binary"))
+				}
+				entries, err := os.ReadDir(filepath.Dir(pkgBinDirOrFile))
+				if err != nil {
+					IsNotExist(pkg)
+				}
+				found := false
+				for _, entry := range entries {
+					if strings.HasPrefix(entry.Name(), binName) {
+						found = true
+						pkgBinDirOrFile += filepath.Ext(entry.Name())
+						break
+					}
+				}
+				if !found {
+					IsNotExist(pkg)
+				}
+			} else {
+				IsNotExist(pkg)
+			}
+		} else {
+			exitPrint(1, color.RedString(err.Error()))
 		}
-		exitPrint(1, color.RedString(err.Error()))
-	}
-	if pkgBinFileInfo.IsDir() {
-		pkgBinFile = path.Join(pkgBinFile, pkg)
+	} else if pkgBinFileInfo.IsDir() { // dir
+		pkgBinDirOrFile = filepath.Join(pkgBinDirOrFile, binName)
+	} else { // non-windows file
+		if selectBin != "" {
+			exitPrint(1, color.RedString("bin path for package is a file,"+
+				"so cannot use --select-bin flag to select a different binary"))
+		}
 	}
 
-	appCmd := exec.Command(pkgBinFile, argsApp...)
+	appCmd := exec.Command(pkgBinDirOrFile, argsApp...)
 	appCmd.Stderr = os.Stderr
 	appCmd.Stdout = os.Stdout
 	appCmd.Stdin = os.Stdin
