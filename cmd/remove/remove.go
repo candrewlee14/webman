@@ -1,4 +1,4 @@
-package cmd
+package remove
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"webman/link"
 	"webman/multiline"
+	cmdutils "webman/pkg/cmd-utils"
 	"webman/pkgparse"
 
 	"github.com/fatih/color"
@@ -14,8 +15,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// removeCmd represents the remove command
-var removeCmd = &cobra.Command{
+// RemoveCmd represents the remove command
+var RemoveCmd = &cobra.Command{
 	Use:   "remove",
 	Short: "remove a package",
 	Long:  `The "remove" subcommand removes a prompt-selected version of a given package.`,
@@ -76,8 +77,8 @@ webman remove rg`,
 			return
 		}
 		pkgVerDir := filepath.Join(pkgDir, pkgVerStem)
-		recipeDir = filepath.Join(webmanDir, "recipes")
-		pkgConf, err := pkgparse.ParsePkgConfigLocal(recipeDir, pkg)
+		cmdutils.RecipeDir = filepath.Join(webmanDir, "recipes")
+		pkgConf, err := pkgparse.ParsePkgConfigLocal(cmdutils.RecipeDir, pkg)
 		if err != nil {
 			panic(err)
 		}
@@ -123,7 +124,7 @@ webman remove rg`,
 }
 
 func init() {
-	rootCmd.AddCommand(removeCmd)
+	//rootCmd.AddCommand(removeCmd)
 
 	// Here you will define your flags and configuration settings.
 

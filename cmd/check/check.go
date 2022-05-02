@@ -1,4 +1,4 @@
-package cmd
+package check
 
 import (
 	"fmt"
@@ -12,8 +12,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// removeCmd represents the remove command
-var checkCmd = &cobra.Command{
+// CheckCmd represents the remove command
+var CheckCmd = &cobra.Command{
 	Use:   "check",
 	Short: "check a directory of recipes",
 	Long: `
@@ -65,6 +65,7 @@ func CheckPkgConfig(recipeDir string, pkgFileName string) error {
 	if err != nil {
 		return err
 	}
+
 	if len(pkgConf.FilenameFormat) == 0 {
 		return fmt.Errorf("filename_format field empty")
 	}
@@ -93,7 +94,6 @@ func CheckPkgConfig(recipeDir string, pkgFileName string) error {
 }
 
 func init() {
-	rootCmd.AddCommand(checkCmd)
 
 	// Here you will define your flags and configuration settings.
 

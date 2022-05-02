@@ -1,9 +1,11 @@
-package cmd
+package switchcmd
 
 import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"webman/link"
+	cmdutils "webman/pkg/cmd-utils"
 	"webman/pkgparse"
 
 	"github.com/fatih/color"
@@ -11,8 +13,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// removeCmd represents the remove command
-var switchCmd = &cobra.Command{
+// SwitchCmd represents the remove command
+var SwitchCmd = &cobra.Command{
 	Use:   "switch",
 	Short: "switch to a specific version of a package",
 	Long:  `The "switch" subcommand changes path to a prompt-selected version of a given package.`,
@@ -57,8 +59,8 @@ webman switch rg`,
 				pkgVersions = append(pkgVersions, entry.Name())
 			}
 		}
-		recipeDir = filepath.Join(webmanDir, "recipes")
-		pkgConf, err := pkgparse.ParsePkgConfigLocal(recipeDir, pkg)
+		cmdutils.RecipeDir = filepath.Join(webmanDir, "recipes")
+		pkgConf, err := pkgparse.ParsePkgConfigLocal(cmdutils.RecipeDir, pkg)
 		if err != nil {
 			color.Red("%v", err)
 			os.Exit(1)
@@ -85,7 +87,7 @@ webman switch rg`,
 			fmt.Println(color.RedString("%v", err))
 			return
 		}
-		madeLinks, err := CreateLinks(webmanDir, pkg, pkgVerStem, binPath)
+		madeLinks, err := link.CreateLinks(webmanDir, pkg, pkgVerStem, binPath)
 		if err != nil {
 			panic(err)
 		}
@@ -98,7 +100,7 @@ webman switch rg`,
 }
 
 func init() {
-	rootCmd.AddCommand(switchCmd)
+	//rootCmd.AddCommand(switchCmd)
 
 	// Here you will define your flags and configuration settings.
 

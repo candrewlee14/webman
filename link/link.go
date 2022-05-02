@@ -5,6 +5,9 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"webman/pkgparse"
+
+	"golang.org/x/sync/errgroup"
 )
 
 func GetBinPathsAndLinkPaths(
@@ -103,6 +106,36 @@ func AddLink(old string, new string) (bool, error) {
 		if err := os.Symlink(old, new); err != nil {
 			return false, err
 		}
+	}
+	return true, nil
+}
+
+func CreateLinks(webmanDir string, pkg string, stem string, confBinPath string) (bool, error) {
+	binPaths, linkPaths, err := GetBinPathsAndLinkPaths(webmanDir, pkg, stem, confBinPath)
+	if err != nil {
+		return false, err
+	}
+
+	var eg errgroup.Group
+	for i, linkPath := range linkPaths {
+		binPath := binPaths[i]
+		linkPath := linkPath // this supresses the warning for linkPath closure capture
+		eg.Go(func() error {
+			didLink, err := AddLink(binPath, linkPath)
+			if err != nil {
+				return err
+			}
+			if !didLink {
+				return fmt.Errorf("failed to create link to %s", binPath)
+			}
+			return nil
+		})
+	}
+	if err := eg.Wait(); err != nil {
+		return false, err
+	}
+	if err = pkgparse.WriteUsing(pkg, webmanDir, stem); err != nil {
+		panic(err)
 	}
 	return true, nil
 }
