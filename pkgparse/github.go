@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"time"
 	"webman/unpack"
+	"webman/utils"
 
 	"github.com/go-yaml/yaml"
 )
@@ -72,9 +73,8 @@ type RefreshFile struct {
 	LastUpdated *time.Time
 }
 
-func ShouldRefreshRecipes(webmanDir string) (bool, error) {
-	recipeDir := filepath.Join(webmanDir, "recipes")
-	refreshFileDir := filepath.Join(recipeDir, "refresh.yaml")
+func ShouldRefreshRecipes() (bool, error) {
+	refreshFileDir := filepath.Join(utils.WebmanRecipeDir, "refresh.yaml")
 	data, err := os.ReadFile(refreshFileDir)
 	if err != nil {
 		// if err occured and file does exist
@@ -96,11 +96,8 @@ func ShouldRefreshRecipes(webmanDir string) (bool, error) {
 	return false, nil
 }
 
-func RefreshRecipes(webmanDir string) error {
-	recipeDir := filepath.Join(webmanDir, "recipes")
-	tempDir := filepath.Join(webmanDir, "tmp")
-
-	if err := os.RemoveAll(recipeDir); err != nil {
+func RefreshRecipes() error {
+	if err := os.RemoveAll(utils.WebmanRecipeDir); err != nil {
 		return err
 	}
 	url := "https://api.github.com/repos/candrewlee14/webman-pkgs/zipball/main"
@@ -112,13 +109,13 @@ func RefreshRecipes(webmanDir string) error {
 	if !(r.StatusCode >= 200 && r.StatusCode < 300) {
 		return fmt.Errorf("Bad HTTP Response: " + r.Status)
 	}
-	if err = os.RemoveAll(recipeDir); err != nil {
+	if err = os.RemoveAll(utils.WebmanRecipeDir); err != nil {
 		return err
 	}
-	if err = os.MkdirAll(tempDir, os.ModePerm); err != nil {
+	if err = os.MkdirAll(utils.WebmanTmpDir, os.ModePerm); err != nil {
 		return err
 	}
-	tmpZipFile, err := os.CreateTemp(tempDir, "recipes-*.zip")
+	tmpZipFile, err := os.CreateTemp(utils.WebmanTmpDir, "recipes-*.zip")
 	if err != nil {
 		fmt.Println("Made refresh.zip file")
 		return err
@@ -126,7 +123,7 @@ func RefreshRecipes(webmanDir string) error {
 	if _, err = io.Copy(tmpZipFile, r.Body); err != nil {
 		return err
 	}
-	tmpRecipeDir := filepath.Join(webmanDir, "tmp", "recipes")
+	tmpRecipeDir := filepath.Join(utils.WebmanTmpDir, "recipes")
 	if err = unpack.Unzip(tmpZipFile.Name(), tmpRecipeDir); err != nil {
 		return err
 	}
@@ -138,10 +135,10 @@ func RefreshRecipes(webmanDir string) error {
 		return fmt.Errorf("expected unzipped refresh to have a single root folder")
 	}
 	innerTmpFolder := filepath.Join(tmpRecipeDir, fdir[0].Name())
-	if err = os.Rename(innerTmpFolder, recipeDir); err != nil {
+	if err = os.Rename(innerTmpFolder, utils.WebmanRecipeDir); err != nil {
 		return err
 	}
-	refreshFilePath := filepath.Join(recipeDir, "refresh.yaml")
+	refreshFilePath := filepath.Join(utils.WebmanRecipeDir, "refresh.yaml")
 	curTime := time.Now()
 	data, err := yaml.Marshal(RefreshFile{&curTime})
 	if err != nil {

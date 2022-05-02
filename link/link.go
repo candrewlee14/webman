@@ -6,12 +6,12 @@ import (
 	"path/filepath"
 	"runtime"
 	"webman/pkgparse"
+	"webman/utils"
 
 	"golang.org/x/sync/errgroup"
 )
 
 func GetBinPathsAndLinkPaths(
-	webmanDir string,
 	pkg string,
 	stem string,
 	confBinPath string,
@@ -22,17 +22,17 @@ func GetBinPathsAndLinkPaths(
 	if runtime.GOOS == "windows" {
 		binExt = ".exe"
 	}
-	binPath := filepath.Join(webmanDir, "pkg", pkg, stem, confBinPath+binExt)
+	binPath := filepath.Join(utils.WebmanPkgDir, pkg, stem, confBinPath+binExt)
 	fileInfo, err := os.Stat(binPath)
 	// If config binary path points to a file
 	if err == nil && !fileInfo.IsDir() {
-		linkPath := GetLinkPathIfExec(binPath, webmanDir)
+		linkPath := GetLinkPathIfExec(binPath)
 		if linkPath != nil {
 			binPaths = append(binPaths, binPath)
 			linkPaths = append(linkPaths, *linkPath)
 		}
 	} else {
-		binDir := filepath.Join(webmanDir, "pkg", pkg, stem, confBinPath)
+		binDir := filepath.Join(utils.WebmanPkgDir, pkg, stem, confBinPath)
 		binDirEntries, err := os.ReadDir(binDir)
 		if err != nil {
 			return []string{}, []string{}, err
@@ -40,7 +40,7 @@ func GetBinPathsAndLinkPaths(
 		for _, entry := range binDirEntries {
 			if !entry.Type().IsDir() {
 				binPath := filepath.Join(binDir, entry.Name())
-				linkPath := GetLinkPathIfExec(binPath, webmanDir)
+				linkPath := GetLinkPathIfExec(binPath)
 				if linkPath != nil {
 					binPaths = append(binPaths, binPath)
 					linkPaths = append(linkPaths, *linkPath)
@@ -56,10 +56,10 @@ func GetBinPathsAndLinkPaths(
 
 // Returns a link path to ~/.webman/bin/foo
 // This is system-agnostic, it will always be that format
-func GetLinkPathIfExec(binPath string, webmanDir string) *string {
+func GetLinkPathIfExec(binPath string) *string {
 	binFile := filepath.Base(binPath)
 	binName := binFile[:len(binFile)-len(filepath.Ext(binFile))]
-	linkPath := filepath.Join(webmanDir, "bin", binName)
+	linkPath := filepath.Join(utils.WebmanBinDir, binName)
 	if runtime.GOOS == "windows" {
 		switch filepath.Ext(binPath) {
 		case ".bat", ".exe", ".cmd":
@@ -110,8 +110,8 @@ func AddLink(old string, new string) (bool, error) {
 	return true, nil
 }
 
-func CreateLinks(webmanDir string, pkg string, stem string, confBinPath string) (bool, error) {
-	binPaths, linkPaths, err := GetBinPathsAndLinkPaths(webmanDir, pkg, stem, confBinPath)
+func CreateLinks(pkg string, stem string, confBinPath string) (bool, error) {
+	binPaths, linkPaths, err := GetBinPathsAndLinkPaths(pkg, stem, confBinPath)
 	if err != nil {
 		return false, err
 	}
@@ -134,7 +134,7 @@ func CreateLinks(webmanDir string, pkg string, stem string, confBinPath string) 
 	if err := eg.Wait(); err != nil {
 		return false, err
 	}
-	if err = pkgparse.WriteUsing(pkg, webmanDir, stem); err != nil {
+	if err = pkgparse.WriteUsing(pkg, stem); err != nil {
 		panic(err)
 	}
 	return true, nil

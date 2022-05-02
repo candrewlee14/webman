@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+	"webman/utils"
 
 	"github.com/go-yaml/yaml"
 )
@@ -69,8 +70,8 @@ func (pkgConf *PkgConfig) GetMyBinPath() (string, error) {
 
 // Check using file.
 // If using.yaml file doesn't exist, it is not using anything
-func CheckUsing(pkg string, webmanDir string) (*string, error) {
-	usingPath := filepath.Join(webmanDir, "pkg", pkg, "using.yaml")
+func CheckUsing(pkg string) (*string, error) {
+	usingPath := filepath.Join(utils.WebmanPkgDir, pkg, "using.yaml")
 	usingContent, err := os.ReadFile(usingPath)
 	if err != nil {
 		return nil, nil
@@ -82,7 +83,7 @@ func CheckUsing(pkg string, webmanDir string) (*string, error) {
 	return &usingInfo.Using, nil
 }
 
-func WriteUsing(pkg string, webmanDir string, using string) error {
+func WriteUsing(pkg string, using string) error {
 	usingInfo := UsingInfo{
 		Using: using,
 	}
@@ -90,15 +91,15 @@ func WriteUsing(pkg string, webmanDir string, using string) error {
 	if err != nil {
 		return err
 	}
-	usingPath := filepath.Join(webmanDir, "pkg", pkg, "using.yaml")
+	usingPath := filepath.Join(utils.WebmanPkgDir, pkg, "using.yaml")
 	if err := os.WriteFile(usingPath, data, os.ModePerm); err != nil {
 		return err
 	}
 	return nil
 }
 
-func RemoveUsing(pkg string, webmanDir string) error {
-	usingPath := filepath.Join(webmanDir, "pkg", pkg, "using.yaml")
+func RemoveUsing(pkg string) error {
+	usingPath := filepath.Join(utils.WebmanPkgDir, pkg, "using.yaml")
 	if err := os.Remove(usingPath); err != nil {
 		return err
 	}
@@ -132,8 +133,8 @@ func ParsePkgConfigOnline(pkg string) (*PkgConfig, error) {
 	return &pkgConf, nil
 }
 
-func ParsePkgConfigLocal(recipeDir string, pkg string) (*PkgConfig, error) {
-	pkgConfPath := filepath.Join(recipeDir, "pkgs", pkg+".yaml")
+func ParsePkgConfigLocal(pkg string) (*PkgConfig, error) {
+	pkgConfPath := filepath.Join(utils.WebmanRecipeDir, "pkgs", pkg+".yaml")
 	dat, err := os.ReadFile(pkgConfPath)
 	if err != nil {
 		if os.IsNotExist(err) {

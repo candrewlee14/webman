@@ -7,8 +7,8 @@ import (
 	"runtime"
 	"webman/link"
 	"webman/multiline"
-	cmdutils "webman/pkg/cmd-utils"
 	"webman/pkgparse"
+	"webman/utils"
 
 	"github.com/fatih/color"
 	"github.com/manifoldco/promptui"
@@ -29,14 +29,8 @@ webman remove rg`,
 			os.Exit(0)
 		}
 		pkg := args[0]
-		homeDir, err := os.UserHomeDir()
-		if err != nil {
-			panic(err)
-		}
-		webmanDir := filepath.Join(homeDir, ".webman")
-		pkgDir := filepath.Join(webmanDir, "pkg", pkg)
 
-		dirEntries, err := os.ReadDir(pkgDir)
+		dirEntries, err := os.ReadDir(utils.WebmanPkgDir)
 		if err != nil {
 			if os.IsNotExist(err) {
 				fmt.Printf("No versions of %s are currently installed.\n", color.CyanString(pkg))
@@ -44,7 +38,7 @@ webman remove rg`,
 			}
 			panic(err)
 		}
-		using, err := pkgparse.CheckUsing(pkg, webmanDir)
+		using, err := pkgparse.CheckUsing(pkg)
 		if err != nil {
 			panic(err)
 		}
@@ -76,9 +70,7 @@ webman remove rg`,
 			fmt.Printf("Prompt failed %v\n", err)
 			return
 		}
-		pkgVerDir := filepath.Join(pkgDir, pkgVerStem)
-		cmdutils.RecipeDir = filepath.Join(webmanDir, "recipes")
-		pkgConf, err := pkgparse.ParsePkgConfigLocal(cmdutils.RecipeDir, pkg)
+		pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg)
 		if err != nil {
 			panic(err)
 		}
@@ -88,7 +80,7 @@ webman remove rg`,
 				fmt.Println(color.RedString("%v", err))
 				return
 			}
-			_, linkPaths, err := link.GetBinPathsAndLinkPaths(webmanDir, pkg, pkgVerStem, binPath)
+			_, linkPaths, err := link.GetBinPathsAndLinkPaths(pkg, pkgVerStem, binPath)
 			if err != nil {
 				panic(err)
 			}
@@ -103,7 +95,7 @@ webman remove rg`,
 				}
 			}
 			fmt.Printf("%s%sRemoved links!\n", multiline.MoveUp, multiline.ClearLine)
-			if err = pkgparse.RemoveUsing(pkg, webmanDir); err != nil {
+			if err = pkgparse.RemoveUsing(pkg); err != nil {
 				panic(err)
 			}
 		}
@@ -111,11 +103,11 @@ webman remove rg`,
 		fmt.Printf("Removing %s ...\n", pkgVerStem)
 		// if this is the only version of this package installed, remove this pkg's whole dir
 		if len(pkgVersions) == 1 {
-			if err := os.RemoveAll(pkgDir); err != nil {
+			if err := os.RemoveAll(filepath.Join(utils.WebmanPkgDir, pkg)); err != nil {
 				panic(err)
 			}
 		} else { // otherwise just remove the pkg version's dir
-			if err := os.RemoveAll(pkgVerDir); err != nil {
+			if err := os.RemoveAll(filepath.Join(utils.WebmanPkgDir, pkg, pkgVerStem)); err != nil {
 				panic(err)
 			}
 		}

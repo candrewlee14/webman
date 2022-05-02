@@ -3,10 +3,9 @@ package switchcmd
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"webman/link"
-	cmdutils "webman/pkg/cmd-utils"
 	"webman/pkgparse"
+	"webman/utils"
 
 	"github.com/fatih/color"
 	"github.com/manifoldco/promptui"
@@ -27,14 +26,8 @@ webman switch rg`,
 			os.Exit(0)
 		}
 		pkg := args[0]
-		homeDir, err := os.UserHomeDir()
-		if err != nil {
-			panic(err)
-		}
-		webmanDir := filepath.Join(homeDir, ".webman")
-		pkgDir := filepath.Join(webmanDir, "pkg", pkg)
 
-		dirEntries, err := os.ReadDir(pkgDir)
+		dirEntries, err := os.ReadDir(utils.WebmanPkgDir)
 		if err != nil {
 			if os.IsNotExist(err) {
 				fmt.Printf("No versions of %s are currently installed.\n", color.CyanString(pkg))
@@ -43,7 +36,7 @@ webman switch rg`,
 			panic(err)
 		}
 
-		using, err := pkgparse.CheckUsing(pkg, webmanDir)
+		using, err := pkgparse.CheckUsing(pkg)
 		if err != nil {
 			panic(err)
 		}
@@ -59,8 +52,7 @@ webman switch rg`,
 				pkgVersions = append(pkgVersions, entry.Name())
 			}
 		}
-		cmdutils.RecipeDir = filepath.Join(webmanDir, "recipes")
-		pkgConf, err := pkgparse.ParsePkgConfigLocal(cmdutils.RecipeDir, pkg)
+		pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg)
 		if err != nil {
 			color.Red("%v", err)
 			os.Exit(1)
@@ -87,7 +79,7 @@ webman switch rg`,
 			fmt.Println(color.RedString("%v", err))
 			return
 		}
-		madeLinks, err := link.CreateLinks(webmanDir, pkg, pkgVerStem, binPath)
+		madeLinks, err := link.CreateLinks(pkg, pkgVerStem, binPath)
 		if err != nil {
 			panic(err)
 		}

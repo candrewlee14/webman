@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 	"webman/pkgparse"
+	"webman/utils"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -25,11 +26,12 @@ webman check ~/repos/webman-pkgs/pkg/go.yaml`,
 			cmd.Help()
 			os.Exit(0)
 		}
-		recipeDirOrFile, err := filepath.Abs(args[0])
+		recipeDir, err := filepath.Abs(args[0])
+		utils.WebmanRecipeDir = recipeDir
 		if err != nil {
 			panic(err)
 		}
-		entries, err := os.ReadDir(filepath.Join(recipeDirOrFile, "pkgs"))
+		entries, err := os.ReadDir(filepath.Join(recipeDir, "pkgs"))
 		if err != nil {
 			panic(err)
 		} else {
@@ -41,7 +43,7 @@ webman check ~/repos/webman-pkgs/pkg/go.yaml`,
 
 				go func() {
 					recipeName := recipe.Name()
-					err := CheckPkgConfig(recipeDirOrFile, recipeName)
+					err := CheckPkgConfig(recipeName)
 					if err != nil {
 						color.Red("%s: %s", color.YellowString(recipeName), color.RedString("%v", err))
 						success = false
@@ -59,9 +61,9 @@ webman check ~/repos/webman-pkgs/pkg/go.yaml`,
 	},
 }
 
-func CheckPkgConfig(recipeDir string, pkgFileName string) error {
+func CheckPkgConfig(pkgFileName string) error {
 	pkg := strings.ReplaceAll(pkgFileName, ".yaml", "")
-	pkgConf, err := pkgparse.ParsePkgConfigLocal(recipeDir, pkg)
+	pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg)
 	if err != nil {
 		return err
 	}

@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"webman/utils"
 )
 
 type UnpackFn func(src string, dir string) error
@@ -19,19 +20,19 @@ var unpackMap = map[string]UnpackFn{
 	"zip":    Unzip,
 }
 
-func Unpack(src string, webmanDir string, pkg string, stem string, ext string, hasRoot bool) error {
+func Unpack(src string, pkg string, stem string, ext string, hasRoot bool) error {
 	unpackFn, exists := unpackMap[ext]
 	if !exists {
 		return fmt.Errorf("no unpack function for extension: %q", ext)
 	}
-	pkgDir := filepath.Join(webmanDir, "pkg", pkg)
+	pkgDir := filepath.Join(utils.WebmanPkgDir, pkg)
 	err := os.MkdirAll(pkgDir, 0777)
 	if err != nil {
 		return fmt.Errorf("unable to create dir %q: %v", pkgDir, err)
 	}
 	pkgDest := filepath.Join(pkgDir, stem)
 	if hasRoot {
-		tmpPkgDir := filepath.Join(webmanDir, "tmp", pkg)
+		tmpPkgDir := filepath.Join(utils.WebmanTmpDir, pkg)
 		if err := os.MkdirAll(tmpPkgDir, 0777); err != nil {
 			return fmt.Errorf("unable to create dir %q: %v", tmpPkgDir, err)
 		}

@@ -11,14 +11,13 @@ import (
 	"webman/multiline"
 	"webman/pkgparse"
 	"webman/unpack"
+	"webman/utils"
 
 	"github.com/fatih/color"
 )
 
-func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync.WaitGroup, ml *multiline.MultiLogger) bool {
+func installPkg(arg string, argNum int, argCount int, wg *sync.WaitGroup, ml *multiline.MultiLogger) bool {
 	defer wg.Done()
-	webmanPkgDir := filepath.Join(webmanDir, "/pkg")
-	webmanTmpDir := filepath.Join(webmanDir, "/tmp")
 	parts := strings.Split(arg, "@")
 	var pkg string
 	var ver string
@@ -43,15 +42,7 @@ func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync
 		foundRecipe,
 		500,
 	)
-	if recipeDir == "" {
-		recipeDir = filepath.Join(webmanDir, "recipes")
-	}
-	recipeDir, err := filepath.Abs(recipeDir)
-	if err != nil {
-		ml.Printf(argNum, "Failed converting local package directory to absolute path")
-		return false
-	}
-	pkgConf, err := pkgparse.ParsePkgConfigLocal(recipeDir, pkg)
+	pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg)
 	foundRecipe <- true
 	if err != nil {
 		ml.Printf(argNum, color.RedString("%v", err))
@@ -88,10 +79,10 @@ func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync
 	ext := *extPtr
 	url := *urlPtr
 	fileName := stem + "." + ext
-	downloadPath := filepath.Join(webmanTmpDir, fileName)
+	downloadPath := filepath.Join(utils.WebmanTmpDir, fileName)
 
 	extractStem := fmt.Sprintf("%s-%s", pkg, ver)
-	extractPath := filepath.Join(webmanPkgDir, pkg, extractStem)
+	extractPath := filepath.Join(utils.WebmanPkgDir, pkg, extractStem)
 	// If file exists
 	if _, err := os.Stat(extractPath); !os.IsNotExist(err) {
 		ml.Printf(argNum, color.HiBlackString("Already installed!"))
@@ -113,35 +104,35 @@ func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync
 		hasUnpacked,
 		500,
 	)
-	err = unpack.Unpack(downloadPath, webmanDir, pkg, extractStem, ext, pkgConf.ExtractHasRoot)
+	err = unpack.Unpack(downloadPath, pkg, extractStem, ext, pkgConf.ExtractHasRoot)
 	hasUnpacked <- true
 	if err != nil {
 		ml.Printf(argNum, color.RedString("%v", err))
-		cleanUpFailedInstall(webmanDir, pkg, extractPath)
+		cleanUpFailedInstall(pkg, extractPath)
 		return false
 	}
 	ml.Printf(argNum, "Completed unpacking %s@%s", color.CyanString(pkg), color.MagentaString(ver))
 
-	using, err := pkgparse.CheckUsing(pkg, webmanDir)
+	using, err := pkgparse.CheckUsing(pkg)
 	if err != nil {
-		cleanUpFailedInstall(webmanDir, pkg, extractPath)
+		cleanUpFailedInstall(pkg, extractPath)
 		panic(err)
 	}
 	if using == nil {
 		binPath, err := pkgConf.GetMyBinPath()
 		if err != nil {
-			cleanUpFailedInstall(webmanDir, pkg, extractPath)
+			cleanUpFailedInstall(pkg, extractPath)
 			ml.Printf(argNum, color.RedString("%v", err))
 			return false
 		}
-		madeLinks, err := link.CreateLinks(webmanDir, pkg, extractStem, binPath)
+		madeLinks, err := link.CreateLinks(pkg, extractStem, binPath)
 		if err != nil {
-			cleanUpFailedInstall(webmanDir, pkg, extractPath)
+			cleanUpFailedInstall(pkg, extractPath)
 			ml.Printf(argNum, color.RedString("Failed creating links: %v", err))
 			return false
 		}
 		if !madeLinks {
-			cleanUpFailedInstall(webmanDir, pkg, extractPath)
+			cleanUpFailedInstall(pkg, extractPath)
 			ml.Printf(argNum, color.RedString("Failed creating links"))
 			return false
 		}

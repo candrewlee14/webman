@@ -9,10 +9,13 @@ import (
 	"path/filepath"
 	"sync"
 	"time"
+	"webman/link"
 	"webman/multiline"
 	"webman/pkgparse"
+	"webman/utils"
 
 	"github.com/fatih/color"
+	"golang.org/x/sync/errgroup"
 
 	progressbar "github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
@@ -21,7 +24,7 @@ import (
 var doRefresh bool
 var recipeDir string
 
-// AddCmd represents the add command
+// addCmd represents the add command
 var AddCmd = &cobra.Command{
 	Use:   "add",
 	Short: "install packages",
@@ -36,31 +39,25 @@ webman add go@18.0.0 zig@9.1.0 rg@13.0.0`,
 			cmd.Help()
 			os.Exit(0)
 		}
-		homeDir, err := os.UserHomeDir()
-		if err != nil {
-			panic(err)
+		defer os.RemoveAll(utils.WebmanTmpDir)
+		// if local recipe flag is set
+		if recipeDir != "" {
+			recipeDir, err := filepath.Abs(recipeDir)
+			if err != nil {
+				color.Red("Failed converting local package directory to absolute path: %v", err)
+				os.Exit(1)
+			}
+			color.Magenta("Using local recipe directory: %s", color.HiBlackString(recipeDir))
+			utils.WebmanRecipeDir = recipeDir
 		}
-		webmanDir := filepath.Join(homeDir, "/.webman")
-		webmanPkgDir := filepath.Join(webmanDir, "/pkg")
-		webmanBinDir := filepath.Join(webmanDir, "/bin")
-		webmanTmpDir := filepath.Join(webmanDir, "/tmp")
-		defer os.RemoveAll(webmanTmpDir)
-		if err = os.MkdirAll(webmanBinDir, os.ModePerm); err != nil {
-			panic(err)
-		}
-		if err = os.MkdirAll(webmanPkgDir, os.ModePerm); err != nil {
-			panic(err)
-		}
-		if err = os.MkdirAll(webmanTmpDir, os.ModePerm); err != nil {
-			panic(err)
-		}
-		shouldRefresh, err := pkgparse.ShouldRefreshRecipes(webmanDir)
+
+		shouldRefresh, err := pkgparse.ShouldRefreshRecipes()
 		if err != nil {
 			panic(err)
 		}
 		if shouldRefresh || doRefresh {
 			color.HiBlue("Refreshing package recipes")
-			if err = pkgparse.RefreshRecipes(webmanDir); err != nil {
+			if err = pkgparse.RefreshRecipes(); err != nil {
 				fmt.Println(err)
 			}
 		}
@@ -72,7 +69,7 @@ webman add go@18.0.0 zig@9.1.0 rg@13.0.0`,
 			i := i
 			arg := arg
 			go func() {
-				if !installPkg(arg, i, len(args), webmanDir, &wg, &ml) {
+				if !installPkg(arg, i, len(args), &wg, &ml) {
 					success = false
 				}
 			}()
@@ -100,9 +97,9 @@ func init() {
 	// addCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func cleanUpFailedInstall(webmanDir string, pkg string, extractPath string) {
-	os.RemoveAll(extractPath) // clean up failed installation
-	pkgDir := filepath.Join(webmanDir, "pkg", pkg)
+func cleanUpFailedInstall(pkg string, extractPath string) {
+	os.RemoveAll(extractPath)
+	pkgDir := filepath.Join(utils.WebmanPkgDir, pkg)
 	dirs, err := os.ReadDir(pkgDir)
 	if err == nil && len(dirs) == 0 {
 		os.RemoveAll(pkgDir)
@@ -153,4 +150,34 @@ func DownloadUrl(url string, f io.Writer, pkg string, ver string, argNum int, ar
 		return false
 	}
 	return true
+}
+
+func CreateLinks(pkg string, stem string, confBinPath string) (bool, error) {
+	binPaths, linkPaths, err := link.GetBinPathsAndLinkPaths(pkg, stem, confBinPath)
+	if err != nil {
+		return false, err
+	}
+
+	var eg errgroup.Group
+	for i, linkPath := range linkPaths {
+		binPath := binPaths[i]
+		linkPath := linkPath // this supresses the warning for linkPath closure capture
+		eg.Go(func() error {
+			didLink, err := link.AddLink(binPath, linkPath)
+			if err != nil {
+				return err
+			}
+			if !didLink {
+				return fmt.Errorf("failed to create link to %s", binPath)
+			}
+			return nil
+		})
+	}
+	if err := eg.Wait(); err != nil {
+		return false, err
+	}
+	if err = pkgparse.WriteUsing(pkg, stem); err != nil {
+		panic(err)
+	}
+	return true, nil
 }
