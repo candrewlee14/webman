@@ -11,6 +11,7 @@ __          __  _
 A cross-platform package manager for the web!
 
 Add, remove, and manage different versions of software.
+No elevated permissions required!
 
 Package recipes are located at https://github.com/candrewlee14/webman-pkgs.
 Recipes are simple YAML files that make it easy to submit a new package.
@@ -31,6 +32,14 @@ Below are examples of adding, removing, and switching with webman.
 `webman add rg lsd zig node go rg@12.0.0` will install each of the package versions listed.
 
 <img alt="webman add example" src="/assets/addNodeZigGoRg.gif" width=600/>
+
+## Run Software 
+
+`webman run go` will run the in-use version of Go (if installed).
+
+`webman run zig@0.9.1 --version` will run a specific version (`0.9.1`) of Zig with the argument `--version`.
+
+`webman run node:npm --version` will run `npm --version` using the in-use version of node.
 
 ## Remove Software
 
