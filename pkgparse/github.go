@@ -34,7 +34,7 @@ type ReleaseTagInfo struct {
 	Draft      bool
 }
 
-func getLatestGithubReleaseTag(user string, repo string) (*ReleaseTagInfo, error) {
+func getLatestGithubReleaseTag(user string, repo string, allowPrerelease bool) (*ReleaseTagInfo, error) {
 	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/releases", user, repo)
 	r, err := http.Get(url)
 	if err != nil {
@@ -56,7 +56,7 @@ func getLatestGithubReleaseTag(user string, repo string) (*ReleaseTagInfo, error
 		return nil, fmt.Errorf("expected at least one release listed at %s, unable to resolve latest", url)
 	}
 	for _, release := range releases {
-		if !release.Prerelease && !release.Draft {
+		if (allowPrerelease || !release.Prerelease) && !release.Draft {
 			return &release, nil
 		}
 	}

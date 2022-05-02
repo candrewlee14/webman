@@ -23,6 +23,11 @@ type OsInfo struct {
 	BinPath string `yaml:"bin_path"`
 }
 
+type OsArchPair struct {
+	Os   string
+	Arch string
+}
+
 type PkgConfig struct {
 	InfoUrl         string `yaml:"info_url"`
 	ReleasesUrl     string `yaml:"releases_url"`
@@ -34,12 +39,14 @@ type PkgConfig struct {
 	FilenameFormat   string `yaml:"filename_format"`
 	VersionFormat    string `yaml:"version_format"`
 	LatestStrategy   string `yaml:"latest_strategy"`
+	AllowPrerelease  bool   `yaml:"allow_prerelease"`
 	ArchLinuxPkgName string `yaml:"arch_linux_pkg_name"`
 
 	ExtractHasRoot bool `yaml:"extract_has_root"`
 
 	OsMap   map[string]OsInfo `yaml:"os_map"`
 	ArchMap map[string]string `yaml:"arch_map"`
+	Ignore  []OsArchPair
 }
 
 var goOsToPkgOs = map[string]string{
@@ -107,7 +114,7 @@ func ParsePkgConfigOnline(pkg string) (*PkgConfig, error) {
 	defer r.Body.Close()
 	if !(r.StatusCode >= 200 && r.StatusCode < 300) {
 		switch r.StatusCode {
-		case 404:
+		case 404, 403:
 			return nil, fmt.Errorf("no package recipe for %q exists", pkg)
 		default:
 			return nil, fmt.Errorf(
@@ -145,7 +152,7 @@ func (pkgConf *PkgConfig) GetLatestVersion() (*string, error) {
 	var version string
 	switch pkgConf.LatestStrategy {
 	case "github-release":
-		rel, err := getLatestGithubReleaseTag(pkgConf.GitUser, pkgConf.GitRepo)
+		rel, err := getLatestGithubReleaseTag(pkgConf.GitUser, pkgConf.GitRepo, pkgConf.AllowPrerelease)
 		if err != nil {
 			return nil, err
 		}

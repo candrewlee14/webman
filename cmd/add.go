@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -129,6 +130,12 @@ func installPkg(arg string, argNum int, argCount int, webmanDir string, wg *sync
 	if err != nil {
 		ml.Printf(argNum, color.RedString("%v", err))
 		return false
+	}
+	for _, ignorePair := range pkgConf.Ignore {
+		if runtime.GOOS == ignorePair.Os && runtime.GOARCH == ignorePair.Arch {
+			ml.Printf(argNum, color.RedString("unsupported OS + Arch for this package"))
+			return false
+		}
 	}
 	if len(ver) == 0 {
 		foundLatest := make(chan bool)
