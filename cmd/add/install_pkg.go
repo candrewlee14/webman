@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"sync"
 	"webman/link"
 	"webman/multiline"
@@ -18,16 +17,9 @@ import (
 
 func installPkg(arg string, argNum int, argCount int, wg *sync.WaitGroup, ml *multiline.MultiLogger) bool {
 	defer wg.Done()
-	parts := strings.Split(arg, "@")
-	var pkg string
-	var ver string
-	if len(parts) == 1 {
-		pkg = parts[0]
-	} else if len(parts) == 2 {
-		pkg = parts[0]
-		ver = parts[1]
-	} else {
-		ml.Printf(argNum, "Packages should be in format 'pkg' or 'pkg@version'")
+	pkg, ver, err := utils.ParsePkgVer(arg)
+	if err != nil {
+		ml.Printf(argNum, color.RedString(err.Error()))
 		return false
 	}
 	if len(ver) == 0 {

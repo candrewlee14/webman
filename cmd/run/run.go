@@ -20,13 +20,14 @@ var RunCmd = &cobra.Command{
 	Use:   "run",
 	Short: "run installed packages",
 	Long: `
-The "run" subcommand runs installed package binary with the name of the package.
-Pass a double dash before commands you want to forward to the binary.`,
+The "run" subcommand runs the installed package binary with the name of the package by default,
+or a binary name given after the colon.`,
 	Example: `webman run go
-webman run bat -- [FILE]
+webman run bat [FILE]
 webman run go@18.0.0
-webman run node@17.0.0 -- --version
-webman run node@17.0.0 --select-bin npm -- --version`,
+webman run node@17.0.0 --version
+webman run node@17.0.0:npm --version
+webman run node:npm --version`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
 			cmd.Help()
@@ -35,33 +36,44 @@ webman run node@17.0.0 --select-bin npm -- --version`,
 		runPackage(args)
 
 	},
+	DisableFlagParsing: true,
 }
 
-var selectBin string
-
 func init() {
-	RunCmd.Flags().StringVarP(&selectBin, "select-bin", "s", "",
-		"select a given binary from the package, rather than running the default binary")
+	// RunCmd.Flags().StringVarP(&selectBin, "select-bin", "s", "",
+	// 	"select a given binary from the package, rather than running the default binary")
 }
 
 func runPackage(args []string) {
-	parts := strings.Split(args[0], "@")
 	var pkg string
 	var ver string
+	var binName string
+	var initialBinName string
 	var pkgRunFolder string
 	var pkgBinDirOrFile string
 	var argsApp []string
 
 	// Version information
-	if len(parts) == 1 {
-		pkg = parts[0]
-	} else if len(parts) == 2 {
-		pkg = parts[0]
-		ver = parts[1]
+	pkgVerAndBinParts := strings.Split(args[0], ":")
+	if len(pkgVerAndBinParts) == 1 {
+		pkgStr, verStr, err := utils.ParsePkgVer(args[0])
+		if err != nil {
+			exitPrint(1, color.RedString(err.Error()))
+		}
+		pkg = pkgStr
+		ver = verStr
+	} else if len(pkgVerAndBinParts) == 2 {
+		pkgStr, verStr, err := utils.ParsePkgVer(pkgVerAndBinParts[0])
+		if err != nil {
+			exitPrint(1, color.RedString(err.Error()))
+		}
+		pkg = pkgStr
+		ver = verStr
+		binName = pkgVerAndBinParts[1]
+		initialBinName = pkgVerAndBinParts[1]
 	} else {
-		exitPrint(1, color.RedString("Packages should be in format 'pkg' or 'pkg@version'"))
+		exitPrint(1, "Expected command in form of 'pkg@ver', 'pkg:bin', or 'pkg@ver:bin'")
 	}
-
 	// Add args for pkg
 	if len(args) > 1 {
 		argsApp = args[1:]
@@ -81,62 +93,77 @@ func runPackage(args []string) {
 	var pkgDirName string
 	if ver != "" {
 		pkgDirName = fmt.Sprintf("%s-%s", pkg, ver)
-	}
-	// Default version
-	if ver == "" {
+	} else { // Default version
 		usingVersion, err := pkgparse.CheckUsing(pkg)
 		if err != nil {
 			panic(err)
 		}
 		if usingVersion == nil {
-			exitPrint(0, fmt.Sprintf("Not currently using any %s version\n", color.CyanString(pkg)))
+			exitPrint(1, fmt.Sprintf("Not currently using any %s version\n", color.CyanString(pkg)))
 		}
 		pkgDirName = *usingVersion
 	}
 	pkgRunFolder = filepath.Join(utils.WebmanPkgDir, pkg, pkgDirName)
+	if _, err = os.Stat(pkgRunFolder); err != nil {
+		if os.IsNotExist(err) {
+			IsNotExist(pkg, ver)
+		}
+		exitPrint(1, color.RedString("Error when accessing package version folder: %v\n",
+			err))
+	}
 	pkgBinDirOrFile = filepath.Join(pkgRunFolder, binPath)
-	// default executable to run is the package name
-	binName := pkg
-	if selectBin != "" {
-		binName = selectBin
+	if binName == "" {
+		// default binary name is name of package
+		binName = pkg
 	}
 	// Is folder, pkgBinFile
 	pkgBinFileInfo, err := os.Stat(pkgBinDirOrFile)
 	if err != nil {
 		if os.IsNotExist(err) {
+			// at this point, this is either a nonexistent folder
+			// or a binary file with an extension we don't yet know
 			if runtime.GOOS == "windows" {
-				if selectBin != "" {
-					exitPrint(1, color.RedString("bin path for package is a file, "+
-						"so cannot use --select-bin flag to select a different binary"))
-				}
 				entries, err := os.ReadDir(filepath.Dir(pkgBinDirOrFile))
 				if err != nil {
-					IsNotExist(pkg)
+					IsNotExist(pkg, ver)
 				}
 				found := false
 				for _, entry := range entries {
-					if strings.HasPrefix(entry.Name(), binName) {
+					eName := entry.Name()
+					entryStem := eName[:len(eName)-len(filepath.Ext(eName))]
+					if entryStem == binName {
 						found = true
 						pkgBinDirOrFile += filepath.Ext(entry.Name())
+						pkgBinFileInfo, err = os.Stat(pkgBinDirOrFile)
+						if err != nil {
+							exitPrint(1, color.RedString("Unable to access binary at %s", pkgBinDirOrFile))
+						}
 						break
 					}
 				}
 				if !found {
-					IsNotExist(pkg)
+					IsNotExist(pkg, ver)
 				}
 			} else {
-				IsNotExist(pkg)
+				IsNotExist(pkg, ver)
 			}
 		} else {
 			exitPrint(1, color.RedString(err.Error()))
 		}
-	} else if pkgBinFileInfo.IsDir() { // dir
+	}
+	if pkgBinFileInfo.IsDir() { // dir
 		pkgBinDirOrFile = filepath.Join(pkgBinDirOrFile, binName)
-	} else { // non-windows file
-		if selectBin != "" {
-			exitPrint(1, color.RedString("bin path for package is a file,"+
-				"so cannot use --select-bin flag to select a different binary"))
+		if _, err = os.Stat(pkgBinDirOrFile); err != nil {
+			if os.IsNotExist(err) {
+				exitPrint(1, "No "+color.YellowString(binName)+" binary exists for "+
+					color.CyanString(pkg)+"@"+color.MagentaString(ver))
+			}
+			exitPrint(1, color.RedString("Error when accessing binary: %v\n",
+				err))
 		}
+	} else if initialBinName != "" { // is a file
+		exitPrint(1, color.RedString("bin path for package is a file,"+
+			"so cannot select a different binary"))
 	}
 
 	appCmd := exec.Command(pkgBinDirOrFile, argsApp...)
@@ -148,15 +175,15 @@ func runPackage(args []string) {
 	// Start package
 	if err := appCmd.Run(); err != nil {
 		if os.IsNotExist(err) {
-			IsNotExist(ver)
+			IsNotExist(pkg, ver)
 		}
 		exitPrint(1, color.RedString(err.Error()))
 	}
 }
 
-func IsNotExist(pkg string) {
-	fmt.Printf("No versions of %s are currently installed.\n", color.CyanString(pkg))
-	os.Exit(0)
+func IsNotExist(pkg string, ver string) {
+	fmt.Printf("No versions of %s@%s are currently installed.\n", color.CyanString(pkg), color.MagentaString(ver))
+	os.Exit(1)
 }
 
 func exitPrint(code int, text string) {

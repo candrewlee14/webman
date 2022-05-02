@@ -1,8 +1,10 @@
 package utils
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 var WebmanDir string
@@ -31,4 +33,19 @@ func Init() {
 	if err = os.MkdirAll(WebmanTmpDir, os.ModePerm); err != nil {
 		panic(err)
 	}
+}
+
+func ParsePkgVer(arg string) (string, string, error) {
+	parts := strings.Split(arg, "@")
+	var pkg string
+	var ver string
+	if len(parts) == 1 {
+		pkg = parts[0]
+	} else if len(parts) == 2 {
+		pkg = parts[0]
+		ver = parts[1]
+	} else {
+		return "", "", fmt.Errorf("packages should be in format 'pkg' or 'pkg@version'")
+	}
+	return pkg, ver, nil
 }

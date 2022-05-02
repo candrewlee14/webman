@@ -26,3 +26,4 @@ webman
 *.log
 
 dist/
+.vscode/*
