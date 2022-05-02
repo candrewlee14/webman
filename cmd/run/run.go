@@ -79,7 +79,7 @@ func runPackage(args []string) {
 		argsApp = args[1:]
 	}
 
-	pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg)
+	pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg, false)
 	if err != nil {
 		exitPrint(1, color.RedString(err.Error()))
 	}

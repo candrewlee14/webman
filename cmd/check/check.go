@@ -63,9 +63,18 @@ webman check ~/repos/webman-pkgs/pkg/go.yaml`,
 
 func CheckPkgConfig(pkgFileName string) error {
 	pkg := strings.ReplaceAll(pkgFileName, ".yaml", "")
-	pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg)
+	pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg, true)
 	if err != nil {
 		return err
+	}
+	if len(pkgConf.Title) == 0 {
+		return fmt.Errorf("title field empty")
+	}
+	if len(pkgConf.Tagline) == 0 {
+		return fmt.Errorf("tagline field empty")
+	}
+	if len(pkgConf.About) == 0 {
+		return fmt.Errorf("about field empty")
 	}
 
 	if len(pkgConf.FilenameFormat) == 0 {

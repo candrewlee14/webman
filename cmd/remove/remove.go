@@ -70,7 +70,7 @@ webman remove rg`,
 			fmt.Printf("Prompt failed %v\n", err)
 			return
 		}
-		pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg)
+		pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg, false)
 		if err != nil {
 			panic(err)
 		}

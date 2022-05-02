@@ -34,7 +34,7 @@ func installPkg(arg string, argNum int, argCount int, wg *sync.WaitGroup, ml *mu
 		foundRecipe,
 		500,
 	)
-	pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg)
+	pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg, false)
 	foundRecipe <- true
 	if err != nil {
 		ml.Printf(argNum, color.RedString("%v", err))

@@ -49,16 +49,17 @@ webman add go@18.0.0 zig@9.1.0 rg@13.0.0`,
 			}
 			color.Magenta("Using local recipe directory: %s", color.HiBlackString(recipeDir))
 			utils.WebmanRecipeDir = recipeDir
-		}
-
-		shouldRefresh, err := pkgparse.ShouldRefreshRecipes()
-		if err != nil {
-			panic(err)
-		}
-		if shouldRefresh || doRefresh {
-			color.HiBlue("Refreshing package recipes")
-			if err = pkgparse.RefreshRecipes(); err != nil {
-				fmt.Println(err)
+		} else {
+			// only refresh if not using local
+			shouldRefresh, err := pkgparse.ShouldRefreshRecipes()
+			if err != nil {
+				panic(err)
+			}
+			if shouldRefresh || doRefresh {
+				color.HiBlue("Refreshing package recipes")
+				if err = pkgparse.RefreshRecipes(); err != nil {
+					fmt.Println(err)
+				}
 			}
 		}
 		var wg sync.WaitGroup

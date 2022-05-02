@@ -30,6 +30,10 @@ type OsArchPair struct {
 }
 
 type PkgConfig struct {
+	Title   string
+	Tagline string
+	About   string
+
 	InfoUrl         string `yaml:"info_url"`
 	ReleasesUrl     string `yaml:"releases_url"`
 	BaseDownloadUrl string `yaml:"base_download_url"`
@@ -133,7 +137,7 @@ func ParsePkgConfigOnline(pkg string) (*PkgConfig, error) {
 	return &pkgConf, nil
 }
 
-func ParsePkgConfigLocal(pkg string) (*PkgConfig, error) {
+func ParsePkgConfigLocal(pkg string, strict bool) (*PkgConfig, error) {
 	pkgConfPath := filepath.Join(utils.WebmanRecipeDir, "pkgs", pkg+".yaml")
 	dat, err := os.ReadFile(pkgConfPath)
 	if err != nil {
@@ -143,8 +147,14 @@ func ParsePkgConfigLocal(pkg string) (*PkgConfig, error) {
 		return nil, err
 	}
 	var pkgConf PkgConfig
-	if err = yaml.UnmarshalStrict(dat, &pkgConf); err != nil {
-		return nil, fmt.Errorf("unable parse package recipe for %s: %v", pkg, err)
+	if strict {
+		if err = yaml.UnmarshalStrict(dat, &pkgConf); err != nil {
+			return nil, fmt.Errorf("unable to strict parse package recipe for %s: %v", pkg, err)
+		}
+	} else {
+		if err = yaml.Unmarshal(dat, &pkgConf); err != nil {
+			return nil, fmt.Errorf("unable to parse package recipe for %s: %v", pkg, err)
+		}
 	}
 	return &pkgConf, nil
 }
