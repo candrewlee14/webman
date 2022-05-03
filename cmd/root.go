@@ -74,6 +74,7 @@ func init() {
 	utils.Init()
 
 	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.webman.yaml)")
+	rootCmd.PersistentFlags().StringVarP(&utils.RecipeDirFlag, "local-recipes", "l", "", "use given local recipe directory")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.

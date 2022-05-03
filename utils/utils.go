@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/fatih/color"
 )
 
 var WebmanDir string
@@ -12,6 +14,7 @@ var WebmanPkgDir string
 var WebmanBinDir string
 var WebmanRecipeDir string
 var WebmanTmpDir string
+var RecipeDirFlag string
 
 func Init() {
 	homeDir, err := os.UserHomeDir()
@@ -32,6 +35,15 @@ func Init() {
 	}
 	if err = os.MkdirAll(WebmanTmpDir, os.ModePerm); err != nil {
 		panic(err)
+	}
+	if RecipeDirFlag != "" {
+		recipeDir, err := filepath.Abs(RecipeDirFlag)
+		if err != nil {
+			color.Red("Failed converting local package directory to absolute path: %v", err)
+			os.Exit(1)
+		}
+		color.Magenta("Using local recipe directory: %s", color.HiBlackString(recipeDir))
+		WebmanRecipeDir = recipeDir
 	}
 }
 

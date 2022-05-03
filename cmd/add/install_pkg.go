@@ -15,7 +15,25 @@ import (
 	"github.com/fatih/color"
 )
 
-func installPkg(arg string, argNum int, argCount int, wg *sync.WaitGroup, ml *multiline.MultiLogger) bool {
+func InstallAllPkgs(args []string) bool {
+	var wg sync.WaitGroup
+	ml := multiline.New(len(args), os.Stdout)
+	wg.Add(len(args))
+	success := true
+	for i, arg := range args {
+		i := i
+		arg := arg
+		go func() {
+			if !InstallPkg(arg, i, len(args), &wg, &ml) {
+				success = false
+			}
+		}()
+	}
+	wg.Wait()
+	return success
+}
+
+func InstallPkg(arg string, argNum int, argCount int, wg *sync.WaitGroup, ml *multiline.MultiLogger) bool {
 	defer wg.Done()
 	pkg, ver, err := utils.ParsePkgVer(arg)
 	if err != nil {
@@ -34,7 +52,7 @@ func installPkg(arg string, argNum int, argCount int, wg *sync.WaitGroup, ml *mu
 		foundRecipe,
 		500,
 	)
-	pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg, false)
+	pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg, true) // TODO: return to non-strict
 	foundRecipe <- true
 	if err != nil {
 		ml.Printf(argNum, color.RedString("%v", err))
