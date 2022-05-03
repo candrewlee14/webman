@@ -30,7 +30,7 @@ The "group remove" subcommand removes a group of packages.
 		}
 		group := args[0]
 		if !allFlag {
-			color.Red("Please pass --all flag if you want to remove all packages in the group " + color.YellowString(group))
+			color.Red("Please pass --all flag if you want to remove all versions of all packages in the group " + color.YellowString(group))
 			os.Exit(1)
 		}
 		groupConf := pkgparse.ParseGroupConfig(group)

@@ -45,7 +45,7 @@ The "group add" subcommand installs a group of packages.
 		group := args[0]
 		groupConf := pkgparse.ParseGroupConfig(group)
 
-		if add.InstallAllPkgs(groupConf.Packages) {
+		if !add.InstallAllPkgs(groupConf.Packages) {
 			color.Magenta("Not all packages installed successfully")
 			os.Exit(1)
 		}

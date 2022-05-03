@@ -19,17 +19,20 @@ func InstallAllPkgs(args []string) bool {
 	var wg sync.WaitGroup
 	ml := multiline.New(len(args), os.Stdout)
 	wg.Add(len(args))
-	success := true
+	results := make(chan bool, len(args))
 	for i, arg := range args {
 		i := i
 		arg := arg
 		go func() {
-			if !InstallPkg(arg, i, len(args), &wg, &ml) {
-				success = false
-			}
+			res := InstallPkg(arg, i, len(args), &wg, &ml)
+			results <- res
 		}()
 	}
 	wg.Wait()
+	success := true
+	for i := 0; i < len(args); i++ {
+		success = success && <-results
+	}
 	return success
 }
 

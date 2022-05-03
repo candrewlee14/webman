@@ -53,7 +53,7 @@ webman add go@18.0.0 zig@9.1.0 rg@13.0.0`,
 				}
 			}
 		}
-		if InstallAllPkgs(args) {
+		if !InstallAllPkgs(args) {
 			color.Magenta("Not all packages installed successfully")
 			os.Exit(1)
 		}
