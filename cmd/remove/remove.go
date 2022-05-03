@@ -31,7 +31,8 @@ webman remove rg`,
 		}
 		pkg := args[0]
 
-		dirEntries, err := os.ReadDir(utils.WebmanPkgDir)
+		pkgDir := filepath.Join(utils.WebmanPkgDir, pkg)
+		dirEntries, err := os.ReadDir(pkgDir)
 		if err != nil {
 			if os.IsNotExist(err) {
 				fmt.Printf("No versions of %s are currently installed.\n", color.CyanString(pkg))
@@ -59,7 +60,6 @@ webman remove rg`,
 		if len(pkgVersions) == 1 {
 			pkgVerStem = pkgVersions[0]
 		} else {
-
 			prompt := promptui.Select{
 				Label: "Select " + color.CyanString(pkg) + " version to " + color.RedString("remove"),
 				Items: pkgVersions,
@@ -75,36 +75,17 @@ webman remove rg`,
 		if err != nil {
 			panic(err)
 		}
+		// if the selected pkgVerStem is being used, uninstall bins
 		if using != nil && *using == pkgVerStem {
-			binPath, err := pkgConf.GetMyBinPath()
-			if err != nil {
-				fmt.Println(color.RedString("%v", err))
-				return
-			}
-			_, linkPaths, err := link.GetBinPathsAndLinkPaths(pkg, pkgVerStem, binPath)
-			if err != nil {
-				panic(err)
-			}
-			fmt.Println("Removing links ...")
-			for _, linkPath := range linkPaths {
-				if runtime.GOOS == "windows" {
-					linkPath = linkPath + ".bat"
-				}
-				err := os.Remove(linkPath)
-				if err != nil {
-					panic(err)
-				}
-			}
-			fmt.Printf("%s%sRemoved links!\n", multiline.MoveUp, multiline.ClearLine)
-			if err = pkgparse.RemoveUsing(pkg); err != nil {
-				panic(err)
+			if err = UninstallBins(pkg, pkgConf); err != nil {
+				color.Red("Error uninstalling binaries: %v", err)
+				os.Exit(1)
 			}
 		}
-		// Remove directory
 		fmt.Printf("Removing %s ...\n", pkgVerStem)
 		// if this is the only version of this package installed, remove this pkg's whole dir
 		if len(pkgVersions) == 1 {
-			if err := os.RemoveAll(filepath.Join(utils.WebmanPkgDir, pkg)); err != nil {
+			if err := RemoveAllVers(pkg, pkgConf); err != nil {
 				panic(err)
 			}
 		} else { // otherwise just remove the pkg version's dir
@@ -114,6 +95,54 @@ webman remove rg`,
 		}
 		fmt.Printf("%s%sRemoved %s!\n", multiline.MoveUp, multiline.ClearLine, pkgVerStem)
 	},
+}
+
+// Uninstalls the binaries for a package (if they are installed)
+func UninstallBins(pkg string, pkgConf *pkgparse.PkgConfig) error {
+	using, err := pkgparse.CheckUsing(pkg)
+	if err != nil {
+		return err
+	}
+	if using == nil {
+		return nil
+	}
+	pkgVerStem := *using
+	binPath, err := pkgConf.GetMyBinPath()
+	if err != nil {
+		return err
+	}
+	_, linkPaths, err := link.GetBinPathsAndLinkPaths(pkg, pkgVerStem, binPath)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Removing links ...")
+	for _, linkPath := range linkPaths {
+		if runtime.GOOS == "windows" {
+			linkPath = linkPath + ".bat"
+		}
+		err := os.Remove(linkPath)
+		if err != nil {
+			panic(err)
+		}
+	}
+	fmt.Printf("%s%sRemoved links!\n", multiline.MoveUp, multiline.ClearLine)
+	if err = pkgparse.RemoveUsing(pkg); err != nil {
+		return err
+	}
+	return nil
+}
+
+func RemoveAllVers(pkg string, pkgConf *pkgparse.PkgConfig) error {
+	if err := UninstallBins(pkg, pkgConf); err != nil {
+		return err
+	}
+	if err := os.RemoveAll(filepath.Join(utils.WebmanPkgDir, pkg)); err != nil {
+		return err
+	}
+	return nil
+}
+func GetPkgVerStems(pkg string) error {
+	return nil
 }
 
 func init() {
