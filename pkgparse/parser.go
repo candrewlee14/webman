@@ -51,17 +51,17 @@ type PkgConfig struct {
 
 	OsMap   map[string]OsInfo `yaml:"os_map"`
 	ArchMap map[string]string `yaml:"arch_map"`
-	Ignore  []OsArchPair
+	Ignore  []OsArchPair      `yaml:"ignore"`
 }
 
-var goOsToPkgOs = map[string]string{
+var GOOStoPkgOs = map[string]string{
 	"darwin":  "macos",
 	"windows": "win",
 	"linux":   "linux",
 }
 
 func (pkgConf *PkgConfig) GetMyBinPath() (string, error) {
-	osStr, exists := goOsToPkgOs[runtime.GOOS]
+	osStr, exists := GOOStoPkgOs[runtime.GOOS]
 	if !exists {
 		return "", fmt.Errorf("unsupported OS")
 	}
@@ -204,7 +204,7 @@ func ParseVersion(versionStr string, versionFmt string) (*string, error) {
 
 ///
 func (pkgConf *PkgConfig) GetAssetStemExtUrl(version string) (*string, *string, *string, error) {
-	pkgOs, exists := goOsToPkgOs[runtime.GOOS]
+	pkgOs, exists := GOOStoPkgOs[runtime.GOOS]
 	if !exists {
 		return nil, nil, nil, fmt.Errorf("unsupported operating system")
 	}

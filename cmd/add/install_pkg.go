@@ -52,14 +52,14 @@ func InstallPkg(arg string, argNum int, argCount int, wg *sync.WaitGroup, ml *mu
 		foundRecipe,
 		500,
 	)
-	pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg, true) // TODO: return to non-strict
+	pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg, false)
 	foundRecipe <- true
 	if err != nil {
 		ml.Printf(argNum, color.RedString("%v", err))
 		return false
 	}
 	for _, ignorePair := range pkgConf.Ignore {
-		if runtime.GOOS == ignorePair.Os && runtime.GOARCH == ignorePair.Arch {
+		if pkgparse.GOOStoPkgOs[runtime.GOOS] == ignorePair.Os && runtime.GOARCH == ignorePair.Arch {
 			ml.Printf(argNum, color.RedString("unsupported OS + Arch for this package"))
 			return false
 		}
