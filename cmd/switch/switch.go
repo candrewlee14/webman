@@ -21,6 +21,7 @@ var SwitchCmd = &cobra.Command{
 webman switch zig
 webman switch rg`,
 	Run: func(cmd *cobra.Command, args []string) {
+		utils.Init()
 		if len(args) != 1 {
 			cmd.Help()
 			os.Exit(0)

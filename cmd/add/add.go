@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"sync"
 	"time"
 	"webman/link"
 	"webman/multiline"
@@ -22,7 +21,6 @@ import (
 )
 
 var doRefresh bool
-var recipeDir string
 
 // addCmd represents the add command
 var AddCmd = &cobra.Command{
@@ -35,21 +33,14 @@ webman add go@18.0.0
 webman add go zig rg
 webman add go@18.0.0 zig@9.1.0 rg@13.0.0`,
 	Run: func(cmd *cobra.Command, args []string) {
+		utils.Init()
 		if len(args) == 0 {
 			cmd.Help()
 			os.Exit(0)
 		}
 		defer os.RemoveAll(utils.WebmanTmpDir)
-		// if local recipe flag is set
-		if recipeDir != "" {
-			recipeDir, err := filepath.Abs(recipeDir)
-			if err != nil {
-				color.Red("Failed converting local package directory to absolute path: %v", err)
-				os.Exit(1)
-			}
-			color.Magenta("Using local recipe directory: %s", color.HiBlackString(recipeDir))
-			utils.WebmanRecipeDir = recipeDir
-		} else {
+		// if local recipe flag is not set
+		if utils.RecipeDirFlag == "" {
 			// only refresh if not using local
 			shouldRefresh, err := pkgparse.ShouldRefreshRecipes()
 			if err != nil {
@@ -62,21 +53,7 @@ webman add go@18.0.0 zig@9.1.0 rg@13.0.0`,
 				}
 			}
 		}
-		var wg sync.WaitGroup
-		ml := multiline.New(len(args), os.Stdout)
-		wg.Add(len(args))
-		success := true
-		for i, arg := range args {
-			i := i
-			arg := arg
-			go func() {
-				if !installPkg(arg, i, len(args), &wg, &ml) {
-					success = false
-				}
-			}()
-		}
-		wg.Wait()
-		if !success {
+		if InstallAllPkgs(args) {
 			color.Magenta("Not all packages installed successfully")
 			os.Exit(1)
 		}
@@ -86,7 +63,6 @@ webman add go@18.0.0 zig@9.1.0 rg@13.0.0`,
 
 func init() {
 	AddCmd.Flags().BoolVar(&doRefresh, "refresh", false, "force refresh of package recipes")
-	AddCmd.Flags().StringVarP(&recipeDir, "local-recipes", "l", "", "use given local recipe directory")
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command

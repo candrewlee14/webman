@@ -29,6 +29,7 @@ webman run node@17.0.0 --version
 webman run node@17.0.0:npm --version
 webman run node:npm --version`,
 	Run: func(cmd *cobra.Command, args []string) {
+		utils.Init()
 		if len(args) == 0 {
 			cmd.Help()
 			os.Exit(0)

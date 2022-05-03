@@ -25,8 +25,8 @@ type OsInfo struct {
 }
 
 type OsArchPair struct {
-	Os   string
-	Arch string
+	Os   string `yaml:"os"`
+	Arch string `yaml:"arch"`
 }
 
 type PkgConfig struct {
