@@ -1,7 +1,6 @@
 package pkgparse
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"webman/utils"
@@ -21,7 +20,6 @@ type PkgGroupConfig struct {
 
 func ParseGroupConfig(group string) *PkgGroupConfig {
 	groupPath := filepath.Join(utils.WebmanRecipeDir, "groups", group+".yaml")
-	fmt.Println(groupPath)
 	if _, err := os.Stat(groupPath); err != nil {
 		if os.IsNotExist(err) {
 			color.Red("No package group named %s", color.YellowString(group))

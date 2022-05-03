@@ -85,7 +85,7 @@ webman remove rg`,
 		fmt.Printf("Removing %s ...\n", pkgVerStem)
 		// if this is the only version of this package installed, remove this pkg's whole dir
 		if len(pkgVersions) == 1 {
-			if err := RemoveAllVers(pkg, pkgConf); err != nil {
+			if _, err := RemoveAllVers(pkg, pkgConf); err != nil {
 				panic(err)
 			}
 		} else { // otherwise just remove the pkg version's dir
@@ -115,7 +115,7 @@ func UninstallBins(pkg string, pkgConf *pkgparse.PkgConfig) error {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("Removing links ...")
+	fmt.Printf("Removing %s links ...\n", color.CyanString(pkg))
 	for _, linkPath := range linkPaths {
 		if runtime.GOOS == "windows" {
 			linkPath = linkPath + ".bat"
@@ -125,21 +125,28 @@ func UninstallBins(pkg string, pkgConf *pkgparse.PkgConfig) error {
 			panic(err)
 		}
 	}
-	fmt.Printf("%s%sRemoved links!\n", multiline.MoveUp, multiline.ClearLine)
+	fmt.Printf("%s%sRemoved %s links!\n", multiline.MoveUp, multiline.ClearLine, color.CyanString(pkg))
 	if err = pkgparse.RemoveUsing(pkg); err != nil {
 		return err
 	}
 	return nil
 }
 
-func RemoveAllVers(pkg string, pkgConf *pkgparse.PkgConfig) error {
+func RemoveAllVers(pkg string, pkgConf *pkgparse.PkgConfig) (bool, error) {
 	if err := UninstallBins(pkg, pkgConf); err != nil {
-		return err
+		return false, err
 	}
-	if err := os.RemoveAll(filepath.Join(utils.WebmanPkgDir, pkg)); err != nil {
-		return err
+	pkgDir := filepath.Join(utils.WebmanPkgDir, pkg)
+	if _, err := os.Stat(pkgDir); err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+		return false, err
 	}
-	return nil
+	if err := os.RemoveAll(pkgDir); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 func GetPkgVerStems(pkg string) error {
 	return nil
