@@ -45,7 +45,7 @@ webman remove rg`,
 			panic(err)
 		}
 		if using != nil {
-			fmt.Println("Currently using: ", color.YellowString(*using))
+			fmt.Println("Currently using: ", color.CyanString(*using))
 		} else {
 			fmt.Printf("Not currently using any %s version\n", color.CyanString(pkg))
 		}

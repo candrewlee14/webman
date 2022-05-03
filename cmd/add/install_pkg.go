@@ -44,10 +44,10 @@ func InstallPkg(arg string, argNum int, argCount int, wg *sync.WaitGroup, ml *mu
 		return false
 	}
 	if len(ver) == 0 {
-		ml.SetPrefix(argNum, color.YellowString(pkg)+": ")
+		ml.SetPrefix(argNum, color.CyanString(pkg)+": ")
 
 	} else {
-		ml.SetPrefix(argNum, color.YellowString(pkg)+"@"+color.YellowString(ver)+": ")
+		ml.SetPrefix(argNum, color.CyanString(pkg)+"@"+color.CyanString(ver)+": ")
 	}
 	foundRecipe := make(chan bool)
 	ml.PrintUntilDone(argNum,

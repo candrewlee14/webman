@@ -43,7 +43,7 @@ webman switch rg`,
 			panic(err)
 		}
 		if using != nil {
-			fmt.Println("Currently using: ", color.YellowString(*using))
+			fmt.Println("Currently using: ", color.CyanString(*using))
 		} else {
 			fmt.Printf("Not currently using any %s version\n", color.CyanString(pkg))
 		}
@@ -89,7 +89,7 @@ webman switch rg`,
 			panic("Unable to create all links")
 		}
 		fmt.Printf("Created links for %s\n", pkgVerStem)
-		color.Green("Successfully switched, %s now using %s\n", pkg, color.YellowString(pkgVerStem))
+		color.Green("Successfully switched, %s now using %s\n", pkg, color.CyanString(pkgVerStem))
 	},
 }
 

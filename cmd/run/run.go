@@ -156,7 +156,7 @@ func runPackage(args []string) {
 		pkgBinDirOrFile = filepath.Join(pkgBinDirOrFile, binName)
 		if _, err = os.Stat(pkgBinDirOrFile); err != nil {
 			if os.IsNotExist(err) {
-				exitPrint(1, "No "+color.YellowString(binName)+" binary exists for "+
+				exitPrint(1, "No "+color.CyanString(binName)+" binary exists for "+
 					color.CyanString(pkg)+"@"+color.MagentaString(ver))
 			}
 			exitPrint(1, color.RedString("Error when accessing binary: %v\n",

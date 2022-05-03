@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"webman/cmd/add"
+	"webman/multiline"
 	"webman/pkgparse"
 	"webman/utils"
 
@@ -36,9 +37,12 @@ The "group add" subcommand installs a group of packages.
 				panic(err)
 			}
 			if shouldRefresh || doRefresh {
-				color.HiBlue("Refreshing package recipes")
+				color.HiBlue("Refreshing package recipes...")
 				if err = pkgparse.RefreshRecipes(); err != nil {
 					fmt.Println(err)
+				} else {
+					color.HiBlue("%s%sRefreshed package recipes!",
+						multiline.MoveUp, multiline.ClearLine)
 				}
 			}
 		}
