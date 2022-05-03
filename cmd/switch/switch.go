@@ -3,6 +3,7 @@ package switchcmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"webman/link"
 	"webman/pkgparse"
 	"webman/utils"
@@ -27,8 +28,8 @@ webman switch rg`,
 			os.Exit(0)
 		}
 		pkg := args[0]
-
-		dirEntries, err := os.ReadDir(utils.WebmanPkgDir)
+		pkgDir := filepath.Join(utils.WebmanPkgDir, pkg)
+		dirEntries, err := os.ReadDir(pkgDir)
 		if err != nil {
 			if os.IsNotExist(err) {
 				fmt.Printf("No versions of %s are currently installed.\n", color.CyanString(pkg))
