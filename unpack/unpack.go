@@ -26,14 +26,14 @@ func Unpack(src string, pkg string, stem string, ext string, hasRoot bool) error
 		return fmt.Errorf("no unpack function for extension: %q", ext)
 	}
 	pkgDir := filepath.Join(utils.WebmanPkgDir, pkg)
-	err := os.MkdirAll(pkgDir, 0777)
+	err := os.MkdirAll(pkgDir, 0755)
 	if err != nil {
 		return fmt.Errorf("unable to create dir %q: %v", pkgDir, err)
 	}
 	pkgDest := filepath.Join(pkgDir, stem)
 	if hasRoot {
 		tmpPkgDir := filepath.Join(utils.WebmanTmpDir, pkg)
-		if err := os.MkdirAll(tmpPkgDir, 0777); err != nil {
+		if err := os.MkdirAll(tmpPkgDir, 0755); err != nil {
 			return fmt.Errorf("unable to create dir %q: %v", tmpPkgDir, err)
 		}
 		if err = unpackFn(src, tmpPkgDir); err != nil {

@@ -47,6 +47,7 @@ type PkgConfig struct {
 	AllowPrerelease  bool   `yaml:"allow_prerelease"`
 	ArchLinuxPkgName string `yaml:"arch_linux_pkg_name"`
 
+	IsBinary       bool `yaml:"is_binary"`
 	ExtractHasRoot bool `yaml:"extract_has_root"`
 
 	OsMap   map[string]OsInfo `yaml:"os_map"`
@@ -68,6 +69,9 @@ func (pkgConf *PkgConfig) GetMyBinPath() (string, error) {
 	osInfo, exists := pkgConf.OsMap[osStr]
 	if !exists {
 		return "", fmt.Errorf("package does not support this OS")
+	}
+	if pkgConf.IsBinary {
+		return pkgConf.Title, nil
 	}
 	return osInfo.BinPath, nil
 }
@@ -239,6 +243,10 @@ func (pkgConf *PkgConfig) GetAssetStemExtUrl(version string) (*string, *string, 
 	fileStem = strings.ReplaceAll(fileStem, "[OS]", osInf.Name)
 	fileStem = strings.ReplaceAll(fileStem, "[ARCH]", archStr)
 	fileStem = strings.ReplaceAll(fileStem, ".[EXT]", "")
-	stem := baseUrl + fileStem + "." + osInf.Ext
+	dot := ""
+	if osInf.Ext != "" {
+		dot = "."
+	}
+	stem := baseUrl + fileStem + dot + osInf.Ext
 	return &fileStem, &osInf.Ext, &stem, nil
 }
