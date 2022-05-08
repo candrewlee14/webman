@@ -19,7 +19,7 @@ type UnpackFn func(src string, dir string) error
 
 var unpackMap = map[unpackExt]UnpackFn{
 	extTarGz: Untargz,
-	extTarXz: UntarxzExec,
+	extTarXz: Untarxz,
 	extZip:   Unzip,
 }
 
