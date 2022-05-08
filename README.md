@@ -1,14 +1,10 @@
-```
-__          __  _
-\ \        / / | |
- \ \  /\  / /__| |__  _ __ ___   __ _ _ __
-  \ \/  \/ / _ \ '_ \| '_ ' _ \ / _' | '_ \
-   \  /\  /  __/ |_) | | | | | | (_| | | | |
-    \/  \/ \___|_.__/|_| |_| |_|\__,_|_| |_|
-    
-```
-
-A cross-platform package manager for the web!
+<p align="center">
+  <img src="/assets/webmanLogo.svg" width=260/>
+ </p>
+<h3 align="center"> 
+  A cross-platform package manager for the web!
+</h3>
+<hr/>
 
 Add, remove, and manage different versions of software.
 No elevated permissions required!
