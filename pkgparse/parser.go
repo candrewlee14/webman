@@ -47,6 +47,7 @@ type PkgConfig struct {
 	AllowPrerelease  bool   `yaml:"allow_prerelease"`
 	ArchLinuxPkgName string `yaml:"arch_linux_pkg_name"`
 
+	IsBinary       bool `yaml:"is_binary"`
 	ExtractHasRoot bool `yaml:"extract_has_root"`
 
 	OsMap   map[string]OsInfo `yaml:"os_map"`
@@ -68,6 +69,9 @@ func (pkgConf *PkgConfig) GetMyBinPath() (string, error) {
 	osInfo, exists := pkgConf.OsMap[osStr]
 	if !exists {
 		return "", fmt.Errorf("package does not support this OS")
+	}
+	if pkgConf.IsBinary {
+		return pkgConf.Title, nil
 	}
 	return osInfo.BinPath, nil
 }
@@ -156,6 +160,18 @@ func ParsePkgConfigLocal(pkg string, strict bool) (*PkgConfig, error) {
 			return nil, fmt.Errorf("unable to parse package recipe for %s: %v", pkg, err)
 		}
 	}
+	pkgConf.BaseDownloadUrl = strings.ReplaceAll(pkgConf.BaseDownloadUrl, "[GIT_USER]", pkgConf.GitUser)
+	pkgConf.BaseDownloadUrl = strings.ReplaceAll(pkgConf.BaseDownloadUrl, "[GIT_REPO]", pkgConf.GitRepo)
+
+	pkgConf.InfoUrl = strings.ReplaceAll(pkgConf.InfoUrl, "[GIT_USER]", pkgConf.GitUser)
+	pkgConf.InfoUrl = strings.ReplaceAll(pkgConf.InfoUrl, "[GIT_REPO]", pkgConf.GitRepo)
+
+	pkgConf.ReleasesUrl = strings.ReplaceAll(pkgConf.InfoUrl, "[GIT_USER]", pkgConf.GitUser)
+	pkgConf.ReleasesUrl = strings.ReplaceAll(pkgConf.InfoUrl, "[GIT_REPO]", pkgConf.GitRepo)
+
+	pkgConf.SourceUrl = strings.ReplaceAll(pkgConf.SourceUrl, "[GIT_USER]", pkgConf.GitUser)
+	pkgConf.SourceUrl = strings.ReplaceAll(pkgConf.SourceUrl, "[GIT_REPO]", pkgConf.GitRepo)
+
 	return &pkgConf, nil
 }
 
@@ -227,6 +243,10 @@ func (pkgConf *PkgConfig) GetAssetStemExtUrl(version string) (*string, *string, 
 	fileStem = strings.ReplaceAll(fileStem, "[OS]", osInf.Name)
 	fileStem = strings.ReplaceAll(fileStem, "[ARCH]", archStr)
 	fileStem = strings.ReplaceAll(fileStem, ".[EXT]", "")
-	stem := baseUrl + fileStem + "." + osInf.Ext
+	dot := ""
+	if osInf.Ext != "" {
+		dot = "."
+	}
+	stem := baseUrl + fileStem + dot + osInf.Ext
 	return &fileStem, &osInf.Ext, &stem, nil
 }

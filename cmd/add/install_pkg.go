@@ -91,11 +91,16 @@ func InstallPkg(arg string, argNum int, argCount int, wg *sync.WaitGroup, ml *mu
 	stem := *stemPtr
 	ext := *extPtr
 	url := *urlPtr
-	fileName := stem + "." + ext
+
+	fileName := stem
+	if ext != "" {
+		fileName += "." + ext
+	}
 	downloadPath := filepath.Join(utils.WebmanTmpDir, fileName)
 
 	extractStem := fmt.Sprintf("%s-%s", pkg, ver)
 	extractPath := filepath.Join(utils.WebmanPkgDir, pkg, extractStem)
+
 	// If file exists
 	if _, err := os.Stat(extractPath); !os.IsNotExist(err) {
 		ml.Printf(argNum, color.HiBlackString("Already installed!"))
@@ -108,24 +113,42 @@ func InstallPkg(arg string, argNum int, argCount int, wg *sync.WaitGroup, ml *mu
 		return false
 	}
 	defer f.Close()
+	if pkgConf.IsBinary && runtime.GOOS == "windows" {
+		url += ".exe"
+	}
 	if !DownloadUrl(url, f, pkg, ver, argNum, argCount, ml) {
 		return false
 	}
-	hasUnpacked := make(chan bool)
-	ml.PrintUntilDone(argNum,
-		fmt.Sprintf("Unpacking %s.%s", stem, ext),
-		hasUnpacked,
-		500,
-	)
-	err = unpack.Unpack(downloadPath, pkg, extractStem, ext, pkgConf.ExtractHasRoot)
-	hasUnpacked <- true
-	if err != nil {
-		ml.Printf(argNum, color.RedString("%v", err))
-		cleanUpFailedInstall(pkg, extractPath)
-		return false
+	if pkgConf.IsBinary {
+		if err = os.Chmod(downloadPath, 0755); err != nil {
+			ml.Printf(argNum, color.RedString("Failed to make download executable!"))
+			return false
+		}
+		if err = os.MkdirAll(extractPath, os.ModePerm); err != nil {
+			ml.Printf(argNum, color.RedString("Failed to create package-version path!"))
+			return false
+		}
+		binPath := filepath.Join(extractPath, pkgConf.Title)
+		if err = os.Rename(downloadPath, binPath); err != nil {
+			ml.Printf(argNum, color.RedString("Failed to rename temporary download to new path!"))
+			return false
+		}
+	} else {
+		hasUnpacked := make(chan bool)
+		ml.PrintUntilDone(argNum,
+			fmt.Sprintf("Unpacking %s.%s", stem, ext),
+			hasUnpacked,
+			500,
+		)
+		err = unpack.Unpack(downloadPath, pkg, extractStem, ext, pkgConf.ExtractHasRoot)
+		hasUnpacked <- true
+		if err != nil {
+			ml.Printf(argNum, color.RedString("%v", err))
+			cleanUpFailedInstall(pkg, extractPath)
+			return false
+		}
+		ml.Printf(argNum, "Completed unpacking %s@%s", color.CyanString(pkg), color.MagentaString(ver))
 	}
-	ml.Printf(argNum, "Completed unpacking %s@%s", color.CyanString(pkg), color.MagentaString(ver))
-
 	using, err := pkgparse.CheckUsing(pkg)
 	if err != nil {
 		cleanUpFailedInstall(pkg, extractPath)
