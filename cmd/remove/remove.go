@@ -10,8 +10,8 @@ import (
 	"webman/pkgparse"
 	"webman/utils"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/fatih/color"
-	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 )
 
@@ -56,44 +56,40 @@ webman remove rg`,
 				pkgVersions = append(pkgVersions, entry.Name())
 			}
 		}
-		var pkgVerStem string
+		var pkgVerStems []string
 		if len(pkgVersions) == 1 {
-			pkgVerStem = pkgVersions[0]
+			pkgVerStems = append(pkgVerStems, pkgVersions[0])
 		} else {
-			prompt := promptui.Select{
-				Label: "Select " + color.CyanString(pkg) + " version to " + color.RedString("remove"),
-				Items: pkgVersions,
+			surveyPrompt := &survey.MultiSelect{
+				Message:  "Select " + color.CyanString(pkg) + " version to " + color.RedString("remove") + ":",
+				Options:  pkgVersions,
+				PageSize: 10,
 			}
-			_, pkgVerStem, err = prompt.Run()
+			err := survey.AskOne(surveyPrompt, &pkgVerStems)
+			if err != nil {
+				fmt.Printf("Prompt failed %v\n", err)
+				return
+			}
 		}
-
-		if err != nil {
-			fmt.Printf("Prompt failed %v\n", err)
-			return
+		if len(pkgVerStems) == 0 {
+			color.HiBlack("No packages selected for removal.")
+			os.Exit(0)
 		}
 		pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg, false)
 		if err != nil {
 			panic(err)
 		}
-		// if the selected pkgVerStem is being used, uninstall bins
-		if using != nil && *using == pkgVerStem {
-			if err = UninstallBins(pkg, pkgConf); err != nil {
-				color.Red("Error uninstalling binaries: %v", err)
-				os.Exit(1)
-			}
-		}
-		fmt.Printf("Removing %s ...\n", pkgVerStem)
-		// if this is the only version of this package installed, remove this pkg's whole dir
-		if len(pkgVersions) == 1 {
+		// if we are installing all versions, remove the whole directory
+		if len(pkgVerStems) == len(pkgVersions) {
 			if _, err := RemoveAllVers(pkg, pkgConf); err != nil {
 				panic(err)
 			}
-		} else { // otherwise just remove the pkg version's dir
-			if err := os.RemoveAll(filepath.Join(utils.WebmanPkgDir, pkg, pkgVerStem)); err != nil {
-				panic(err)
+		} else {
+			for _, pkgVerStem := range pkgVerStems {
+				RemovePkgVer(pkgVerStem, using, pkg, pkgConf)
 			}
 		}
-		fmt.Printf("%s%sRemoved %s!\n", multiline.MoveUp, multiline.ClearLine, pkgVerStem)
+		fmt.Printf("All %d selected packages are uninstalled.\n", len(pkgVerStems))
 	},
 }
 
@@ -130,6 +126,21 @@ func UninstallBins(pkg string, pkgConf *pkgparse.PkgConfig) error {
 		return err
 	}
 	return nil
+}
+
+func RemovePkgVer(pkgVerStem string, using *string, pkg string, pkgConf *pkgparse.PkgConfig) {
+	// if the selected pkgVerStem is being used, uninstall bins
+	if using != nil && *using == pkgVerStem {
+		if err := UninstallBins(pkg, pkgConf); err != nil {
+			color.Red("Error uninstalling binaries: %v", err)
+			os.Exit(1)
+		}
+	}
+	fmt.Printf("Removing %s ...\n", pkgVerStem)
+	if err := os.RemoveAll(filepath.Join(utils.WebmanPkgDir, pkg, pkgVerStem)); err != nil {
+		panic(err)
+	}
+	fmt.Printf("%s%sRemoved %s!\n", multiline.MoveUp, multiline.ClearLine, pkgVerStem)
 }
 
 func RemoveAllVers(pkg string, pkgConf *pkgparse.PkgConfig) (bool, error) {

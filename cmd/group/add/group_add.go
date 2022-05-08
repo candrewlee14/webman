@@ -8,11 +8,13 @@ import (
 	"webman/pkgparse"
 	"webman/utils"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
 var doRefresh bool
+var allFlag bool
 
 var AddCmd = &cobra.Command{
 	Use:   "add",
@@ -49,11 +51,26 @@ The "group add" subcommand installs a group of packages.
 		group := args[0]
 		groupConf := pkgparse.ParseGroupConfig(group)
 
-		if !add.InstallAllPkgs(groupConf.Packages) {
-			color.Magenta("Not all packages installed successfully")
-			os.Exit(1)
+		var pkgsToInstall []string
+		if allFlag {
+			pkgsToInstall = groupConf.Packages
+		} else {
+			prompt := &survey.MultiSelect{
+				Message:  "Select packages from group " + color.YellowString(group) + " to install:",
+				Options:  groupConf.Packages,
+				PageSize: 10,
+			}
+			survey.AskOne(prompt, &pkgsToInstall)
 		}
-		color.Green("All packages installed successfully from group %s", color.YellowString(group))
+		if len(pkgsToInstall) == 0 {
+			color.HiBlack("No packages selected for installation.")
+		} else {
+			if !add.InstallAllPkgs(pkgsToInstall) {
+				color.Magenta("Not all packages installed successfully")
+				os.Exit(1)
+			}
+			color.Green("All %d selected packages from group %s are installed", len(pkgsToInstall), color.YellowString(group))
+		}
 	},
 }
 
@@ -67,5 +84,5 @@ func init() {
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	AddCmd.Flags().BoolVar(&doRefresh, "refresh", false, "force refresh of package recipes")
-
+	AddCmd.Flags().BoolVarP(&allFlag, "all", "a", false, "add latest versions of all packages in group")
 }

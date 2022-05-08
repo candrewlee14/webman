@@ -57,7 +57,7 @@ webman add go@18.0.0 zig@9.1.0 rg@13.0.0`,
 			color.Magenta("Not all packages installed successfully")
 			os.Exit(1)
 		}
-		color.Green("All packages installed successfully!")
+		color.Green("All %d packages are installed!", len(args))
 	},
 }
 

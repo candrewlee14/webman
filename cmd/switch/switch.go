@@ -8,8 +8,8 @@ import (
 	"webman/pkgparse"
 	"webman/utils"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/fatih/color"
-	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 )
 
@@ -67,13 +67,14 @@ webman switch rg`,
 				os.Exit(0)
 			}
 		} else {
-			prompt := promptui.Select{
-				Label: "Select " + color.CyanString(pkg) + " version to switch to use",
-				Items: pkgVersions,
+			surveyPrompt := &survey.Select{
+				Message: "Select " + color.CyanString(pkg) + " version to switch to use:",
+				Options: pkgVersions,
 			}
-			_, pkgVerStem, err = prompt.Run()
+			err := survey.AskOne(surveyPrompt, &pkgVerStem)
 			if err != nil {
-				panic(err)
+				fmt.Printf("Prompt failed %v\n", err)
+				os.Exit(1)
 			}
 		}
 		binPath, err := pkgConf.GetMyBinPath()
