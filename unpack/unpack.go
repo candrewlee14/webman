@@ -2,6 +2,7 @@ package unpack
 
 import (
 	"archive/zip"
+	"compress/gzip"
 	"fmt"
 	"io"
 	"os"
@@ -18,6 +19,7 @@ var unpackMap = map[string]UnpackFn{
 	"tar.gz": untarExec,
 	"tar.xz": untarExec,
 	"zip":    Unzip,
+	"gz":     ungzExec,
 }
 
 func Unpack(src string, pkg string, stem string, ext string, hasRoot bool) error {
@@ -55,9 +57,39 @@ func Unpack(src string, pkg string, stem string, ext string, hasRoot bool) error
 		if err := os.MkdirAll(pkgDest, 0777); err != nil {
 			return fmt.Errorf("unable to create pkg destination dir %q: %v", pkgDest, err)
 		}
+		// if this is a gzipped binary
+		if ext == "gz" {
+			pkgDest = filepath.Join(pkgDest, pkg)
+		}
 		if err = unpackFn(src, pkgDest); err != nil {
 			return fmt.Errorf("failed to extract file: %v", err)
 		}
+	}
+	return nil
+}
+
+func ungzExec(src string, dest string) error {
+	// if runtime.GOOS == "windows" {
+	// 	return fmt.Errorf("windows doesn't have support for gzip")
+	// }
+	// cmd := exec.Command(fmt.Sprintf("gunzip -c %s > %s", src, dest))
+	// // cmd.Stdout = os.Stdout
+	// cmd.Stderr = os.Stderr
+	// return cmd.Run()
+	srcFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	reader, err := gzip.NewReader(srcFile)
+	if err != nil {
+		return err
+	}
+	destFile, err := os.OpenFile(dest, os.O_CREATE|os.O_WRONLY, 0755)
+	if err != nil {
+		return err
+	}
+	if _, err := io.Copy(destFile, reader); err != nil {
+		return err
 	}
 	return nil
 }
