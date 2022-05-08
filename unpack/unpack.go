@@ -16,10 +16,11 @@ import (
 type UnpackFn func(src string, dir string) error
 
 var unpackMap = map[string]UnpackFn{
-	"tar.gz": untarExec,
-	"tar.xz": untarExec,
-	"zip":    Unzip,
-	"gz":     ungzExec,
+	"tar.gz":  untarExec,
+	"tar.xz":  untarExec,
+	"zip":     Unzip,
+	"exe.zip": Unzip,
+	"gz":      ungzExec,
 }
 
 func Unpack(src string, pkg string, stem string, ext string, hasRoot bool) error {
