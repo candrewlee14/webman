@@ -2,7 +2,6 @@ package unpack
 
 import (
 	"archive/tar"
-	"compress/gzip"
 	"fmt"
 	"io"
 	"os"
@@ -10,26 +9,10 @@ import (
 	"strings"
 )
 
-func Untargz(src string, dir string) error {
-	// Open compress file
-	file, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	// Add gzip support
-	uncompressedStream, err := gzip.NewReader(file)
-	if err != nil {
-		return err
-	}
-	defer uncompressedStream.Close()
-
+func Untar(uncompressedStream io.Reader, dest string) error {
 	// Read content file
 	archive := tar.NewReader(uncompressedStream)
-
-	var infinityLoop = true
-	for infinityLoop {
+	for {
 		header, err := archive.Next()
 
 		if err == io.EOF {
@@ -42,9 +25,9 @@ func Untargz(src string, dir string) error {
 
 		fileName := header.Name
 
-		filePath := filepath.Join(dir, fileName)
+		filePath := filepath.Join(dest, fileName)
 
-		if !strings.HasPrefix(filePath, filepath.Clean(dir)+string(os.PathSeparator)) {
+		if !strings.HasPrefix(filePath, filepath.Clean(dest)+string(os.PathSeparator)) {
 			return fmt.Errorf("invalid file path")
 		}
 		if header.FileInfo().IsDir() {
