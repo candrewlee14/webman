@@ -159,7 +159,7 @@ func InstallPkg(arg string, argNum int, argCount int, wg *sync.WaitGroup, ml *mu
 		cleanUpFailedInstall(pkg, extractPath)
 		panic(err)
 	}
-	if using == nil {
+	if using == nil || switchFlag {
 		binPath, err := pkgConf.GetMyBinPath()
 		if err != nil {
 			cleanUpFailedInstall(pkg, extractPath)

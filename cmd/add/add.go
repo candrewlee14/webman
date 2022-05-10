@@ -21,6 +21,7 @@ import (
 )
 
 var doRefresh bool
+var switchFlag bool
 
 // addCmd represents the add command
 var AddCmd = &cobra.Command{
@@ -63,6 +64,7 @@ webman add go@18.0.0 zig@9.1.0 rg@13.0.0`,
 
 func init() {
 	AddCmd.Flags().BoolVar(&doRefresh, "refresh", false, "force refresh of package recipes")
+	AddCmd.Flags().BoolVar(&switchFlag, "switch", false, "switch to use this new package version")
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
