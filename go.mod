@@ -9,6 +9,7 @@ require (
 	github.com/ivanpirog/coloredcobra v1.0.1
 	github.com/schollz/progressbar/v3 v3.8.6
 	github.com/spf13/cobra v1.4.0
+	github.com/ulikunitz/xz v0.5.10
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 )
 

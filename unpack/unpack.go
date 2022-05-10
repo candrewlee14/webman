@@ -1,30 +1,36 @@
 package unpack
 
 import (
-	"archive/zip"
 	"compress/gzip"
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"runtime"
-	"strings"
 	"webman/utils"
+
+	"github.com/ulikunitz/xz"
+)
+
+type unpackExt string
+
+const (
+	extTarGz unpackExt = "tar.gz"
+	extTarXz unpackExt = "tar.xz"
+	extZip   unpackExt = "zip"
+	extGz    unpackExt = "gz"
 )
 
 type UnpackFn func(src string, dir string) error
 
-var unpackMap = map[string]UnpackFn{
-	"tar.gz":  untarExec,
-	"tar.xz":  untarExec,
-	"zip":     Unzip,
-	"exe.zip": Unzip,
-	"gz":      ungzExec,
+var unpackMap = map[unpackExt]UnpackFn{
+	extTarGz: UntarGz,
+	extTarXz: UntarXz,
+	extGz:    UnGz,
+	extZip:   Unzip,
 }
 
 func Unpack(src string, pkg string, stem string, ext string, hasRoot bool) error {
-	unpackFn, exists := unpackMap[ext]
+	unpackFn, exists := unpackMap[unpackExt(ext)]
 	if !exists {
 		return fmt.Errorf("no unpack function for extension: %q", ext)
 	}
@@ -69,82 +75,61 @@ func Unpack(src string, pkg string, stem string, ext string, hasRoot bool) error
 	return nil
 }
 
-func ungzExec(src string, dest string) error {
-	// if runtime.GOOS == "windows" {
-	// 	return fmt.Errorf("windows doesn't have support for gzip")
-	// }
-	// cmd := exec.Command(fmt.Sprintf("gunzip -c %s > %s", src, dest))
-	// // cmd.Stdout = os.Stdout
-	// cmd.Stderr = os.Stderr
-	// return cmd.Run()
-	srcFile, err := os.Open(src)
+func UntarXz(src string, dir string) error {
+	// Open compress file
+	file, err := os.Open(src)
 	if err != nil {
 		return err
 	}
-	reader, err := gzip.NewReader(srcFile)
+	defer file.Close()
+
+	// Add xz support
+	uncompressedStream, err := xz.NewReader(file)
 	if err != nil {
 		return err
 	}
-	destFile, err := os.OpenFile(dest, os.O_CREATE|os.O_WRONLY, 0755)
-	if err != nil {
-		return err
-	}
-	if _, err := io.Copy(destFile, reader); err != nil {
-		return err
-	}
-	return nil
+	return Untar(uncompressedStream, dir)
 }
 
-func untarExec(src string, dir string) error {
-	if runtime.GOOS == "windows" {
-		return fmt.Errorf("windows doesn't have support for tarballs")
+func UntarGz(src string, dir string) error {
+	// Open compress file
+	// Open compress file
+	file, err := os.Open(src)
+	if err != nil {
+		return err
 	}
-	cmd := exec.Command("tar", "-xf", src, "--directory="+dir)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
+	defer file.Close()
+
+	// Add gzip support
+	uncompressedStream, err := gzip.NewReader(file)
+	if err != nil {
+		return err
+	}
+	defer uncompressedStream.Close()
+	return Untar(uncompressedStream, dir)
 }
 
-func Unzip(src string, dir string) error {
-	archive, err := zip.OpenReader(src)
+func UnGz(src string, dest string) error {
+	file, err := os.Open(src)
 	if err != nil {
-		return fmt.Errorf("unable to unzip: %v", err)
+		return err
 	}
-	defer archive.Close()
+	defer file.Close()
 
-	for _, f := range archive.File {
-		fileName := f.Name
+	// Add gzip support
+	uncompressedStream, err := gzip.NewReader(file)
+	if err != nil {
+		return err
+	}
+	defer uncompressedStream.Close()
 
-		filePath := filepath.Join(dir, fileName)
-
-		if !strings.HasPrefix(filePath, filepath.Clean(dir)+string(os.PathSeparator)) {
-			return fmt.Errorf("invalid file path")
-		}
-		if f.FileInfo().IsDir() {
-			os.MkdirAll(filePath, os.ModePerm)
-			continue
-		}
-
-		if err := os.MkdirAll(filepath.Dir(filePath), os.ModePerm); err != nil {
-			return err
-		}
-
-		dstFile, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
-		if err != nil {
-			return err
-		}
-
-		fileInArchive, err := f.Open()
-		if err != nil {
-			return err
-		}
-
-		if _, err := io.Copy(dstFile, fileInArchive); err != nil {
-			return err
-		}
-
-		dstFile.Close()
-		fileInArchive.Close()
+	destFile, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE, 0755)
+	if err != nil {
+		return err
+	}
+	defer destFile.Close()
+	if _, err := io.Copy(destFile, uncompressedStream); err != nil {
+		return err
 	}
 	return nil
 }
