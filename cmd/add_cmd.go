@@ -7,6 +7,7 @@ import (
 	"webman/cmd/remove"
 	"webman/cmd/run"
 	switchcmd "webman/cmd/switch"
+	"webman/cmd/version"
 )
 
 func init() {
@@ -16,4 +17,5 @@ func init() {
 	rootCmd.AddCommand(run.RunCmd)
 	rootCmd.AddCommand(switchcmd.SwitchCmd)
 	rootCmd.AddCommand(group.GroupCmd)
+	rootCmd.AddCommand(version.VersionCmd)
 }
