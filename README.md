@@ -99,4 +99,4 @@ Now you're ready to use webman! Hope you enjoy :)
 
 # Updating
 
-You can update webman at any time using `webman install webman & webman switch webman` and choosing the newest version.
+You can update webman at any time using `webman add webman --switch`.
