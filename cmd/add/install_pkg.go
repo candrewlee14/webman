@@ -67,7 +67,7 @@ func InstallPkg(arg string, argNum int, argCount int, wg *sync.WaitGroup, ml *mu
 			return false
 		}
 	}
-	if len(ver) == 0 {
+	if len(ver) == 0 || pkgConf.ForceLatest {
 		foundLatest := make(chan bool)
 		ml.PrintUntilDone(argNum,
 			fmt.Sprintf("Finding latest %s version tag", color.CyanString(pkg)),
@@ -78,6 +78,11 @@ func InstallPkg(arg string, argNum int, argCount int, wg *sync.WaitGroup, ml *mu
 		foundLatest <- true
 		if err != nil {
 			ml.Printf(argNum, color.RedString("unable to find latest version tag: %v", err))
+			return false
+		}
+		if pkgConf.ForceLatest && len(ver) != 0 && *verPtr != ver {
+			ml.Printf(argNum, color.RedString("This package requires using the latest version, which is currently %s",
+				color.MagentaString(*verPtr)))
 			return false
 		}
 		ver = *verPtr

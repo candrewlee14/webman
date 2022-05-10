@@ -44,6 +44,7 @@ type PkgConfig struct {
 	FilenameFormat   string `yaml:"filename_format"`
 	VersionFormat    string `yaml:"version_format"`
 	LatestStrategy   string `yaml:"latest_strategy"`
+	ForceLatest      bool   `yaml:"force_latest"`
 	AllowPrerelease  bool   `yaml:"allow_prerelease"`
 	ArchLinuxPkgName string `yaml:"arch_linux_pkg_name"`
 
