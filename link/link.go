@@ -14,7 +14,7 @@ import (
 func GetBinPathsAndLinkPaths(
 	pkg string,
 	stem string,
-	confBinPath string,
+	confBinPaths []string,
 ) ([]string, []string, error) {
 	var binPaths []string
 	var linkPaths []string
@@ -22,35 +22,39 @@ func GetBinPathsAndLinkPaths(
 	if runtime.GOOS == "windows" {
 		binExt = ".exe"
 	}
-	binPath := filepath.Join(utils.WebmanPkgDir, pkg, stem, confBinPath+binExt)
-	fileInfo, err := os.Stat(binPath)
-	// If config binary path points to a file
-	if err == nil && !fileInfo.IsDir() {
-		linkPath := GetLinkPathIfExec(binPath)
-		if linkPath != nil {
-			binPaths = append(binPaths, binPath)
-			linkPaths = append(linkPaths, *linkPath)
-		}
-	} else {
-		binDir := filepath.Join(utils.WebmanPkgDir, pkg, stem, confBinPath)
-		binDirEntries, err := os.ReadDir(binDir)
-		if err != nil {
-			return []string{}, []string{}, err
-		}
-		for _, entry := range binDirEntries {
-			if !entry.Type().IsDir() {
-				binPath := filepath.Join(binDir, entry.Name())
-				linkPath := GetLinkPathIfExec(binPath)
-				if linkPath != nil {
-					binPaths = append(binPaths, binPath)
-					linkPaths = append(linkPaths, *linkPath)
+	for _, confBinPath := range confBinPaths {
+
+		binPath := filepath.Join(utils.WebmanPkgDir, pkg, stem, confBinPath+binExt)
+		fileInfo, err := os.Stat(binPath)
+		// If config binary path points to a file
+		if err == nil && !fileInfo.IsDir() {
+			linkPath := GetLinkPathIfExec(binPath)
+			if linkPath != nil {
+				binPaths = append(binPaths, binPath)
+				linkPaths = append(linkPaths, *linkPath)
+			}
+		} else {
+			binDir := filepath.Join(utils.WebmanPkgDir, pkg, stem, confBinPath)
+			binDirEntries, err := os.ReadDir(binDir)
+			if err != nil {
+				return []string{}, []string{}, err
+			}
+			for _, entry := range binDirEntries {
+				if !entry.Type().IsDir() {
+					binPath := filepath.Join(binDir, entry.Name())
+					linkPath := GetLinkPathIfExec(binPath)
+					if linkPath != nil {
+						binPaths = append(binPaths, binPath)
+						linkPaths = append(linkPaths, *linkPath)
+					}
 				}
 			}
 		}
+		if len(linkPaths) == 0 {
+			return []string{}, []string{}, fmt.Errorf("given binary path had no executable files")
+		}
 	}
-	if len(linkPaths) == 0 {
-		return []string{}, []string{}, fmt.Errorf("given binary path had no executable files")
-	}
+
 	return binPaths, linkPaths, nil
 }
 
@@ -110,8 +114,8 @@ func AddLink(old string, new string) (bool, error) {
 	return true, nil
 }
 
-func CreateLinks(pkg string, stem string, confBinPath string) (bool, error) {
-	binPaths, linkPaths, err := GetBinPathsAndLinkPaths(pkg, stem, confBinPath)
+func CreateLinks(pkg string, stem string, confBinPaths []string) (bool, error) {
+	binPaths, linkPaths, err := GetBinPathsAndLinkPaths(pkg, stem, confBinPaths)
 	if err != nil {
 		return false, err
 	}

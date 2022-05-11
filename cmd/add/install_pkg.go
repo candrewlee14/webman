@@ -160,13 +160,13 @@ func InstallPkg(arg string, argNum int, argCount int, wg *sync.WaitGroup, ml *mu
 		panic(err)
 	}
 	if using == nil || switchFlag {
-		binPath, err := pkgConf.GetMyBinPath()
+		binPaths, err := pkgConf.GetMyBinPaths()
 		if err != nil {
 			cleanUpFailedInstall(pkg, extractPath)
 			ml.Printf(argNum, color.RedString("%v", err))
 			return false
 		}
-		madeLinks, err := link.CreateLinks(pkg, extractStem, binPath)
+		madeLinks, err := link.CreateLinks(pkg, extractStem, binPaths)
 		if err != nil {
 			cleanUpFailedInstall(pkg, extractPath)
 			ml.Printf(argNum, color.RedString("Failed creating links: %v", err))

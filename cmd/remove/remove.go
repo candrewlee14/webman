@@ -103,11 +103,11 @@ func UninstallBins(pkg string, pkgConf *pkgparse.PkgConfig) error {
 		return nil
 	}
 	pkgVerStem := *using
-	binPath, err := pkgConf.GetMyBinPath()
+	binPaths, err := pkgConf.GetMyBinPaths()
 	if err != nil {
 		return err
 	}
-	_, linkPaths, err := link.GetBinPathsAndLinkPaths(pkg, pkgVerStem, binPath)
+	_, linkPaths, err := link.GetBinPathsAndLinkPaths(pkg, pkgVerStem, binPaths)
 	if err != nil {
 		panic(err)
 	}

@@ -77,12 +77,12 @@ webman switch rg`,
 				os.Exit(1)
 			}
 		}
-		binPath, err := pkgConf.GetMyBinPath()
+		binPaths, err := pkgConf.GetMyBinPaths()
 		if err != nil {
 			fmt.Println(color.RedString("%v", err))
 			return
 		}
-		madeLinks, err := link.CreateLinks(pkg, pkgVerStem, binPath)
+		madeLinks, err := link.CreateLinks(pkg, pkgVerStem, binPaths)
 		if err != nil {
 			panic(err)
 		}

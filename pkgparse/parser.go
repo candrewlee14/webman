@@ -19,9 +19,9 @@ type UsingInfo struct {
 }
 
 type OsInfo struct {
-	Name    string `yaml:"name"`
-	Ext     string `yaml:"ext"`
-	BinPath string `yaml:"bin_path"`
+	Name     string        `yaml:"name"`
+	Ext      string        `yaml:"ext"`
+	BinPaths SingleOrMulti `yaml:"bin_path"`
 }
 
 type OsArchPair struct {
@@ -62,19 +62,43 @@ var GOOStoPkgOs = map[string]string{
 	"linux":   "linux",
 }
 
-func (pkgConf *PkgConfig) GetMyBinPath() (string, error) {
+type SingleOrMulti struct {
+	Values []string
+}
+
+func (sm *SingleOrMulti) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	var multi []string
+	err := unmarshal(&multi)
+	if err != nil {
+		var single string
+		err := unmarshal(&single)
+		if err != nil {
+			return err
+		}
+		sm.Values = make([]string, 1)
+		sm.Values[0] = single
+	} else {
+		sm.Values = multi
+	}
+	return nil
+}
+
+func (pkgConf *PkgConfig) GetMyBinPaths() ([]string, error) {
 	osStr, exists := GOOStoPkgOs[runtime.GOOS]
 	if !exists {
-		return "", fmt.Errorf("unsupported OS")
+		return []string{}, fmt.Errorf("unsupported OS")
 	}
 	osInfo, exists := pkgConf.OsMap[osStr]
 	if !exists {
-		return "", fmt.Errorf("package does not support this OS")
+		return []string{}, fmt.Errorf("package does not support this OS")
 	}
 	if pkgConf.IsBinary {
-		return pkgConf.Title, nil
+		return []string{pkgConf.Title}, nil
 	}
-	return osInfo.BinPath, nil
+	if len(osInfo.BinPaths.Values) == 0 {
+		osInfo.BinPaths = SingleOrMulti{[]string{""}}
+	}
+	return osInfo.BinPaths.Values, nil
 }
 
 // Check using file.

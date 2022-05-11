@@ -131,8 +131,8 @@ func DownloadUrl(url string, f io.Writer, pkg string, ver string, argNum int, ar
 	return true
 }
 
-func CreateLinks(pkg string, stem string, confBinPath string) (bool, error) {
-	binPaths, linkPaths, err := link.GetBinPathsAndLinkPaths(pkg, stem, confBinPath)
+func CreateLinks(pkg string, stem string, confBinPaths []string) (bool, error) {
+	binPaths, linkPaths, err := link.GetBinPathsAndLinkPaths(pkg, stem, confBinPaths)
 	if err != nil {
 		return false, err
 	}

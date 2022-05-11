@@ -85,7 +85,7 @@ func runPackage(args []string) {
 		exitPrint(1, color.RedString(err.Error()))
 	}
 
-	binPath, err := pkgConf.GetMyBinPath()
+	binPaths, err := pkgConf.GetMyBinPaths()
 	if err != nil {
 		exitPrint(1, color.RedString(err.Error()))
 	}
@@ -112,62 +112,68 @@ func runPackage(args []string) {
 		exitPrint(1, color.RedString("Error when accessing package version folder: %v\n",
 			err))
 	}
-	pkgBinDirOrFile = filepath.Join(pkgRunFolder, binPath)
-	if binName == "" {
-		// default binary name is name of package
-		binName = pkg
-	}
-	// Is folder, pkgBinFile
-	pkgBinFileInfo, err := os.Stat(pkgBinDirOrFile)
-	if err != nil {
-		if os.IsNotExist(err) {
-			// at this point, this is either a nonexistent folder
-			// or a binary file with an extension we don't yet know
-			if runtime.GOOS == "windows" {
-				entries, err := os.ReadDir(filepath.Dir(pkgBinDirOrFile))
-				if err != nil {
-					IsNotExist(pkg, ver)
-				}
-				found := false
-				for _, entry := range entries {
-					eName := entry.Name()
-					entryStem := eName[:len(eName)-len(filepath.Ext(eName))]
-					if entryStem == binName {
-						found = true
-						pkgBinDirOrFile += filepath.Ext(entry.Name())
-						pkgBinFileInfo, err = os.Stat(pkgBinDirOrFile)
-						if err != nil {
-							exitPrint(1, color.RedString("Unable to access binary at %s", pkgBinDirOrFile))
+	var truePkgBinPath *string
+	for _, binPath := range binPaths {
+		pkgBinDirOrFile = filepath.Join(pkgRunFolder, binPath)
+		if binName == "" {
+			// default binary name is name of package
+			binName = pkg
+		}
+		// Is folder, pkgBinFile
+		pkgBinFileInfo, err := os.Stat(pkgBinDirOrFile)
+		if err != nil {
+			if os.IsNotExist(err) {
+				// at this point, this is either a nonexistent folder
+				// or a binary file with an extension we don't yet know
+				if runtime.GOOS == "windows" {
+					entries, err := os.ReadDir(filepath.Dir(pkgBinDirOrFile))
+					if err != nil {
+						IsNotExist(pkg, ver)
+					}
+					for _, entry := range entries {
+						eName := entry.Name()
+						entryStem := eName[:len(eName)-len(filepath.Ext(eName))]
+						if entryStem == binName {
+							pkgBinDirOrFile += filepath.Ext(entry.Name())
+							pkgBinFileInfo, err = os.Stat(pkgBinDirOrFile)
+							if err != nil {
+								exitPrint(1, color.RedString("Unable to access binary at %s", pkgBinDirOrFile))
+							}
+							truePkgBinPath = &pkgBinDirOrFile
+							break
 						}
-						break
 					}
 				}
-				if !found {
-					IsNotExist(pkg, ver)
+			} else {
+				exitPrint(1, color.RedString(err.Error()))
+			}
+		}
+		if pkgBinFileInfo.IsDir() { // dir
+			pkgBinDirOrFile = filepath.Join(pkgBinDirOrFile, binName)
+			if _, err = os.Stat(pkgBinDirOrFile); err != nil {
+				if !os.IsNotExist(err) {
+					exitPrint(1, color.RedString("Error when accessing binary: %v\n",
+						err))
 				}
 			} else {
-				IsNotExist(pkg, ver)
+				truePkgBinPath = &pkgBinDirOrFile
 			}
+		} else if initialBinName != "" { // is a file
+			exitPrint(1, color.RedString("bin path for package is a file,"+
+				"so cannot select a different binary"))
 		} else {
-			exitPrint(1, color.RedString(err.Error()))
+			truePkgBinPath = &pkgBinDirOrFile
 		}
-	}
-	if pkgBinFileInfo.IsDir() { // dir
-		pkgBinDirOrFile = filepath.Join(pkgBinDirOrFile, binName)
-		if _, err = os.Stat(pkgBinDirOrFile); err != nil {
-			if os.IsNotExist(err) {
-				exitPrint(1, "No "+color.CyanString(binName)+" binary exists for "+
-					color.CyanString(pkg)+"@"+color.MagentaString(ver))
-			}
-			exitPrint(1, color.RedString("Error when accessing binary: %v\n",
-				err))
+		if truePkgBinPath != nil {
+			break
 		}
-	} else if initialBinName != "" { // is a file
-		exitPrint(1, color.RedString("bin path for package is a file,"+
-			"so cannot select a different binary"))
 	}
 
-	appCmd := exec.Command(pkgBinDirOrFile, argsApp...)
+	if truePkgBinPath == nil {
+		exitPrint(1, "No "+color.CyanString(binName)+" binary exists for "+
+			color.CyanString(pkgDirName))
+	}
+	appCmd := exec.Command(*truePkgBinPath, argsApp...)
 	appCmd.Stderr = os.Stderr
 	appCmd.Stdout = os.Stdout
 	appCmd.Stdin = os.Stdin
@@ -180,6 +186,7 @@ func runPackage(args []string) {
 		}
 		exitPrint(1, color.RedString(err.Error()))
 	}
+
 }
 
 func IsNotExist(pkg string, ver string) {
