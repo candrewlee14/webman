@@ -55,12 +55,24 @@ The "group add" subcommand installs a group of packages.
 		if allFlag {
 			pkgsToInstall = groupConf.Packages
 		} else {
+			pkgInfos, err := pkgparse.ParseMultiPkgInfo(groupConf.Packages)
+			if err != nil {
+				color.Red("failed to parse package info: %v", err)
+			}
+			infoLines := make([]string, len(pkgInfos))
+			for i, pkgInfo := range pkgInfos {
+				infoLines[i] = color.CyanString(pkgInfo.Title) + color.HiBlackString(" - ") + pkgInfo.Tagline
+			}
 			prompt := &survey.MultiSelect{
 				Message:  "Select packages from group " + color.YellowString(group) + " to install:",
-				Options:  groupConf.Packages,
+				Options:  infoLines,
 				PageSize: 10,
 			}
-			survey.AskOne(prompt, &pkgsToInstall)
+			var indices []int
+			survey.AskOne(prompt, &indices)
+			for _, val := range indices {
+				pkgsToInstall = append(pkgsToInstall, groupConf.Packages[val])
+			}
 		}
 		if len(pkgsToInstall) == 0 {
 			color.HiBlack("No packages selected for installation.")
