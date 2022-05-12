@@ -9,6 +9,10 @@ before:
 
 release:
   prerelease: auto
+  github:
+    owner: candrewlee14
+    name: webman
+
 builds:
   - env:
       - CGO_ENABLED=0
