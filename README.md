@@ -6,25 +6,34 @@
 </h3>
 <hr/>
 
-Add, remove, and manage different versions of software.
+Add, remove, and manage different versions of web-distributed software binaries.
 No elevated permissions required!
 
-Package recipes are located at https://github.com/candrewlee14/webman-pkgs.
+Package recipes are located in the [webman-pkgs](https://github.com/candrewlee14/webman-pkgs) repo.
 Recipes are simple YAML files that make it easy to submit a new package.
 Webman locates version numbers online and installs packages from the web, so you'll always have the most up-to-date software available!
 
-Windows, Linux, and MacOS are all supported.
+Windows (Powershell), Linux, and MacOS are supported!
+
+Install `webman` by running the following command in MacOS, Linux, or Git Bash for Windows :
+```bash
+curl https://raw.githubusercontent.com/candrewlee14/webman/main/scripts/install.sh | sh
+```
+> NOTE: Never blindly run a shell script from the internet. Please check the source shell file `scripts/install.sh`  
+Alternatively, download the [latest release](/releases/latest) manually.
+
 
 # Philosophy
 
-I wanted a cross-platform package manager with no dependencies, a nice CLI, and a simple package configuration format.
+I wanted a cross-platform package manager like [webi](https://github.com/webinstall/webi-installers) with no dependencies, a nice CLI, and a simple package configuration format.
 I wanted a generalized version of [nvm](https://github.com/nvm-sh/nvm), [nvm-windows](https://github.com/coreybutler/nvm-windows), and [gvm](https://github.com/moovweb/gvm) for easily switching between package versions.
 I wanted an easy way to install groups of packages, like the tools in [modern-unix](https://github.com/ibraheemdev/modern-unix).
 
 That's why I built `webman`.
 
 All of `webman`'s resources are located in `~/.webman`.
-Simply remove that directory and all of `webman`'s packages and resources will be removed.
+The only directory that needs to go on your system PATH is `~/.webman/bin`.  
+Simply remove the `~/.webman` directory and all of webman's packages and resources will be removed.
 
 Security is an important priority to me here.
 Package recipes cannot specify commands to be run, only endpoints to access.
@@ -82,7 +91,7 @@ The package recipe format was built around making it easy to contribute new pack
 
 # Setup
 
-Download the binary for your OS and architecture [here](/releases/latest).
+Run the script above or download the binary for your OS and architecture [here](/releases/latest).
 
 Alternatively, if you have Go installed, run:
 
