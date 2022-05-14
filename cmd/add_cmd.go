@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"webman/cmd/add"
-	"webman/cmd/check"
+	"webman/cmd/dev"
 	"webman/cmd/group"
 	"webman/cmd/remove"
 	"webman/cmd/run"
@@ -12,7 +12,7 @@ import (
 
 func init() {
 	rootCmd.AddCommand(add.AddCmd)
-	rootCmd.AddCommand(check.CheckCmd)
+	rootCmd.AddCommand(dev.DevCmd)
 	rootCmd.AddCommand(remove.RemoveCmd)
 	rootCmd.AddCommand(run.RunCmd)
 	rootCmd.AddCommand(switchcmd.SwitchCmd)
