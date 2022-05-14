@@ -12,7 +12,7 @@ import (
 
 func GetBinPathsAndLinkPaths(
 	pkg string,
-	stem string,
+	ver string,
 	confBinPaths []string,
 ) ([]string, []string, error) {
 	var binPaths []string
@@ -21,6 +21,7 @@ func GetBinPathsAndLinkPaths(
 	if utils.GOOS == "windows" {
 		binExt = ".exe"
 	}
+	stem := utils.CreateStem(pkg, ver)
 	for _, confBinPath := range confBinPaths {
 
 		binPath := filepath.Join(utils.WebmanPkgDir, pkg, stem, confBinPath+binExt)
@@ -113,8 +114,8 @@ func AddLink(old string, new string) (bool, error) {
 	return true, nil
 }
 
-func CreateLinks(pkg string, stem string, confBinPaths []string) (bool, error) {
-	binPaths, linkPaths, err := GetBinPathsAndLinkPaths(pkg, stem, confBinPaths)
+func CreateLinks(pkg string, ver string, confBinPaths []string) (bool, error) {
+	binPaths, linkPaths, err := GetBinPathsAndLinkPaths(pkg, ver, confBinPaths)
 	if err != nil {
 		return false, err
 	}
@@ -137,7 +138,7 @@ func CreateLinks(pkg string, stem string, confBinPaths []string) (bool, error) {
 	if err := eg.Wait(); err != nil {
 		return false, err
 	}
-	if err = pkgparse.WriteUsing(pkg, stem); err != nil {
+	if err = pkgparse.WriteUsing(pkg, utils.CreateStem(pkg, ver)); err != nil {
 		panic(err)
 	}
 	return true, nil

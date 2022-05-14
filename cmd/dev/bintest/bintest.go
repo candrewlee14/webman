@@ -7,6 +7,7 @@ import (
 	"sync"
 	"webman/cmd/add"
 	"webman/cmd/dev/check"
+	"webman/link"
 	"webman/multiline"
 	"webman/pkgparse"
 	"webman/utils"
@@ -42,7 +43,12 @@ The "bintest" tests that binary paths given in a package recipe have valid binar
 		}
 		pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg, true)
 		if err != nil {
-			color.Red("Error: %v", err)
+			color.Red("Error parsing recipe: %v", err)
+			os.Exit(1)
+		}
+		latestVer, err := pkgConf.GetLatestVersion()
+		if err != nil {
+			color.Red("Error getting latest version: %v", err)
 			os.Exit(1)
 		}
 		testDir := filepath.Join(homedir, ".webman", "test")
@@ -68,13 +74,29 @@ The "bintest" tests that binary paths given in a package recipe have valid binar
 						continue archLoop
 					}
 				}
+				fmt.Printf("Trying %s-%s installation\n", osStr, arch)
 				InitTestDir(osStr, arch, homedir, testDir)
-				color.HiCyan("Trying %s-%s installation", osStr, arch)
-				fmt.Println("Putting installation in ", utils.WebmanDir)
 				var wg sync.WaitGroup
 				ml := multiline.New(len(args), os.Stdout)
 				wg.Add(1)
-				pairResults[osPairStr] = add.InstallPkg(pkg, 0, 1, &wg, &ml)
+				pairResults[osPairStr] = add.InstallPkg(pkg+"@"+*latestVer, 0, 1, &wg, &ml)
+
+				binPaths, err := pkgConf.GetMyBinPaths()
+				if err != nil {
+					color.Red("Error getting bin paths: %v", err)
+					pairResults[osPairStr] = false
+					continue
+				}
+				binPaths, _, err = link.GetBinPathsAndLinkPaths(pkg, *latestVer, binPaths)
+				if err != nil {
+					color.Red("Error getting bin paths: %v", err)
+					pairResults[osPairStr] = false
+					continue
+				}
+				fmt.Println("  Installation Binary Paths:")
+				for i := range binPaths {
+					color.Magenta("   %s", binPaths[i])
+				}
 			}
 		}
 		allSucceed := true
@@ -94,6 +116,7 @@ The "bintest" tests that binary paths given in a package recipe have valid binar
 
 		} else {
 			color.HiRed("\nSome supported OSs & Arches for %s have invalid installs.", pkg)
+			os.Exit(1)
 		}
 	},
 }

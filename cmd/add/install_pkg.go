@@ -102,7 +102,7 @@ func InstallPkg(arg string, argIndex int, argCount int, wg *sync.WaitGroup, ml *
 	}
 	downloadPath := filepath.Join(utils.WebmanTmpDir, fileName)
 
-	extractStem := fmt.Sprintf("%s-%s", pkg, ver)
+	extractStem := utils.CreateStem(pkg, ver)
 	extractPath := filepath.Join(utils.WebmanPkgDir, pkg, extractStem)
 
 	// If file exists
@@ -165,7 +165,7 @@ func InstallPkg(arg string, argIndex int, argCount int, wg *sync.WaitGroup, ml *
 			ml.Printf(argIndex, color.RedString("%v", err))
 			return false
 		}
-		madeLinks, err := link.CreateLinks(pkg, extractStem, binPaths)
+		madeLinks, err := link.CreateLinks(pkg, ver, binPaths)
 		if err != nil {
 			cleanUpFailedInstall(pkg, extractPath)
 			ml.Printf(argIndex, color.RedString("Failed creating links: %v", err))
