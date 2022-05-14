@@ -14,6 +14,7 @@ import (
 	"webman/utils"
 
 	"github.com/fatih/color"
+	"github.com/mattn/go-isatty"
 	"golang.org/x/sync/errgroup"
 
 	progressbar "github.com/schollz/progressbar/v3"
@@ -102,19 +103,35 @@ func DownloadUrl(url string, f io.Writer, pkg string, ver string, argNum int, ar
 		}
 		return false
 	}
+	colorOn := isatty.IsTerminal(os.Stdout.Fd()) || isatty.IsCygwinTerminal(os.Stdout.Fd())
+	saucer := "[green]▁[reset]"
+	saucerHead := "[green]▁[reset]"
+	saucerPadding := "[dark_gray]▁[reset]"
+	barStart := ""
+	barEnd := ""
+	barDesc := fmt.Sprintf("[cyan][%d/%d][reset] Downloading [cyan]"+pkg+"[reset] file...", argNum+1, argCount)
+	if !colorOn {
+		saucer = "="
+		saucerHead = ">"
+		saucerPadding = " "
+		barDesc = fmt.Sprintf("[%d/%d] Downloading "+pkg+" file...", argNum+1, argCount)
+		barStart = "["
+		barEnd = "]"
+	}
+	ansiOn := isatty.IsTerminal(os.Stdout.Fd())
 	bar := progressbar.NewOptions64(r.ContentLength,
-		progressbar.OptionEnableColorCodes(true),
+		progressbar.OptionEnableColorCodes(colorOn),
+		progressbar.OptionUseANSICodes(ansiOn),
 		progressbar.OptionSetWriter(ioutil.Discard),
 		progressbar.OptionShowBytes(true),
 		progressbar.OptionFullWidth(),
-		progressbar.OptionSetDescription(
-			fmt.Sprintf("[cyan][%d/%d][reset] Downloading [cyan]"+pkg+"[reset] file...", argNum+1, argCount)),
+		progressbar.OptionSetDescription(barDesc),
 		progressbar.OptionSetTheme(progressbar.Theme{
-			Saucer:        "[green]=[reset]",
-			SaucerHead:    "[green]>[reset]",
-			SaucerPadding: " ",
-			BarStart:      "[",
-			BarEnd:        "]",
+			Saucer:        saucer,
+			SaucerHead:    saucerHead,
+			SaucerPadding: saucerPadding,
+			BarStart:      barStart,
+			BarEnd:        barEnd,
 		}),
 	)
 	go func() {

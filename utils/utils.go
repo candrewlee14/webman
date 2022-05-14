@@ -5,8 +5,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"webman/multiline"
 
 	"github.com/fatih/color"
+	"github.com/mattn/go-isatty"
 )
 
 var WebmanDir string
@@ -44,6 +46,11 @@ func Init() {
 		}
 		color.Magenta("Using local recipe directory: %s", color.HiBlackString(recipeDir))
 		WebmanRecipeDir = recipeDir
+	}
+	if !isatty.IsTerminal(os.Stdout.Fd()) {
+		multiline.ClearLine = []byte{}
+		multiline.MoveDown = []byte{}
+		multiline.MoveUp = []byte{}
 	}
 }
 

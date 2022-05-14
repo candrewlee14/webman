@@ -22,10 +22,13 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"fmt"
 	"os"
+	"webman/multiline"
 	"webman/utils"
 
 	cc "github.com/ivanpirog/coloredcobra"
+	"github.com/mattn/go-isatty"
 	"github.com/spf13/cobra"
 )
 
@@ -53,6 +56,11 @@ A cross-platform package manager for the web!
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
+	ansiOn := isatty.IsTerminal(os.Stdout.Fd())
+	if ansiOn {
+		fmt.Printf("%s", multiline.HideCursor)
+		defer fmt.Printf("%s", multiline.ShowCursor)
+	}
 	cc.Init(&cc.Config{
 		RootCmd:  rootCmd,
 		Headings: cc.HiCyan + cc.Bold + cc.Underline,
