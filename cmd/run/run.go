@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"webman/pkgparse"
 	"webman/utils"
@@ -125,7 +124,7 @@ func runPackage(args []string) {
 			if os.IsNotExist(err) {
 				// at this point, this is either a nonexistent folder
 				// or a binary file with an extension we don't yet know
-				if runtime.GOOS == "windows" {
+				if utils.GOOS == "windows" {
 					entries, err := os.ReadDir(filepath.Dir(pkgBinDirOrFile))
 					if err != nil {
 						IsNotExist(pkg, ver)

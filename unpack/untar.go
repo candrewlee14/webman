@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
 
 	"github.com/ulikunitz/xz"
@@ -106,9 +105,6 @@ func UntarGz(src string, dir string) error {
 }
 
 func UntarExec(src string, dir string) error {
-	if runtime.GOOS == "windows" {
-		return fmt.Errorf("windows doesn't have support for tarballs")
-	}
 	cmd := exec.Command("tar", "-xf", src, "--directory="+dir)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

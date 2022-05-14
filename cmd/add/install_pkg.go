@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"sync"
 	"webman/link"
 	"webman/multiline"
@@ -36,21 +35,21 @@ func InstallAllPkgs(args []string) bool {
 	return success
 }
 
-func InstallPkg(arg string, argNum int, argCount int, wg *sync.WaitGroup, ml *multiline.MultiLogger) bool {
+func InstallPkg(arg string, argIndex int, argCount int, wg *sync.WaitGroup, ml *multiline.MultiLogger) bool {
 	defer wg.Done()
 	pkg, ver, err := utils.ParsePkgVer(arg)
 	if err != nil {
-		ml.Printf(argNum, color.RedString(err.Error()))
+		ml.Printf(argIndex, color.RedString(err.Error()))
 		return false
 	}
 	if len(ver) == 0 {
-		ml.SetPrefix(argNum, color.CyanString(pkg)+": ")
+		ml.SetPrefix(argIndex, color.CyanString(pkg)+": ")
 
 	} else {
-		ml.SetPrefix(argNum, color.CyanString(pkg)+"@"+color.CyanString(ver)+": ")
+		ml.SetPrefix(argIndex, color.CyanString(pkg)+"@"+color.CyanString(ver)+": ")
 	}
 	foundRecipe := make(chan bool)
-	ml.PrintUntilDone(argNum,
+	ml.PrintUntilDone(argIndex,
 		fmt.Sprintf("Finding package recipe for %s", color.CyanString(pkg)),
 		foundRecipe,
 		500,
@@ -58,18 +57,18 @@ func InstallPkg(arg string, argNum int, argCount int, wg *sync.WaitGroup, ml *mu
 	pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg, false)
 	foundRecipe <- true
 	if err != nil {
-		ml.Printf(argNum, color.RedString("%v", err))
+		ml.Printf(argIndex, color.RedString("%v", err))
 		return false
 	}
 	for _, ignorePair := range pkgConf.Ignore {
-		if pkgparse.GOOStoPkgOs[runtime.GOOS] == ignorePair.Os && runtime.GOARCH == ignorePair.Arch {
-			ml.Printf(argNum, color.RedString("unsupported OS + Arch for this package"))
+		if pkgparse.GOOStoPkgOs[utils.GOOS] == ignorePair.Os && utils.GOARCH == ignorePair.Arch {
+			ml.Printf(argIndex, color.RedString("unsupported OS + Arch for this package"))
 			return false
 		}
 	}
 	if len(ver) == 0 || pkgConf.ForceLatest {
 		foundLatest := make(chan bool)
-		ml.PrintUntilDone(argNum,
+		ml.PrintUntilDone(argIndex,
 			fmt.Sprintf("Finding latest %s version tag", color.CyanString(pkg)),
 			foundLatest,
 			500,
@@ -77,20 +76,20 @@ func InstallPkg(arg string, argNum int, argCount int, wg *sync.WaitGroup, ml *mu
 		verPtr, err := pkgConf.GetLatestVersion()
 		foundLatest <- true
 		if err != nil {
-			ml.Printf(argNum, color.RedString("unable to find latest version tag: %v", err))
+			ml.Printf(argIndex, color.RedString("unable to find latest version tag: %v", err))
 			return false
 		}
 		if pkgConf.ForceLatest && len(ver) != 0 && *verPtr != ver {
-			ml.Printf(argNum, color.RedString("This package requires using the latest version, which is currently %s",
+			ml.Printf(argIndex, color.RedString("This package requires using the latest version, which is currently %s",
 				color.MagentaString(*verPtr)))
 			return false
 		}
 		ver = *verPtr
-		ml.Printf(argNum, "Found %s version tag: %s", color.CyanString(pkg), color.MagentaString(ver))
+		ml.Printf(argIndex, "Found %s version tag: %s", color.CyanString(pkg), color.MagentaString(ver))
 	}
 	stemPtr, extPtr, urlPtr, err := pkgConf.GetAssetStemExtUrl(ver)
 	if err != nil {
-		ml.Printf(argNum, color.RedString("%v", err))
+		ml.Printf(argIndex, color.RedString("%v", err))
 		return false
 	}
 	stem := *stemPtr
@@ -108,39 +107,39 @@ func InstallPkg(arg string, argNum int, argCount int, wg *sync.WaitGroup, ml *mu
 
 	// If file exists
 	if _, err := os.Stat(extractPath); !os.IsNotExist(err) {
-		ml.Printf(argNum, color.HiBlackString("Already installed!"))
+		ml.Printf(argIndex, color.HiBlackString("Already installed!"))
 		return true
 	}
 	f, err := os.OpenFile(downloadPath,
 		os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		ml.Printf(argNum, color.RedString("%v", err))
+		ml.Printf(argIndex, color.RedString("%v", err))
 		return false
 	}
 	defer f.Close()
-	if pkgConf.IsBinary && runtime.GOOS == "windows" {
+	if pkgConf.IsBinary && utils.GOOS == "windows" {
 		url += ".exe"
 	}
-	if !DownloadUrl(url, f, pkg, ver, argNum, argCount, ml) {
+	if !DownloadUrl(url, f, pkg, ver, argIndex, argCount, ml) {
 		return false
 	}
 	if pkgConf.IsBinary {
 		if err = os.Chmod(downloadPath, 0755); err != nil {
-			ml.Printf(argNum, color.RedString("Failed to make download executable!"))
+			ml.Printf(argIndex, color.RedString("Failed to make download executable!"))
 			return false
 		}
 		if err = os.MkdirAll(extractPath, os.ModePerm); err != nil {
-			ml.Printf(argNum, color.RedString("Failed to create package-version path!"))
+			ml.Printf(argIndex, color.RedString("Failed to create package-version path!"))
 			return false
 		}
 		binPath := filepath.Join(extractPath, pkgConf.Title)
 		if err = os.Rename(downloadPath, binPath); err != nil {
-			ml.Printf(argNum, color.RedString("Failed to rename temporary download to new path!"))
+			ml.Printf(argIndex, color.RedString("Failed to rename temporary download to new path!"))
 			return false
 		}
 	} else {
 		hasUnpacked := make(chan bool)
-		ml.PrintUntilDone(argNum,
+		ml.PrintUntilDone(argIndex,
 			fmt.Sprintf("Unpacking %s.%s", stem, ext),
 			hasUnpacked,
 			500,
@@ -148,11 +147,11 @@ func InstallPkg(arg string, argNum int, argCount int, wg *sync.WaitGroup, ml *mu
 		err = unpack.Unpack(downloadPath, pkg, extractStem, ext, pkgConf.ExtractHasRoot)
 		hasUnpacked <- true
 		if err != nil {
-			ml.Printf(argNum, color.RedString("%v", err))
+			ml.Printf(argIndex, color.RedString("%v", err))
 			cleanUpFailedInstall(pkg, extractPath)
 			return false
 		}
-		ml.Printf(argNum, "Completed unpacking %s@%s", color.CyanString(pkg), color.MagentaString(ver))
+		ml.Printf(argIndex, "Completed unpacking %s@%s", color.CyanString(pkg), color.MagentaString(ver))
 	}
 	using, err := pkgparse.CheckUsing(pkg)
 	if err != nil {
@@ -163,22 +162,22 @@ func InstallPkg(arg string, argNum int, argCount int, wg *sync.WaitGroup, ml *mu
 		binPaths, err := pkgConf.GetMyBinPaths()
 		if err != nil {
 			cleanUpFailedInstall(pkg, extractPath)
-			ml.Printf(argNum, color.RedString("%v", err))
+			ml.Printf(argIndex, color.RedString("%v", err))
 			return false
 		}
 		madeLinks, err := link.CreateLinks(pkg, extractStem, binPaths)
 		if err != nil {
 			cleanUpFailedInstall(pkg, extractPath)
-			ml.Printf(argNum, color.RedString("Failed creating links: %v", err))
+			ml.Printf(argIndex, color.RedString("Failed creating links: %v", err))
 			return false
 		}
 		if !madeLinks {
 			cleanUpFailedInstall(pkg, extractPath)
-			ml.Printf(argNum, color.RedString("Failed creating links"))
+			ml.Printf(argIndex, color.RedString("Failed creating links"))
 			return false
 		}
-		ml.Printf(argNum, "Now using %s@%s", color.CyanString(pkg), color.MagentaString(ver))
+		ml.Printf(argIndex, "Now using %s@%s", color.CyanString(pkg), color.MagentaString(ver))
 	}
-	ml.Printf(argNum, color.GreenString("Successfully installed!"))
+	ml.Printf(argIndex, color.GreenString("Successfully installed!"))
 	return true
 }

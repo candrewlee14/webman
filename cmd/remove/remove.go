@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"webman/link"
 	"webman/multiline"
 	"webman/pkgparse"
@@ -113,7 +112,7 @@ func UninstallBins(pkg string, pkgConf *pkgparse.PkgConfig) error {
 	}
 	fmt.Printf("Removing %s links ...\n", color.CyanString(pkg))
 	for _, linkPath := range linkPaths {
-		if runtime.GOOS == "windows" {
+		if utils.GOOS == "windows" {
 			linkPath = linkPath + ".bat"
 		}
 		err := os.Remove(linkPath)

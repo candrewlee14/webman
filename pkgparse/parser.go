@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"runtime"
 	"strings"
 	"webman/utils"
 
@@ -84,7 +83,7 @@ func (sm *SingleOrMulti) UnmarshalYAML(unmarshal func(interface{}) error) error 
 }
 
 func (pkgConf *PkgConfig) GetMyBinPaths() ([]string, error) {
-	osStr, exists := GOOStoPkgOs[runtime.GOOS]
+	osStr, exists := GOOStoPkgOs[utils.GOOS]
 	if !exists {
 		return []string{}, fmt.Errorf("unsupported OS")
 	}
@@ -245,7 +244,7 @@ func ParseVersion(versionStr string, versionFmt string) (*string, error) {
 
 ///
 func (pkgConf *PkgConfig) GetAssetStemExtUrl(version string) (*string, *string, *string, error) {
-	pkgOs, exists := GOOStoPkgOs[runtime.GOOS]
+	pkgOs, exists := GOOStoPkgOs[utils.GOOS]
 	if !exists {
 		return nil, nil, nil, fmt.Errorf("unsupported operating system")
 	}
@@ -253,9 +252,9 @@ func (pkgConf *PkgConfig) GetAssetStemExtUrl(version string) (*string, *string, 
 	if !exists {
 		return nil, nil, nil, fmt.Errorf("package has no binary for operating system: %s", pkgOs)
 	}
-	archStr, exists := pkgConf.ArchMap[runtime.GOARCH]
+	archStr, exists := pkgConf.ArchMap[utils.GOARCH]
 	if !exists {
-		return nil, nil, nil, fmt.Errorf("package has no binary for architecture: %s", runtime.GOARCH)
+		return nil, nil, nil, fmt.Errorf("package has no binary for architecture: %s", utils.GOARCH)
 	}
 	baseUrl := pkgConf.BaseDownloadUrl
 	baseUrl = strings.ReplaceAll(baseUrl, "[VER]", version)

@@ -1,6 +1,7 @@
 package dev
 
 import (
+	"webman/cmd/dev/bintest"
 	"webman/cmd/dev/check"
 
 	"github.com/spf13/cobra"
@@ -33,4 +34,6 @@ func init() {
 	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
 	DevCmd.AddCommand(check.CheckCmd)
+	DevCmd.AddCommand(bintest.BintestCmd)
+
 }

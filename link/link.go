@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"webman/pkgparse"
 	"webman/utils"
 
@@ -19,7 +18,7 @@ func GetBinPathsAndLinkPaths(
 	var binPaths []string
 	var linkPaths []string
 	binExt := ""
-	if runtime.GOOS == "windows" {
+	if utils.GOOS == "windows" {
 		binExt = ".exe"
 	}
 	for _, confBinPath := range confBinPaths {
@@ -64,7 +63,7 @@ func GetLinkPathIfExec(binPath string) *string {
 	binFile := filepath.Base(binPath)
 	binName := binFile[:len(binFile)-len(filepath.Ext(binFile))]
 	linkPath := filepath.Join(utils.WebmanBinDir, binName)
-	if runtime.GOOS == "windows" {
+	if utils.GOOS == "windows" {
 		switch filepath.Ext(binPath) {
 		case ".bat", ".exe", ".cmd":
 			break
@@ -88,7 +87,7 @@ func GetLinkPathIfExec(binPath string) *string {
 // Create a link to an old file at the new path
 // On windows, .bat will be appended to the new path to make a batch file
 func AddLink(old string, new string) (bool, error) {
-	if runtime.GOOS == "windows" {
+	if utils.GOOS == "windows" {
 		f, err := os.Create(new + ".bat")
 		if err != nil {
 			return false, err

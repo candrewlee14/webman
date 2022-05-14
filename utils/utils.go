@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"webman/multiline"
 
@@ -17,6 +18,8 @@ var WebmanBinDir string
 var WebmanRecipeDir string
 var WebmanTmpDir string
 var RecipeDirFlag string
+var GOOS string
+var GOARCH string
 
 func Init() {
 	homeDir, err := os.UserHomeDir()
@@ -28,6 +31,8 @@ func Init() {
 	WebmanBinDir = filepath.Join(WebmanDir, "/bin")
 	WebmanRecipeDir = filepath.Join(WebmanDir, "/recipes")
 	WebmanTmpDir = filepath.Join(WebmanDir, "/tmp")
+	GOOS = runtime.GOOS
+	GOARCH = runtime.GOARCH
 
 	if err = os.MkdirAll(WebmanBinDir, os.ModePerm); err != nil {
 		panic(err)
