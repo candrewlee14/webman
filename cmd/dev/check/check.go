@@ -19,8 +19,7 @@ var CheckCmd = &cobra.Command{
 	Short: "check a directory of recipes",
 	Long: `
 The "check" subcommand checks that all recipes in a directory are valid.`,
-	Example: `webman check ~/repos/webman-pkgs/pkg
-webman check ~/repos/webman-pkgs/pkg/go.yaml`,
+	Example: `webman check ~/repos/webman-pkgs/`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) != 1 {
 			cmd.Help()
@@ -43,7 +42,8 @@ webman check ~/repos/webman-pkgs/pkg/go.yaml`,
 
 				go func() {
 					recipeName := recipe.Name()
-					err := CheckPkgConfig(recipeName)
+					pkg := strings.ReplaceAll(recipeName, ".yaml", "")
+					err := CheckPkgConfig(pkg)
 					if err != nil {
 						color.Red("%s: %s", color.YellowString(recipeName), color.RedString("%v", err))
 						success = false
@@ -61,8 +61,7 @@ webman check ~/repos/webman-pkgs/pkg/go.yaml`,
 	},
 }
 
-func CheckPkgConfig(pkgFileName string) error {
-	pkg := strings.ReplaceAll(pkgFileName, ".yaml", "")
+func CheckPkgConfig(pkg string) error {
 	pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg, true)
 	if err != nil {
 		return err

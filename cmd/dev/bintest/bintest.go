@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"sync"
 	"webman/cmd/add"
+	"webman/cmd/dev/check"
 	"webman/multiline"
 	"webman/pkgparse"
 	"webman/utils"
@@ -20,7 +21,7 @@ var ArchOptions []string = []string{"amd64", "arm64"}
 // CheckCmd represents the remove command
 var BintestCmd = &cobra.Command{
 	Use:   "bintest [pkg]",
-	Short: "Test the binary paths for each platform for a package",
+	Short: "Test the installation & binary paths for each platform for a package",
 	Long: `
 The "bintest" tests that binary paths given in a package recipe have valid binaries, and displays them.`,
 	Example: `webman bintest zoxide -l ~/repos/webman-pkgs/`,
@@ -36,6 +37,10 @@ The "bintest" tests that binary paths given in a package recipe have valid binar
 		}
 		pkg := args[0]
 		var pairResults map[string]bool = map[string]bool{}
+		if err := check.CheckPkgConfig(pkg); err != nil {
+			color.Red("Pkg Config Error: %v", err)
+		}
+		pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg, true)
 	osLoop:
 		for _, osStr := range OsOptions {
 			//Example: convert "windows" GOOS to "win" pkgOS
@@ -43,7 +48,6 @@ The "bintest" tests that binary paths given in a package recipe have valid binar
 		archLoop:
 			for _, arch := range ArchOptions {
 				osPairStr := fmt.Sprintf("%s-%s", osStr, arch)
-				pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg, true)
 				if err != nil {
 					color.Red("Error: %v", err)
 					os.Exit(1)
@@ -77,14 +81,15 @@ The "bintest" tests that binary paths given in a package recipe have valid binar
 			if val {
 				color.Green("  %s : SUCCESS", key)
 			} else {
+				allSucceed = false
 				color.Red("  %s : FAIL", key)
 			}
 		}
 		if allSucceed {
-			color.HiGreen("All supported OSs & Arches for %s have valid installs!", pkg)
+			color.HiGreen("\nAll supported OSs & Arches for %s have valid installs!", pkg)
 			os.RemoveAll(filepath.Join(homedir, ".webman", "test"))
 		} else {
-			color.HiRed("Some supported OSs & Arches for %s have invalid installs.", pkg)
+			color.HiRed("\nSome supported OSs & Arches for %s have invalid installs.", pkg)
 		}
 	},
 }
