@@ -41,33 +41,35 @@ The "bintest" tests that binary paths given in a package recipe have valid binar
 			color.Red("Pkg Config Error: %v", err)
 		}
 		pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg, true)
+		if err != nil {
+			color.Red("Error: %v", err)
+			os.Exit(1)
+		}
+		testDir := filepath.Join(homedir, ".webman", "test")
 	osLoop:
 		for _, osStr := range OsOptions {
 			//Example: convert "windows" GOOS to "win" pkgOS
 			osPkgStr := pkgparse.GOOStoPkgOs[osStr]
 		archLoop:
 			for _, arch := range ArchOptions {
+				fmt.Println("")
 				osPairStr := fmt.Sprintf("%s-%s", osStr, arch)
-				if err != nil {
-					color.Red("Error: %v", err)
-					os.Exit(1)
-				}
 				if _, osSupported := pkgConf.OsMap[osPkgStr]; !osSupported {
-					color.HiBlack("Skipping all %s: unsupported by pkg", osStr)
+					color.HiBlack("Skipping all %s: unsupported by %s", osStr, pkg)
 					continue osLoop
 				}
 				if _, archSupported := pkgConf.ArchMap[arch]; !archSupported {
-					color.HiBlack("Skipping %s-%s: unsupported by pkg", osStr, arch)
+					color.HiBlack("Skipping %s-%s: unsupported by %s", osStr, arch, pkg)
 					continue archLoop
 				}
 				for _, pair := range pkgConf.Ignore {
 					if pair.Arch == arch && pair.Os == osPkgStr {
-						color.HiBlack("Skipping %s-%s: pair ignored by pkg", osStr, arch)
+						color.HiBlack("Skipping %s-%s: pair ignored by %s", osStr, arch, pkg)
 						continue archLoop
 					}
 				}
-				InitTestDir(osStr, arch, homedir)
-				color.HiCyan("Trying OS=%s Arch=%s installation", osStr, arch)
+				InitTestDir(osStr, arch, homedir, testDir)
+				color.HiCyan("Trying %s-%s installation", osStr, arch)
 				fmt.Println("Putting installation in ", utils.WebmanDir)
 				var wg sync.WaitGroup
 				ml := multiline.New(len(args), os.Stdout)
@@ -87,15 +89,17 @@ The "bintest" tests that binary paths given in a package recipe have valid binar
 		}
 		if allSucceed {
 			color.HiGreen("\nAll supported OSs & Arches for %s have valid installs!", pkg)
-			os.RemoveAll(filepath.Join(homedir, ".webman", "test"))
+			color.HiBlack("Cleaning up %s", testDir)
+			os.RemoveAll(testDir)
+
 		} else {
 			color.HiRed("\nSome supported OSs & Arches for %s have invalid installs.", pkg)
 		}
 	},
 }
 
-func InitTestDir(osStr string, arch string, homedir string) {
-	utils.WebmanDir = filepath.Join(homedir, ".webman", "test", osStr, arch)
+func InitTestDir(osStr string, arch string, homedir string, testdir string) {
+	utils.WebmanDir = filepath.Join(testdir, osStr, arch)
 	utils.WebmanPkgDir = filepath.Join(utils.WebmanDir, "/pkg")
 	utils.WebmanBinDir = filepath.Join(utils.WebmanDir, "/bin")
 	utils.WebmanTmpDir = filepath.Join(utils.WebmanDir, "/tmp")
