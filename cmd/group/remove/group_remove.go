@@ -15,7 +15,7 @@ import (
 var allFlag bool
 
 var RemoveCmd = &cobra.Command{
-	Use:   "remove",
+	Use:   "remove [group]",
 	Short: "remove a group of packages",
 	Long: `
 

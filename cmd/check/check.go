@@ -15,7 +15,7 @@ import (
 
 // CheckCmd represents the remove command
 var CheckCmd = &cobra.Command{
-	Use:   "check",
+	Use:   "check [recipe-dir]",
 	Short: "check a directory of recipes",
 	Long: `
 The "check" subcommand checks that all recipes in a directory are valid.`,

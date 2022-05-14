@@ -17,7 +17,7 @@ import (
 
 // runCmd represents the run command
 var RunCmd = &cobra.Command{
-	Use:   "run",
+	Use:   "run [pkg](:[binary]) [args...]",
 	Short: "run installed packages",
 	Long: `
 The "run" subcommand runs the installed package binary with the name of the package by default,

@@ -15,7 +15,7 @@ import (
 
 // SwitchCmd represents the remove command
 var SwitchCmd = &cobra.Command{
-	Use:   "switch",
+	Use:   "switch [pkg]",
 	Short: "switch to a specific version of a package",
 	Long:  `The "switch" subcommand changes path to a prompt-selected version of a given package.`,
 	Example: `webman switch go

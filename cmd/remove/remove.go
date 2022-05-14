@@ -17,7 +17,7 @@ import (
 
 // RemoveCmd represents the remove command
 var RemoveCmd = &cobra.Command{
-	Use:   "remove",
+	Use:   "remove [pkg]",
 	Short: "remove a package",
 	Long:  `The "remove" subcommand removes a prompt-selected version of a given package.`,
 	Example: `webman remove go

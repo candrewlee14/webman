@@ -17,7 +17,7 @@ var doRefresh bool
 var allFlag bool
 
 var AddCmd = &cobra.Command{
-	Use:   "add",
+	Use:   "add [group]",
 	Short: "install a group of packages",
 	Long: `
 

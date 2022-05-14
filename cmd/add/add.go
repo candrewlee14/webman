@@ -26,7 +26,7 @@ var switchFlag bool
 
 // addCmd represents the add command
 var AddCmd = &cobra.Command{
-	Use:   "add",
+	Use:   "add [pkgs...]",
 	Short: "install packages",
 	Long: `
 The "add" subcommand installs packages.`,
