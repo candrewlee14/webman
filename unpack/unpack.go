@@ -7,8 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"webman/utils"
-
-	"github.com/ulikunitz/xz"
 )
 
 type unpackExt string
@@ -23,10 +21,11 @@ const (
 type UnpackFn func(src string, dir string) error
 
 var unpackMap = map[unpackExt]UnpackFn{
-	extTarGz: UntarGz,
-	extTarXz: UntarXz,
-	extGz:    UnGz,
-	extZip:   Unzip,
+	extTarGz:  Untar,
+	extTarXz:  Untar,
+	extGz:     UnGz,
+	extZip:    Unzip,
+	"exe.zip": Unzip,
 }
 
 func Unpack(src string, pkg string, stem string, ext string, hasRoot bool) error {
@@ -73,40 +72,6 @@ func Unpack(src string, pkg string, stem string, ext string, hasRoot bool) error
 		}
 	}
 	return nil
-}
-
-func UntarXz(src string, dir string) error {
-	// Open compress file
-	file, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	// Add xz support
-	uncompressedStream, err := xz.NewReader(file)
-	if err != nil {
-		return err
-	}
-	return Untar(uncompressedStream, dir)
-}
-
-func UntarGz(src string, dir string) error {
-	// Open compress file
-	// Open compress file
-	file, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	// Add gzip support
-	uncompressedStream, err := gzip.NewReader(file)
-	if err != nil {
-		return err
-	}
-	defer uncompressedStream.Close()
-	return Untar(uncompressedStream, dir)
 }
 
 func UnGz(src string, dest string) error {

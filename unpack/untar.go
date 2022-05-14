@@ -2,14 +2,32 @@ package unpack
 
 import (
 	"archive/tar"
+	"compress/gzip"
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
+
+	"github.com/ulikunitz/xz"
 )
 
-func Untar(uncompressedStream io.Reader, dest string) error {
+func Untar(src string, dest string) error {
+	// if tar program doesn't exist, default to Go native (unstable)
+	if _, err := exec.LookPath("tar"); err != nil {
+		switch filepath.Ext(src) {
+		case ".tar.gz":
+			return UntarGz(src, dest)
+		case ".tar.xz":
+			return UntarXz(src, dest)
+		}
+	}
+	return UntarExec(src, dest)
+}
+
+func UntarGo(uncompressedStream io.Reader, dest string) error {
 	// Read content file
 	archive := tar.NewReader(uncompressedStream)
 	for {
@@ -51,4 +69,48 @@ func Untar(uncompressedStream io.Reader, dest string) error {
 		dstFile.Close()
 	}
 	return nil
+}
+
+func UntarXz(src string, dir string) error {
+	// Open compress file
+	file, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// Add xz support
+	uncompressedStream, err := xz.NewReader(file)
+	if err != nil {
+		return err
+	}
+	return UntarGo(uncompressedStream, dir)
+}
+
+func UntarGz(src string, dir string) error {
+	// Open compress file
+	// Open compress file
+	file, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// Add gzip support
+	uncompressedStream, err := gzip.NewReader(file)
+	if err != nil {
+		return err
+	}
+	defer uncompressedStream.Close()
+	return UntarGo(uncompressedStream, dir)
+}
+
+func UntarExec(src string, dir string) error {
+	if runtime.GOOS == "windows" {
+		return fmt.Errorf("windows doesn't have support for tarballs")
+	}
+	cmd := exec.Command("tar", "-xf", src, "--directory="+dir)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
 }
