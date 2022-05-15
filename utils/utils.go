@@ -77,3 +77,8 @@ func ParsePkgVer(arg string) (string, string, error) {
 func CreateStem(pkg string, ver string) string {
 	return fmt.Sprintf("%s-%s", pkg, ver)
 }
+
+func ParseStem(pkgVerStem string) (string, string) {
+    pkg, ver, _ := strings.Cut(pkgVerStem, "-")
+    return pkg, ver
+}

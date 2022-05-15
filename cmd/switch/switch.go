@@ -82,7 +82,8 @@ webman switch rg`,
 			fmt.Println(color.RedString("%v", err))
 			return
 		}
-		madeLinks, err := link.CreateLinks(pkg, pkgVerStem, binPaths)
+        _, ver := utils.ParseStem(pkgVerStem)
+		madeLinks, err := link.CreateLinks(pkg, ver, binPaths)
 		if err != nil {
 			panic(err)
 		}
