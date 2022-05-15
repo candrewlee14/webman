@@ -26,7 +26,7 @@ builds:
     ldflags:
       - -s -w -X webman/cmd/version.Version={{.Version}} -X webman/cmd/version.Commit={{.Commit}} -X webman/cmd/version.Date={{.Date}} -X webman/cmd/version.BuiltBy=goreleaser
 archives:
-  - 
+  -
     format_overrides:
     - goos: windows
       format: zip

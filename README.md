@@ -19,7 +19,7 @@ Install `webman` by running the following command in MacOS, Linux, or Git Bash f
 ```bash
 curl https://raw.githubusercontent.com/candrewlee14/webman/main/scripts/install.sh | sh
 ```
-> NOTE: Never blindly run a shell script from the internet. Please check the source shell file `scripts/install.sh`  
+> NOTE: Never blindly run a shell script from the internet. Please check the source shell file `scripts/install.sh`
 Alternatively, download the [latest release](/releases/latest) manually.
 
 
@@ -32,7 +32,7 @@ I wanted an easy way to install groups of packages, like the tools in [modern-un
 That's why I built `webman`.
 
 All of `webman`'s resources are located in `~/.webman`.
-The only directory that needs to go on your system PATH is `~/.webman/bin`.  
+The only directory that needs to go on your system PATH is `~/.webman/bin`.
 Simply remove the `~/.webman` directory and all of webman's packages and resources will be removed.
 
 Security is an important priority to me here.

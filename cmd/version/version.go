@@ -26,8 +26,8 @@ The "version" subcommand displays the latest webman version.`,
 			os.Exit(0)
 		}
 		color.Cyan("webman (v%s)", Version)
-        color.Yellow("Commit %s", Commit[:8])
-        color.Magenta("Built on %s by %s", Date[:10], BuiltBy)
-        color.HiBlack("Created by candrewlee14")
+		color.Yellow("Commit %s", Commit[:8])
+		color.Magenta("Built on %s by %s", Date[:10], BuiltBy)
+		color.HiBlack("Created by candrewlee14")
 	},
 }

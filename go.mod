@@ -7,6 +7,7 @@ require (
 	github.com/fatih/color v1.13.0
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/ivanpirog/coloredcobra v1.0.1
+	github.com/mattn/go-isatty v0.0.14
 	github.com/schollz/progressbar/v3 v3.8.6
 	github.com/spf13/cobra v1.4.0
 	github.com/ulikunitz/xz v0.5.10
@@ -17,7 +18,6 @@ require (
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
-	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b // indirect
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect

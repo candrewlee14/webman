@@ -79,6 +79,6 @@ func CreateStem(pkg string, ver string) string {
 }
 
 func ParseStem(pkgVerStem string) (string, string) {
-    pkg, ver, _ := strings.Cut(pkgVerStem, "-")
-    return pkg, ver
+	pkg, ver, _ := strings.Cut(pkgVerStem, "-")
+	return pkg, ver
 }
