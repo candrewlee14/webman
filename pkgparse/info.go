@@ -30,6 +30,7 @@ func ParsePkgInfo(pkg string) (*PkgInfo, error) {
 	if err = yaml.Unmarshal(dat, &pkgInfo); err != nil {
 		return nil, fmt.Errorf("unable to parse package recipe for %s: %v", pkg, err)
 	}
+	pkgInfo.Title = pkg
 	return &pkgInfo, nil
 }
 

@@ -71,6 +71,9 @@ func Execute() {
 	})
 	err := rootCmd.Execute()
 	if err != nil {
+		if ansiOn {
+			fmt.Printf("%s", multiline.ShowCursor)
+		}
 		os.Exit(1)
 	}
 }
