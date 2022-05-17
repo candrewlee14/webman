@@ -1,8 +1,8 @@
 package add
 
 import (
+	"errors"
 	"fmt"
-	"os"
 	"webman/cmd/add"
 	"webman/multiline"
 	"webman/pkgparse"
@@ -25,12 +25,12 @@ The "group add" subcommand installs a group of packages.
 `,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		utils.Init()
 		if len(args) != 1 {
 			color.Red("Expected a single package group name")
 			cmd.Help()
-			os.Exit(1)
+			return nil
 		}
 		if utils.RecipeDirFlag == "" {
 			// only refresh if not using local
@@ -79,10 +79,11 @@ The "group add" subcommand installs a group of packages.
 		} else {
 			if !add.InstallAllPkgs(pkgsToInstall) {
 				color.Magenta("Not all packages installed successfully")
-				os.Exit(1)
+				return errors.New("at least one package install failed")
 			}
 			color.Green("All %d selected packages from group %s are installed", len(pkgsToInstall), color.YellowString(group))
 		}
+		return nil
 	},
 }
 

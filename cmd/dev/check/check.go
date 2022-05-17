@@ -19,11 +19,12 @@ var CheckCmd = &cobra.Command{
 	Short: "check a directory of recipes",
 	Long: `
 The "check" subcommand checks that all recipes in a directory are valid.`,
-	Example: `webman check ~/repos/webman-pkgs/`,
-	Run: func(cmd *cobra.Command, args []string) {
+	Example:            `webman check ~/repos/webman-pkgs/`,
+	DisableFlagParsing: true,
+	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) != 1 {
 			cmd.Help()
-			os.Exit(0)
+			return nil
 		}
 		recipeDir, err := filepath.Abs(args[0])
 		utils.WebmanRecipeDir = recipeDir
@@ -36,6 +37,7 @@ The "check" subcommand checks that all recipes in a directory are valid.`,
 		} else {
 			var wg sync.WaitGroup
 			success := true
+			fmt.Printf("Validating %d packages\n", len(entries))
 			wg.Add(len(entries))
 			for _, recipe := range entries {
 				recipe := recipe
@@ -54,9 +56,10 @@ The "check" subcommand checks that all recipes in a directory are valid.`,
 			wg.Wait()
 			if !success {
 				color.Magenta("Not all packages are valid!")
-				os.Exit(1)
+				return fmt.Errorf("invalid package")
 			}
 			color.Green("All packages are valid!")
+			return nil
 		}
 	},
 }
@@ -65,9 +68,6 @@ func CheckPkgConfig(pkg string) error {
 	pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg, true)
 	if err != nil {
 		return err
-	}
-	if len(pkgConf.Title) == 0 {
-		return fmt.Errorf("title field empty")
 	}
 	if len(pkgConf.Tagline) == 0 {
 		return fmt.Errorf("tagline field empty")
