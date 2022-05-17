@@ -184,6 +184,8 @@ func ParsePkgConfigLocal(pkg string, strict bool) (*PkgConfig, error) {
 			return nil, fmt.Errorf("unable to parse package recipe for %s: %v", pkg, err)
 		}
 	}
+	pkgConf.Title = pkg
+
 	pkgConf.BaseDownloadUrl = strings.ReplaceAll(pkgConf.BaseDownloadUrl, "[GIT_USER]", pkgConf.GitUser)
 	pkgConf.BaseDownloadUrl = strings.ReplaceAll(pkgConf.BaseDownloadUrl, "[GIT_REPO]", pkgConf.GitRepo)
 
