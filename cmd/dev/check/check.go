@@ -43,7 +43,7 @@ The "check" subcommand checks that all recipes in a directory are valid.`,
 
 				go func() {
 					recipeName := recipe.Name()
-					pkg := strings.ReplaceAll(recipeName, ".yaml", "")
+					pkg := strings.ReplaceAll(recipeName, utils.PkgRecipeExt, "")
 					err := CheckPkgConfig(pkg)
 					if err != nil {
 						var lintErr schema.ResultErrors

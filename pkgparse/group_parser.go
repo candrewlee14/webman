@@ -20,7 +20,7 @@ type PkgGroupConfig struct {
 }
 
 func ParseGroupConfig(group string) *PkgGroupConfig {
-	groupPath := filepath.Join(utils.WebmanRecipeDir, "groups", group+".yaml")
+	groupPath := filepath.Join(utils.WebmanRecipeDir, "groups", group+utils.GroupRecipeExt)
 	if _, err := os.Stat(groupPath); err != nil {
 		if os.IsNotExist(err) {
 			color.Red("No package group named %s", color.YellowString(group))
