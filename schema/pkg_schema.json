@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/candrewlee14/webman/main/schema/schema.json",
+  "$id": "https://raw.githubusercontent.com/candrewlee14/webman/main/schema/pkg_schema.json",
   "title": "Webman package recipe",
   "description": "A package recipe for webman",
   "type": "object",

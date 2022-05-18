@@ -9,6 +9,9 @@
 Add, remove, and manage different versions of web-distributed software binaries.
 No elevated permissions required!
 
+> Warning: This repo is still under development and has not stabilized.
+There may be frequent breaking changes until a 1.x release.
+
 Package recipes are located in the [webman-pkgs](https://github.com/candrewlee14/webman-pkgs) repo.
 Recipes are simple YAML files that make it easy to submit a new package.
 Webman locates version numbers online and installs packages from the web, so you'll always have the most up-to-date software available!

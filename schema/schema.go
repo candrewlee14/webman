@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	//go:embed schema.json
+	//go:embed pkg_schema.json
 	schema       []byte
 	schemaLoader = gojsonschema.NewBytesLoader(schema)
 )
