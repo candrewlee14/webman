@@ -24,7 +24,6 @@ func GetBinPathsAndLinkPaths(
 	}
 	stem := utils.CreateStem(pkg, ver)
 	for _, confBinPath := range confBinPaths {
-
 		binPath := filepath.Join(utils.WebmanPkgDir, pkg, stem, confBinPath+binExt)
 		fileInfo, err := os.Stat(binPath)
 		// If config binary path points to a file

@@ -2,11 +2,12 @@ package check
 
 import (
 	"errors"
-	"github.com/candrewlee14/webman/schema"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
+
+	"github.com/candrewlee14/webman/schema"
 
 	"github.com/candrewlee14/webman/utils"
 

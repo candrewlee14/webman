@@ -90,7 +90,7 @@ The "bintest" tests that binary paths given in a package recipe have valid binar
 				}
 				binPaths, _, err = link.GetBinPathsAndLinkPaths(pkg, *latestVer, binPaths)
 				if err != nil {
-					color.Red("Error getting bin paths: %v", err)
+					color.Red("Error getting bin paths and link paths: %v", err)
 					pairResults[osPairStr] = false
 					continue
 				}

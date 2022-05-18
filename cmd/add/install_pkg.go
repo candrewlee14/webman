@@ -141,7 +141,7 @@ func InstallPkg(arg string, argIndex int, argCount int, wg *sync.WaitGroup, ml *
 			hasUnpacked,
 			500,
 		)
-		err = unpack.Unpack(downloadPath, pkg, extractStem, ext, pkgConf.ExtractHasRoot)
+		err = unpack.Unpack(downloadPath, pkg, extractStem, pkgConf.ExtractHasRoot)
 		hasUnpacked <- true
 		if err != nil {
 			ml.Printf(argIndex, color.RedString("%v", err))
