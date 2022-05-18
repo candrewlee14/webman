@@ -6,6 +6,8 @@
 </h3>
 <hr/>
 
+![MegaLinter Packages](https://github.com/candrewlee14/webman-pkgs/actions/workflows/mega-linter.yml/badge.svg)
+
 Add, remove, and manage different versions of web-distributed software binaries.
 No elevated permissions required!
 
