@@ -83,7 +83,7 @@ Webman does version management.
 
 ## Check Packages & Test Locally
 
-You can create new package recipes by adding a simple `[PKG_NAME].yaml` file in a cloned [webman-pkgs](https://github.com/candrewlee14/webman-pkgs) directory. Check if it is in a valid format with `webman check [WEBMAN-PKGS-DIR]`.
+You can create new package recipes by adding a simple recipe file in a cloned [webman-pkgs](https://github.com/candrewlee14/webman-pkgs) directory. Check if it is in a valid format with `webman check [WEBMAN-PKGS-DIR]`.
 
 Next, you can test installing your local recipes with the `--local-recipes` flag on the `add` command, like `webman add [PKG_NAME] -l [WEBMAN-PKGS-DIR]`.
 
@@ -96,9 +96,7 @@ Run the script above or download the binary for your OS and architecture [here](
 Alternatively, if you have Go installed, run:
 
 ```bash
-git clone https://github.com/candrewlee14/webman.git
-cd webman
-go install .
+go install https://github.com/candrewlee14/webman@latest
 ```
 
 Next, add `~/.webman/bin` to your system PATH.
