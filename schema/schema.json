@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/candrewlee14/webman/main/schema/schema.json",
-  "title": "Webman recipe",
-  "description": "A recipe for webman",
+  "title": "Webman package recipe",
+  "description": "A package recipe for webman",
   "type": "object",
   "required": [
     "title",
@@ -10,20 +10,18 @@
     "about",
     "filename_format",
     "base_download_url",
-    "latest_strategy"
+    "latest_strategy",
+    "os_map",
+    "arch_map"
   ],
   "additionalProperties": false,
   "properties": {
-    "title": {
-      "description": "Recipe title",
-      "type": "string"
-    },
     "tagline": {
-      "description": "Recipe tagline",
+      "description": "Package tagline",
       "type": "string"
     },
     "about": {
-      "description": "Recipe description",
+      "description": "Package description",
       "type": "string"
     },
     "info_url": {
