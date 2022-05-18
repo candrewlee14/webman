@@ -87,7 +87,15 @@ func cleanUpFailedInstall(pkg string, extractPath string) {
 	}
 }
 
-func DownloadUrl(url string, f io.Writer, pkg string, ver string, argNum int, argCount int, ml *multiline.MultiLogger) bool {
+func DownloadUrl(url string, filePath string, pkg string, ver string, argNum int, argCount int, ml *multiline.MultiLogger) bool {
+	f, err := os.OpenFile(filePath,
+		os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		ml.Printf(argNum, color.RedString("%v", err))
+		return false
+	}
+	defer f.Close()
+
 	r, err := http.Get(url)
 	ml.Printf(argNum, "Downloading file at %s", url)
 	if err != nil {
