@@ -21,6 +21,10 @@ var WebmanTmpDir string
 var RecipeDirFlag string
 var GOOS string
 var GOARCH string
+var PkgRecipeExt string = ".webman-pkg.yml"
+var GroupRecipeExt string = ".webman-group.yml"
+var RefreshFileName string = "refresh.yaml"
+var UsingFileName string = "using.yaml"
 
 func Init() {
 	homeDir, err := os.UserHomeDir()

@@ -102,9 +102,9 @@ func (pkgConf *PkgConfig) GetMyBinPaths() ([]string, error) {
 }
 
 // Check using file.
-// If using.yaml file doesn't exist, it is not using anything
+// If UsingFile doesn't exist, it is not using anything
 func CheckUsing(pkg string) (*string, error) {
-	usingPath := filepath.Join(utils.WebmanPkgDir, pkg, "using.yaml")
+	usingPath := filepath.Join(utils.WebmanPkgDir, pkg, utils.UsingFileName)
 	usingContent, err := os.ReadFile(usingPath)
 	if err != nil {
 		return nil, nil
@@ -124,7 +124,7 @@ func WriteUsing(pkg string, using string) error {
 	if err != nil {
 		return err
 	}
-	usingPath := filepath.Join(utils.WebmanPkgDir, pkg, "using.yaml")
+	usingPath := filepath.Join(utils.WebmanPkgDir, pkg, utils.UsingFileName)
 	if err := os.WriteFile(usingPath, data, os.ModePerm); err != nil {
 		return err
 	}
@@ -132,7 +132,7 @@ func WriteUsing(pkg string, using string) error {
 }
 
 func RemoveUsing(pkg string) error {
-	usingPath := filepath.Join(utils.WebmanPkgDir, pkg, "using.yaml")
+	usingPath := filepath.Join(utils.WebmanPkgDir, pkg, utils.UsingFileName)
 	if err := os.Remove(usingPath); err != nil {
 		return err
 	}
@@ -140,7 +140,7 @@ func RemoveUsing(pkg string) error {
 }
 
 func ParsePkgConfigOnline(pkg string) (*PkgConfig, error) {
-	pkgConfUrl := "https://raw.githubusercontent.com/candrewlee14/webman-pkgs/main/pkgs/" + pkg + ".yaml"
+	pkgConfUrl := "https://raw.githubusercontent.com/candrewlee14/webman-pkgs/main/pkgs/" + pkg + utils.PkgRecipeExt
 	r, err := http.Get(pkgConfUrl)
 	if err != nil {
 		return nil, fmt.Errorf("unable to download %s package recipe: %v", pkg, err)
@@ -167,7 +167,7 @@ func ParsePkgConfigOnline(pkg string) (*PkgConfig, error) {
 }
 
 func ParsePkgConfigLocal(pkg string, strict bool) (*PkgConfig, error) {
-	pkgConfPath := filepath.Join(utils.WebmanRecipeDir, "pkgs", pkg+".yaml")
+	pkgConfPath := filepath.Join(utils.WebmanRecipeDir, "pkgs", pkg+utils.PkgRecipeExt)
 	dat, err := os.ReadFile(pkgConfPath)
 	if err != nil {
 		if os.IsNotExist(err) {

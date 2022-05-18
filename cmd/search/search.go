@@ -38,7 +38,7 @@ The "search" subcommand starts an interactive window to find and display info ab
 		}
 		pkgInfos := make([]*pkgparse.PkgInfo, len(files))
 		for i, file := range files {
-			pkg := strings.Split(file.Name(), ".yaml")[0]
+			pkg := strings.Split(file.Name(), utils.PkgRecipeExt)[0]
 			pkgInfo, err := pkgparse.ParsePkgInfo(pkg)
 			if err != nil {
 				panic(err)

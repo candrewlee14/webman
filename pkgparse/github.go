@@ -75,7 +75,7 @@ type RefreshFile struct {
 }
 
 func ShouldRefreshRecipes() (bool, error) {
-	refreshFileDir := filepath.Join(utils.WebmanRecipeDir, "refresh.yaml")
+	refreshFileDir := filepath.Join(utils.WebmanRecipeDir, utils.RefreshFileName)
 	data, err := os.ReadFile(refreshFileDir)
 	if err != nil {
 		// if err occured and file does exist
@@ -118,7 +118,6 @@ func RefreshRecipes() error {
 	}
 	tmpZipFile, err := os.CreateTemp(utils.WebmanTmpDir, "recipes-*.zip")
 	if err != nil {
-		fmt.Println("Made refresh.zip file")
 		return err
 	}
 	if _, err = io.Copy(tmpZipFile, r.Body); err != nil {
@@ -139,7 +138,7 @@ func RefreshRecipes() error {
 	if err = os.Rename(innerTmpFolder, utils.WebmanRecipeDir); err != nil {
 		return err
 	}
-	refreshFilePath := filepath.Join(utils.WebmanRecipeDir, "refresh.yaml")
+	refreshFilePath := filepath.Join(utils.WebmanRecipeDir, utils.RefreshFileName)
 	curTime := time.Now()
 	data, err := yaml.Marshal(RefreshFile{&curTime})
 	if err != nil {

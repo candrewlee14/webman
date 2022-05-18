@@ -1,13 +1,13 @@
 package check
 
 import (
-	"fmt"
+	"errors"
+	"github.com/candrewlee14/webman/schema"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 
-	"github.com/candrewlee14/webman/pkgparse"
 	"github.com/candrewlee14/webman/utils"
 
 	"github.com/fatih/color"
@@ -43,10 +43,17 @@ The "check" subcommand checks that all recipes in a directory are valid.`,
 
 				go func() {
 					recipeName := recipe.Name()
-					pkg := strings.ReplaceAll(recipeName, ".yaml", "")
+					pkg := strings.ReplaceAll(recipeName, utils.PkgRecipeExt, "")
 					err := CheckPkgConfig(pkg)
 					if err != nil {
-						color.Red("%s: %s", color.YellowString(recipeName), color.RedString("%v", err))
+						var lintErr schema.ResultErrors
+						if errors.As(err, &lintErr) {
+							for _, le := range lintErr {
+								color.Red("%s: %s", color.YellowString(recipeName), color.RedString("%s: %s", le.Field(), le.Description()))
+							}
+						} else {
+							color.Red("%s: %s", color.YellowString(recipeName), color.RedString("%v", err))
+						}
 						success = false
 					}
 					wg.Done()
@@ -63,45 +70,13 @@ The "check" subcommand checks that all recipes in a directory are valid.`,
 }
 
 func CheckPkgConfig(pkg string) error {
-	pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg, true)
+	pkgConfPath := filepath.Join(utils.WebmanRecipeDir, "pkgs", pkg+utils.PkgRecipeExt)
+	fi, err := os.Open(pkgConfPath)
 	if err != nil {
 		return err
 	}
-	if len(pkgConf.Title) == 0 {
-		return fmt.Errorf("title field empty")
-	}
-	if len(pkgConf.Tagline) == 0 {
-		return fmt.Errorf("tagline field empty")
-	}
-	if len(pkgConf.About) == 0 {
-		return fmt.Errorf("about field empty")
-	}
-
-	if len(pkgConf.FilenameFormat) == 0 {
-		return fmt.Errorf("filename_format field empty")
-	}
-	if len(pkgConf.BaseDownloadUrl) == 0 {
-		return fmt.Errorf("base_download_url field empty")
-	}
-	if len(pkgConf.LatestStrategy) == 0 {
-		return fmt.Errorf("latest_strategy field empty")
-	}
-	switch pkgConf.LatestStrategy {
-	case "github-release":
-		if len(pkgConf.GitUser) == 0 {
-			return fmt.Errorf("missing git_user because github-release latest strategy")
-		}
-		if len(pkgConf.GitRepo) == 0 {
-			return fmt.Errorf("missing git_repo because github-release latest strategy")
-		}
-	case "arch-linux-community":
-		if len(pkgConf.ArchLinuxPkgName) == 0 {
-			return fmt.Errorf("missing arch_linux_pkg_name because arch-linux-community latest strategy")
-		}
-	default:
-		return fmt.Errorf("invalid latest strategy")
-	}
-	return nil
+	defer fi.Close()
+	return schema.Lint(fi)
 }
 
 func init() {

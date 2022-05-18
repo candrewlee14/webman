@@ -19,7 +19,7 @@ type PkgInfo struct {
 }
 
 func ParsePkgInfo(pkg string) (*PkgInfo, error) {
-	pkgConfPath := filepath.Join(utils.WebmanRecipeDir, "pkgs", pkg+".yaml")
+	pkgConfPath := filepath.Join(utils.WebmanRecipeDir, "pkgs", pkg+utils.PkgRecipeExt)
 	dat, err := os.ReadFile(pkgConfPath)
 	if err != nil {
 		if os.IsNotExist(err) {

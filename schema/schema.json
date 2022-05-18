@@ -1,0 +1,250 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/candrewlee14/webman/main/schema/schema.json",
+  "title": "Webman package recipe",
+  "description": "A package recipe for webman",
+  "type": "object",
+  "required": [
+    "tagline",
+    "about",
+    "filename_format",
+    "base_download_url",
+    "latest_strategy",
+    "os_map",
+    "arch_map"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "tagline": {
+      "description": "Package tagline",
+      "type": "string"
+    },
+    "about": {
+      "description": "Package description",
+      "type": "string"
+    },
+    "info_url": {
+      "description": "URL for information/documentation",
+      "type": "string"
+    },
+    "releases_url": {
+      "description": "URL for releases",
+      "type": "string"
+    },
+    "base_download_url": {
+      "description": "Base URL for downloading",
+      "type": "string"
+    },
+    "git_user": {
+      "description": "Git username",
+      "type": "string"
+    },
+    "git_repo": {
+      "description": "Git repository",
+      "type": "string"
+    },
+    "source_url": {
+      "description": "Source URL",
+      "type": "string"
+    },
+    "filename_format": {
+      "description": "Filename format",
+      "type": "string"
+    },
+    "version_format": {
+      "description": "Version format",
+      "type": "string"
+    },
+    "latest_strategy": {
+      "description": "Strategy for resolving latest release",
+      "type": "string",
+      "enum": [
+        "github-release",
+        "arch-linux-community"
+      ]
+    },
+    "force_latest": {
+      "description": "Force latest release",
+      "type": "boolean"
+    },
+    "allow_prerelease": {
+      "description": "Allow pre-releases",
+      "type": "boolean"
+    },
+    "arch_linux_pkg_name": {
+      "description": "Arch Linux package name",
+      "type": "string"
+    },
+    "is_binary": {
+      "description": "Download is a binary",
+      "type": "boolean"
+    },
+    "extract_has_root": {
+      "description": "Extraction has root directory",
+      "type": "boolean"
+    },
+    "os_map": {
+      "description": "OS mappings",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "win": {
+          "$ref": "#/$defs/os_mapping"
+        },
+        "macos": {
+          "$ref": "#/$defs/os_mapping"
+        },
+        "linux": {
+          "$ref": "#/$defs/os_mapping"
+        }
+      }
+    },
+    "arch_map": {
+      "description": "Architecture mappings",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ppc64": {
+          "type": "string"
+        },
+        "386": {
+          "type": "string"
+        },
+        "amd64": {
+          "type": "string"
+        },
+        "arm": {
+          "type": "string"
+        },
+        "arm64": {
+          "type": "string"
+        },
+        "wasm": {
+          "type": "string"
+        },
+        "mips": {
+          "type": "string"
+        },
+        "mips64": {
+          "type": "string"
+        },
+        "mips64le": {
+          "type": "string"
+        },
+        "mipsle": {
+          "type": "string"
+        },
+        "ppc64le": {
+          "type": "string"
+        },
+        "riscv64": {
+          "type": "string"
+        },
+        "s390x": {
+          "type": "string"
+        }
+      }
+    },
+    "ignore": {
+      "description": "Ignore mappings",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "os",
+          "arch"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "os": {
+            "$ref": "#/$defs/os"
+          },
+          "arch": {
+            "$ref": "#/$defs/arch"
+          }
+        }
+      }
+    }
+  },
+  "anyOf": [
+    {
+      "properties": {
+        "latest_strategy": {
+          "const": "github-release"
+        }
+      },
+      "required": [
+        "git_user",
+        "git_repo"
+      ]
+    },
+    {
+      "properties": {
+        "latest_strategy": {
+          "const": "arch-linux-community"
+        }
+      },
+      "required": [
+        "arch_linux_pkg_name"
+      ]
+    }
+  ],
+  "$defs": {
+    "os": {
+      "$comment": "go tool dist list",
+      "description": "Operating system",
+      "type": "string",
+      "enum": [
+        "win",
+        "macos",
+        "linux"
+      ]
+    },
+    "arch": {
+      "$comment": "go tool dist list",
+      "description": "Architecture",
+      "type": "string",
+      "enum": [
+        "ppc64",
+        "386",
+        "amd64",
+        "arm",
+        "arm64",
+        "wasm",
+        "mips",
+        "mips64",
+        "mips64le",
+        "mipsle",
+        "ppc64le",
+        "riscv64",
+        "s390x"
+      ]
+    },
+    "os_mapping": {
+      "description": "OS mapping",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "ext": {
+          "type": "string"
+        },
+        "bin_path": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}
