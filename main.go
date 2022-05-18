@@ -22,7 +22,7 @@ THE SOFTWARE.
 package main
 
 import (
-	"webman/cmd"
+	"github.com/candrewlee14/webman/cmd"
 )
 
 var (

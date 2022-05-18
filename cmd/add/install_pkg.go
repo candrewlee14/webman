@@ -5,11 +5,12 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
-	"webman/link"
-	"webman/multiline"
-	"webman/pkgparse"
-	"webman/unpack"
-	"webman/utils"
+
+	"github.com/candrewlee14/webman/link"
+	"github.com/candrewlee14/webman/multiline"
+	"github.com/candrewlee14/webman/pkgparse"
+	"github.com/candrewlee14/webman/unpack"
+	"github.com/candrewlee14/webman/utils"
 
 	"github.com/fatih/color"
 )

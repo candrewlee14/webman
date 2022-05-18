@@ -6,8 +6,9 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"webman/pkgparse"
-	"webman/utils"
+
+	"github.com/candrewlee14/webman/pkgparse"
+	"github.com/candrewlee14/webman/utils"
 
 	"github.com/fatih/color"
 

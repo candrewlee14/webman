@@ -24,8 +24,9 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"webman/multiline"
-	"webman/utils"
+
+	"github.com/candrewlee14/webman/multiline"
+	"github.com/candrewlee14/webman/utils"
 
 	cc "github.com/ivanpirog/coloredcobra"
 	"github.com/mattn/go-isatty"

@@ -3,10 +3,11 @@ package add
 import (
 	"fmt"
 	"os"
-	"webman/cmd/add"
-	"webman/multiline"
-	"webman/pkgparse"
-	"webman/utils"
+
+	"github.com/candrewlee14/webman/cmd/add"
+	"github.com/candrewlee14/webman/multiline"
+	"github.com/candrewlee14/webman/pkgparse"
+	"github.com/candrewlee14/webman/utils"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/fatih/color"
