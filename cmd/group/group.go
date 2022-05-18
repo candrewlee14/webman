@@ -1,8 +1,8 @@
 package group
 
 import (
-	groupadd "webman/cmd/group/add"
-	groupremove "webman/cmd/group/remove"
+	groupadd "github.com/candrewlee14/webman/cmd/group/add"
+	groupremove "github.com/candrewlee14/webman/cmd/group/remove"
 
 	"github.com/spf13/cobra"
 )

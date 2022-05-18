@@ -8,7 +8,8 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-	"webman/utils"
+
+	"github.com/candrewlee14/webman/utils"
 
 	"github.com/go-yaml/yaml"
 )

@@ -3,9 +3,10 @@ package remove
 import (
 	"fmt"
 	"os"
-	"webman/cmd/remove"
-	"webman/pkgparse"
-	"webman/utils"
+
+	"github.com/candrewlee14/webman/cmd/remove"
+	"github.com/candrewlee14/webman/pkgparse"
+	"github.com/candrewlee14/webman/utils"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/fatih/color"

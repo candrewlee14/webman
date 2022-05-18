@@ -8,16 +8,17 @@ import (
 	"os"
 	"path/filepath"
 	"time"
-	"webman/link"
-	"webman/multiline"
-	"webman/pkgparse"
-	"webman/utils"
+
+	"github.com/candrewlee14/webman/link"
+	"github.com/candrewlee14/webman/multiline"
+	"github.com/candrewlee14/webman/pkgparse"
+	"github.com/candrewlee14/webman/utils"
 
 	"github.com/fatih/color"
 	"github.com/mattn/go-isatty"
 	"golang.org/x/sync/errgroup"
 
-	progressbar "github.com/schollz/progressbar/v3"
+	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
 )
 

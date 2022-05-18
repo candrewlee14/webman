@@ -1,14 +1,14 @@
 package cmd
 
 import (
-	"webman/cmd/add"
-	"webman/cmd/dev"
-	"webman/cmd/group"
-	"webman/cmd/remove"
-	"webman/cmd/run"
-	"webman/cmd/search"
-	switchcmd "webman/cmd/switch"
-	"webman/cmd/version"
+	"github.com/candrewlee14/webman/cmd/add"
+	"github.com/candrewlee14/webman/cmd/dev"
+	"github.com/candrewlee14/webman/cmd/group"
+	"github.com/candrewlee14/webman/cmd/remove"
+	"github.com/candrewlee14/webman/cmd/run"
+	"github.com/candrewlee14/webman/cmd/search"
+	switchcmd "github.com/candrewlee14/webman/cmd/switch"
+	"github.com/candrewlee14/webman/cmd/version"
 )
 
 func init() {

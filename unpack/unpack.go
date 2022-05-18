@@ -6,7 +6,8 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"webman/utils"
+
+	"github.com/candrewlee14/webman/utils"
 )
 
 type unpackExt string

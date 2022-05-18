@@ -6,7 +6,8 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-	"webman/multiline"
+
+	"github.com/candrewlee14/webman/multiline"
 
 	"github.com/fatih/color"
 	"github.com/mattn/go-isatty"

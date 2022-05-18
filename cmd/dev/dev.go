@@ -1,8 +1,8 @@
 package dev
 
 import (
-	"webman/cmd/dev/bintest"
-	"webman/cmd/dev/check"
+	"github.com/candrewlee14/webman/cmd/dev/bintest"
+	"github.com/candrewlee14/webman/cmd/dev/check"
 
 	"github.com/spf13/cobra"
 )

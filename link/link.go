@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"webman/pkgparse"
-	"webman/utils"
+
+	"github.com/candrewlee14/webman/pkgparse"
+	"github.com/candrewlee14/webman/utils"
 
 	"golang.org/x/sync/errgroup"
 )
