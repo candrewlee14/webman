@@ -111,17 +111,10 @@ func InstallPkg(arg string, argIndex int, argCount int, wg *sync.WaitGroup, ml *
 		ml.Printf(argIndex, color.HiBlackString("Already installed!"))
 		return true
 	}
-	f, err := os.OpenFile(downloadPath,
-		os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		ml.Printf(argIndex, color.RedString("%v", err))
-		return false
-	}
-	defer f.Close()
 	if pkgConf.IsBinary && utils.GOOS == "windows" {
 		url += ".exe"
 	}
-	if !DownloadUrl(url, f, pkg, ver, argIndex, argCount, ml) {
+	if !DownloadUrl(url, downloadPath, pkg, ver, argIndex, argCount, ml) {
 		return false
 	}
 	if pkgConf.IsBinary {
@@ -134,6 +127,9 @@ func InstallPkg(arg string, argIndex int, argCount int, wg *sync.WaitGroup, ml *
 			return false
 		}
 		binPath := filepath.Join(extractPath, pkgConf.Title)
+		if utils.GOOS == "windows" {
+			binPath += ".exe"
+		}
 		if err = os.Rename(downloadPath, binPath); err != nil {
 			ml.Printf(argIndex, color.RedString("Failed to rename temporary download to new path!"))
 			return false
