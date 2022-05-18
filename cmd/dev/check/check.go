@@ -70,7 +70,7 @@ The "check" subcommand checks that all recipes in a directory are valid.`,
 }
 
 func CheckPkgConfig(pkg string) error {
-	pkgConfPath := filepath.Join(utils.WebmanRecipeDir, "pkgs", pkg+".yaml")
+	pkgConfPath := filepath.Join(utils.WebmanRecipeDir, "pkgs", pkg+utils.PkgRecipeExt)
 	fi, err := os.Open(pkgConfPath)
 	if err != nil {
 		return err

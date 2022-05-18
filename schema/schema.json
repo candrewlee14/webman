@@ -5,7 +5,6 @@
   "description": "A package recipe for webman",
   "type": "object",
   "required": [
-    "title",
     "tagline",
     "about",
     "filename_format",
@@ -108,7 +107,7 @@
         "ppc64": {
           "type": "string"
         },
-        "368": {
+        "386": {
           "type": "string"
         },
         "amd64": {
@@ -207,7 +206,7 @@
       "type": "string",
       "enum": [
         "ppc64",
-        "368",
+        "386",
         "amd64",
         "arm",
         "arm64",
