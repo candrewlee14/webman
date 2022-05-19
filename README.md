@@ -6,7 +6,8 @@
 </h3>
 <hr/>
 
-![MegaLinter Packages](https://github.com/candrewlee14/webman-pkgs/actions/workflows/mega-linter.yml/badge.svg)
+![schema-linter](https://github.com/candrewlee14/webman-pkgs/actions/workflows/schema-linter.yml/badge.svg)
+![bintest](https://github.com/candrewlee14/webman-pkgs/actions/workflows/bintest.yml/badge.svg)
 
 Add, remove, and manage different versions of web-distributed software binaries.
 No elevated permissions required!
@@ -88,9 +89,9 @@ Webman does version management.
 
 ## Check Packages & Test Locally
 
-You can create new package recipes by adding a simple recipe file in a cloned [webman-pkgs](https://github.com/candrewlee14/webman-pkgs) directory. Check if it is in a valid format with `webman check [WEBMAN-PKGS-DIR]`.
+You can create new package recipes by adding a simple recipe file in a cloned [webman-pkgs](https://github.com/candrewlee14/webman-pkgs) directory. Check if it is in a valid format with `webman dev check [WEBMAN-PKGS-DIR]`.
 
-Next, you can test installing your local recipes with the `--local-recipes` flag on the `add` command, like `webman add [PKG_NAME] -l [WEBMAN-PKGS-DIR]`.
+Next, `webman dev bintest [NEW-PKG] -l [WEBMAN-PKGs-DIR]` will do a cross-platform installation test on a package.
 
 The package recipe format was built around making it easy to contribute new packages to webman, so if you're missing a package, go ahead and create it!
 
