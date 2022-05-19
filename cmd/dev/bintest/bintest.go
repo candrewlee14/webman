@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sync"
 
 	"github.com/candrewlee14/webman/cmd/add"
@@ -90,7 +91,7 @@ The "bintest" tests that binary paths given in a package recipe have valid binar
 				}
 				binPaths, _, err = link.GetBinPathsAndLinkPaths(pkg, *latestVer, binPaths)
 				if err != nil {
-					color.Red("Error getting bin paths: %v", err)
+					color.Red("Error getting bin paths and link paths: %v", err)
 					pairResults[osPairStr] = false
 					continue
 				}
@@ -117,6 +118,9 @@ The "bintest" tests that binary paths given in a package recipe have valid binar
 
 		} else {
 			color.HiRed("\nSome supported OSs & Arches for %s have invalid installs.", pkg)
+			if runtime.GOOS == "windows" {
+				color.HiYellow("Windows may require admin privileges to create symlinks.")
+			}
 			os.Exit(1)
 		}
 	},

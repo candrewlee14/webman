@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"github.com/candrewlee14/webman/pkgparse"
 	"github.com/candrewlee14/webman/utils"
@@ -24,7 +25,6 @@ func GetBinPathsAndLinkPaths(
 	}
 	stem := utils.CreateStem(pkg, ver)
 	for _, confBinPath := range confBinPaths {
-
 		binPath := filepath.Join(utils.WebmanPkgDir, pkg, stem, confBinPath+binExt)
 		fileInfo, err := os.Stat(binPath)
 		// If config binary path points to a file
@@ -79,7 +79,7 @@ func GetLinkPathIfExec(binPath string) *string {
 			return nil
 		}
 		// If not executable
-		if !(fi.Mode()&0111 != 0) {
+		if !(fi.Mode()&0111 != 0) && runtime.GOOS != "windows" {
 			return nil
 		}
 	}

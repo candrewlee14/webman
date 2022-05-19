@@ -1,39 +1,16 @@
 package unpack
 
 import (
-	"compress/gzip"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
+
+	"github.com/mholt/archiver/v3"
 
 	"github.com/candrewlee14/webman/utils"
 )
 
-type unpackExt string
-
-const (
-	extTarGz unpackExt = "tar.gz"
-	extTarXz unpackExt = "tar.xz"
-	extZip   unpackExt = "zip"
-	extGz    unpackExt = "gz"
-)
-
-type UnpackFn func(src string, dir string) error
-
-var unpackMap = map[unpackExt]UnpackFn{
-	extTarGz:  Untar,
-	extTarXz:  Untar,
-	extGz:     UnGz,
-	extZip:    Unzip,
-	"exe.zip": Unzip,
-}
-
-func Unpack(src string, pkg string, stem string, ext string, hasRoot bool) error {
-	unpackFn, exists := unpackMap[unpackExt(ext)]
-	if !exists {
-		return fmt.Errorf("no unpack function for extension: %q", ext)
-	}
+func Unpack(src string, pkg string, stem string, hasRoot bool) error {
 	pkgDir := filepath.Join(utils.WebmanPkgDir, pkg)
 	err := os.MkdirAll(pkgDir, 0755)
 	if err != nil {
@@ -45,7 +22,7 @@ func Unpack(src string, pkg string, stem string, ext string, hasRoot bool) error
 		if err := os.MkdirAll(tmpPkgDir, 0755); err != nil {
 			return fmt.Errorf("unable to create dir %q: %v", tmpPkgDir, err)
 		}
-		if err = unpackFn(src, tmpPkgDir); err != nil {
+		if err := archiver.Unarchive(src, tmpPkgDir); err != nil {
 			return fmt.Errorf("failed to extract file: %v", err)
 		}
 		f, err := os.Open(tmpPkgDir)
@@ -60,42 +37,12 @@ func Unpack(src string, pkg string, stem string, ext string, hasRoot bool) error
 		if err = os.Rename(extractFolder, pkgDest); err != nil {
 			return fmt.Errorf("unable to move %q to %q: %v", extractFolder, pkgDest, err)
 		}
-	} else {
-		if err := os.MkdirAll(pkgDest, 0777); err != nil {
-			return fmt.Errorf("unable to create pkg destination dir %q: %v", pkgDest, err)
-		}
-		// if this is a gzipped binary
-		if ext == "gz" {
-			pkgDest = filepath.Join(pkgDest, pkg)
-		}
-		if err = unpackFn(src, pkgDest); err != nil {
-			return fmt.Errorf("failed to extract file: %v", err)
-		}
 	}
-	return nil
-}
-
-func UnGz(src string, dest string) error {
-	file, err := os.Open(src)
-	if err != nil {
-		return err
+	if err := os.MkdirAll(pkgDest, 0777); err != nil {
+		return fmt.Errorf("unable to create pkg destination dir %q: %v", pkgDest, err)
 	}
-	defer file.Close()
-
-	// Add gzip support
-	uncompressedStream, err := gzip.NewReader(file)
-	if err != nil {
-		return err
-	}
-	defer uncompressedStream.Close()
-
-	destFile, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE, 0755)
-	if err != nil {
-		return err
-	}
-	defer destFile.Close()
-	if _, err := io.Copy(destFile, uncompressedStream); err != nil {
-		return err
+	if err := archiver.Unarchive(src, pkgDest); err != nil {
+		return fmt.Errorf("failed to extract file: %v", err)
 	}
 	return nil
 }

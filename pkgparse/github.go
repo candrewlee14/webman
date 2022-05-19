@@ -10,7 +10,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/candrewlee14/webman/unpack"
+	"github.com/mholt/archiver/v3"
+
 	"github.com/candrewlee14/webman/utils"
 
 	"github.com/go-yaml/yaml"
@@ -124,7 +125,7 @@ func RefreshRecipes() error {
 		return err
 	}
 	tmpRecipeDir := filepath.Join(utils.WebmanTmpDir, "recipes")
-	if err = unpack.Unzip(tmpZipFile.Name(), tmpRecipeDir); err != nil {
+	if err = archiver.Unarchive(tmpZipFile.Name(), tmpRecipeDir); err != nil {
 		return err
 	}
 	fdir, err := os.ReadDir(tmpRecipeDir)
