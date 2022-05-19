@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"github.com/candrewlee14/webman/pkgparse"
 	"github.com/candrewlee14/webman/utils"
@@ -78,7 +79,7 @@ func GetLinkPathIfExec(binPath string) *string {
 			return nil
 		}
 		// If not executable
-		if !(fi.Mode()&0111 != 0) {
+		if !(fi.Mode()&0111 != 0) && runtime.GOOS != "windows" {
 			return nil
 		}
 	}
