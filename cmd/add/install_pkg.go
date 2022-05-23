@@ -61,8 +61,9 @@ func InstallPkg(arg string, argIndex int, argCount int, wg *sync.WaitGroup, ml *
 		ml.Printf(argIndex, color.RedString("%v", err))
 		return false
 	}
+	pkgOS := pkgparse.GOOStoPkgOs[utils.GOOS]
 	for _, ignorePair := range pkgConf.Ignore {
-		if pkgparse.GOOStoPkgOs[utils.GOOS] == ignorePair.Os && utils.GOARCH == ignorePair.Arch {
+		if pkgOS == ignorePair.Os && utils.GOARCH == ignorePair.Arch {
 			ml.Printf(argIndex, color.RedString("unsupported OS + Arch for this package"))
 			return false
 		}
@@ -141,7 +142,11 @@ func InstallPkg(arg string, argIndex int, argCount int, wg *sync.WaitGroup, ml *
 			hasUnpacked,
 			500,
 		)
-		err = unpack.Unpack(downloadPath, pkg, extractStem, pkgConf.ExtractHasRoot)
+		var extractHasRoot bool
+		if m, ok := pkgConf.OsMap[pkgOS]; ok {
+			extractHasRoot = m.ExtractHasRoot
+		}
+		err = unpack.Unpack(downloadPath, pkg, extractStem, extractHasRoot)
 		hasUnpacked <- true
 		if err != nil {
 			ml.Printf(argIndex, color.RedString("%v", err))

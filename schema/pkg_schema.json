@@ -84,10 +84,6 @@
       "description": "Download is a binary",
       "type": "boolean"
     },
-    "extract_has_root": {
-      "description": "Extraction has root directory",
-      "type": "boolean"
-    },
     "os_map": {
       "description": "OS mappings",
       "type": "object",
@@ -260,6 +256,10 @@
               }
             }
           ]
+        },
+        "extract_has_root": {
+          "description": "Extraction has root directory",
+          "type": "boolean"
         }
       }
     }

@@ -19,9 +19,10 @@ type UsingInfo struct {
 }
 
 type OsInfo struct {
-	Name     string        `yaml:"name"`
-	Ext      string        `yaml:"ext"`
-	BinPaths SingleOrMulti `yaml:"bin_path"`
+	Name           string        `yaml:"name"`
+	Ext            string        `yaml:"ext"`
+	BinPaths       SingleOrMulti `yaml:"bin_path"`
+	ExtractHasRoot bool          `yaml:"extract_has_root"`
 }
 
 type OsArchPair struct {
@@ -49,8 +50,7 @@ type PkgConfig struct {
 	AllowPrerelease  bool   `yaml:"allow_prerelease"`
 	ArchLinuxPkgName string `yaml:"arch_linux_pkg_name"`
 
-	IsBinary       bool `yaml:"is_binary"`
-	ExtractHasRoot bool `yaml:"extract_has_root"`
+	IsBinary bool `yaml:"is_binary"`
 
 	OsMap   map[string]OsInfo `yaml:"os_map"`
 	ArchMap map[string]string `yaml:"arch_map"`
