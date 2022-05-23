@@ -113,9 +113,9 @@ func DownloadUrl(url string, filePath string, pkg string, ver string, argNum int
 		return false
 	}
 	colorOn := isatty.IsTerminal(os.Stdout.Fd()) || isatty.IsCygwinTerminal(os.Stdout.Fd())
-	saucer := "[green]▁[reset]"
-	saucerHead := "[green]▁[reset]"
-	saucerPadding := "[dark_gray]▁[reset]"
+	saucer := "[green]▅[reset]"
+	saucerHead := "[green]▅[reset]"
+	saucerPadding := "[light_gray]▅[reset]"
 	barStart := ""
 	barEnd := ""
 	barDesc := fmt.Sprintf("[cyan][%d/%d][reset] Downloading [cyan]"+pkg+"[reset] file...", argNum+1, argCount)
