@@ -43,6 +43,10 @@
       "description": "Git repository",
       "type": "string"
     },
+    "gitea_url": {
+      "description": "Gitea URL",
+      "type": "string"
+    },
     "source_url": {
       "description": "Source URL",
       "type": "string"
@@ -60,7 +64,8 @@
       "type": "string",
       "enum": [
         "github-release",
-        "arch-linux-community"
+        "arch-linux-community",
+        "gitea-release"
       ]
     },
     "force_latest": {
@@ -186,6 +191,18 @@
       },
       "required": [
         "arch_linux_pkg_name"
+      ]
+    },
+    {
+      "properties": {
+        "latest_strategy": {
+          "const": "gitea-release"
+        }
+      },
+      "required": [
+        "git_user",
+        "git_repo",
+        "gitea_url"
       ]
     }
   ],

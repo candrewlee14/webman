@@ -39,6 +39,7 @@ type PkgConfig struct {
 	BaseDownloadUrl string `yaml:"base_download_url"`
 	GitUser         string `yaml:"git_user"`
 	GitRepo         string `yaml:"git_repo"`
+	GiteaURL        string `yaml:"gitea_url"`
 	SourceUrl       string `yaml:"source_url"`
 
 	FilenameFormat   string `yaml:"filename_format"`
@@ -199,6 +200,8 @@ func ParsePkgConfigLocal(pkg string, strict bool) (*PkgConfig, error) {
 	pkgConf.SourceUrl = strings.ReplaceAll(pkgConf.SourceUrl, "[GIT_USER]", pkgConf.GitUser)
 	pkgConf.SourceUrl = strings.ReplaceAll(pkgConf.SourceUrl, "[GIT_REPO]", pkgConf.GitRepo)
 
+	pkgConf.GiteaURL = strings.TrimRight(pkgConf.GiteaURL, "/")
+
 	return &pkgConf, nil
 }
 
@@ -217,6 +220,12 @@ func (pkgConf *PkgConfig) GetLatestVersion() (*string, error) {
 			return nil, err
 		}
 		version = rel.PkgVer
+	case "gitea-release":
+		rel, err := getLatestGiteaReleaseTag(pkgConf.GiteaURL, pkgConf.GitUser, pkgConf.GitRepo, pkgConf.AllowPrerelease)
+		if err != nil {
+			return nil, err
+		}
+		version = rel.TagName
 	}
 	if version == "" {
 		return nil, fmt.Errorf("no implemented latest version resolution strategy for %q",
