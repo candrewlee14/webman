@@ -23,7 +23,7 @@ func getLatestGiteaReleaseTag(baseURL string, user string, repo string, allowPre
 	}
 	var releases []ReleaseTagInfo
 	if err = json.Unmarshal(body, &releases); err != nil {
-		return nil, fmt.Errorf("github releases JSON response not in expected format")
+		return nil, fmt.Errorf("gitea releases JSON response not in expected format")
 	}
 	if len(releases) == 0 {
 		return nil, fmt.Errorf("expected at least one release listed at %s, unable to resolve latest", url)
