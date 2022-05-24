@@ -115,7 +115,11 @@ func InstallPkg(arg string, argIndex int, argCount int, wg *sync.WaitGroup, ml *
 	if !DownloadUrl(url, downloadPath, pkg, ver, argIndex, argCount, ml) {
 		return false
 	}
-	if pkgConf.IsBinary {
+	var isRawBinary bool
+	if m, ok := pkgConf.OsMap[pkgOS]; ok {
+		isRawBinary = m.IsRawBinary
+	}
+	if isRawBinary {
 		if err = os.Chmod(downloadPath, 0755); err != nil {
 			ml.Printf(argIndex, color.RedString("Failed to make download executable!"))
 			return false

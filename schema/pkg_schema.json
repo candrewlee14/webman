@@ -80,10 +80,6 @@
       "description": "Arch Linux package name",
       "type": "string"
     },
-    "is_binary": {
-      "description": "Download is a binary",
-      "type": "boolean"
-    },
     "os_map": {
       "description": "OS mappings",
       "type": "object",
@@ -258,7 +254,11 @@
           ]
         },
         "extract_has_root": {
-          "description": "Extraction has root directory",
+          "description": "Extraction has root directory, generally the same name as the archive",
+          "type": "boolean"
+        },
+        "is_raw_binary": {
+          "description": "Download is a raw binary",
           "type": "boolean"
         }
       }
