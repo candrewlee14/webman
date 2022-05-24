@@ -22,7 +22,7 @@ func Unpack(src string, pkg string, stem string, hasRoot bool) error {
 		if err := os.MkdirAll(tmpPkgDir, 0755); err != nil {
 			return fmt.Errorf("unable to create dir %q: %v", tmpPkgDir, err)
 		}
-		if err := archiver.Unarchive(src, tmpPkgDir); err != nil {
+		if err := unpack(pkg, src, tmpPkgDir); err != nil {
 			return fmt.Errorf("failed to extract file: %v", err)
 		}
 		f, err := os.Open(tmpPkgDir)
@@ -41,8 +41,29 @@ func Unpack(src string, pkg string, stem string, hasRoot bool) error {
 	if err := os.MkdirAll(pkgDest, 0777); err != nil {
 		return fmt.Errorf("unable to create pkg destination dir %q: %v", pkgDest, err)
 	}
-	if err := archiver.Unarchive(src, pkgDest); err != nil {
+	if err := unpack(pkg, src, pkgDest); err != nil {
 		return fmt.Errorf("failed to extract file: %v", err)
 	}
 	return nil
+}
+
+func unpack(pkg, src, dest string) error {
+	uaIface, err := archiver.ByExtension(src)
+	if err != nil {
+		return err
+	}
+	u, ok := uaIface.(archiver.Unarchiver)
+	if !ok {
+		d, ok := uaIface.(archiver.Decompressor)
+		if !ok {
+			return fmt.Errorf("format specified by source filename is not an archive or compression format: %s (%T)", src, uaIface)
+		}
+		dest = filepath.Join(dest, pkg)
+		c := archiver.FileCompressor{Decompressor: d}
+		if err := c.DecompressFile(src, dest); err != nil {
+			return err
+		}
+		return os.Chmod(dest, 0755)
+	}
+	return u.Unarchive(src, dest)
 }
