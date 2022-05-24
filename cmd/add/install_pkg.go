@@ -112,9 +112,6 @@ func InstallPkg(arg string, argIndex int, argCount int, wg *sync.WaitGroup, ml *
 		ml.Printf(argIndex, color.HiBlackString("Already installed!"))
 		return true
 	}
-	if pkgConf.IsBinary && utils.GOOS == "windows" {
-		url += ".exe"
-	}
 	if !DownloadUrl(url, downloadPath, pkg, ver, argIndex, argCount, ml) {
 		return false
 	}
