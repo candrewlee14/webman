@@ -23,6 +23,7 @@ type OsInfo struct {
 	Ext            string        `yaml:"ext"`
 	BinPaths       SingleOrMulti `yaml:"bin_path"`
 	ExtractHasRoot bool          `yaml:"extract_has_root"`
+	IsRawBinary    bool          `yaml:"is_raw_binary"`
 }
 
 type OsArchPair struct {
@@ -49,8 +50,6 @@ type PkgConfig struct {
 	ForceLatest      bool   `yaml:"force_latest"`
 	AllowPrerelease  bool   `yaml:"allow_prerelease"`
 	ArchLinuxPkgName string `yaml:"arch_linux_pkg_name"`
-
-	IsBinary bool `yaml:"is_binary"`
 
 	OsMap   map[string]OsInfo `yaml:"os_map"`
 	ArchMap map[string]string `yaml:"arch_map"`
@@ -93,7 +92,7 @@ func (pkgConf *PkgConfig) GetMyBinPaths() ([]string, error) {
 	if !exists {
 		return []string{}, fmt.Errorf("package does not support this OS")
 	}
-	if pkgConf.IsBinary {
+	if osInfo.IsRawBinary {
 		return []string{pkgConf.Title}, nil
 	}
 	if len(osInfo.BinPaths.Values) == 0 {
