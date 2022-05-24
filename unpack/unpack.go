@@ -58,7 +58,11 @@ func unpack(pkg, src, dest string) error {
 		if !ok {
 			return fmt.Errorf("format specified by source filename is not an archive or compression format: %s (%T)", src, uaIface)
 		}
-		dest = filepath.Join(dest, pkg)
+		var binExt string
+		if utils.GOOS == "windows" {
+			binExt = ".exe"
+		}
+		dest = filepath.Join(dest, pkg+binExt)
 		c := archiver.FileCompressor{Decompressor: d}
 		if err := c.DecompressFile(src, dest); err != nil {
 			return err
