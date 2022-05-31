@@ -7,7 +7,7 @@ import (
 	"github.com/candrewlee14/webman/utils"
 
 	"github.com/fatih/color"
-	"github.com/go-yaml/yaml"
+	"gopkg.in/yaml.v3"
 )
 
 type PkgGroupConfig struct {
@@ -35,7 +35,7 @@ func ParseGroupConfig(group string) *PkgGroupConfig {
 		color.Red("Failed to read package group file: %v", err)
 		os.Exit(1)
 	}
-	if err = yaml.UnmarshalStrict(data, &groupConf); err != nil {
+	if err = yaml.Unmarshal(data, &groupConf); err != nil {
 		color.Red("Invalid format for package group: %v", err)
 		os.Exit(1)
 	}

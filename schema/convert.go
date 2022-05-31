@@ -3,7 +3,7 @@ package schema
 import (
 	"fmt"
 
-	"github.com/go-yaml/yaml"
+	"gopkg.in/yaml.v3"
 )
 
 // Unmarshal YAML to map[string]any instead of map[any]any.

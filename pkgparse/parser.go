@@ -11,7 +11,7 @@ import (
 
 	"github.com/candrewlee14/webman/utils"
 
-	"github.com/go-yaml/yaml"
+	"gopkg.in/yaml.v3"
 )
 
 type UsingInfo struct {
@@ -110,7 +110,7 @@ func CheckUsing(pkg string) (*string, error) {
 		return nil, nil
 	}
 	var usingInfo UsingInfo
-	if err = yaml.UnmarshalStrict(usingContent, &usingInfo); err != nil {
+	if err = yaml.Unmarshal(usingContent, &usingInfo); err != nil {
 		return nil, err
 	}
 	return &usingInfo.Using, nil
@@ -160,7 +160,7 @@ func ParsePkgConfigOnline(pkg string) (*PkgConfig, error) {
 		return nil, fmt.Errorf("unable to download %s package recipe: %v", pkg, err)
 	}
 	var pkgConf PkgConfig
-	if err = yaml.UnmarshalStrict(dat, &pkgConf); err != nil {
+	if err = yaml.Unmarshal(dat, &pkgConf); err != nil {
 		return nil, fmt.Errorf("unable parse package recipe for %s: %v", pkg, err)
 	}
 	return &pkgConf, nil
@@ -177,7 +177,7 @@ func ParsePkgConfigLocal(pkg string, strict bool) (*PkgConfig, error) {
 	}
 	var pkgConf PkgConfig
 	if strict {
-		if err = yaml.UnmarshalStrict(dat, &pkgConf); err != nil {
+		if err = yaml.Unmarshal(dat, &pkgConf); err != nil {
 			return nil, fmt.Errorf("unable to strict parse package recipe for %s: %v", pkg, err)
 		}
 	} else {

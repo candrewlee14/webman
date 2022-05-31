@@ -8,8 +8,8 @@ import (
 
 	"github.com/candrewlee14/webman/utils"
 
-	"github.com/go-yaml/yaml"
 	"golang.org/x/sync/errgroup"
+	"gopkg.in/yaml.v3"
 )
 
 type PkgInfo struct {
