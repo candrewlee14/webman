@@ -14,7 +14,7 @@ import (
 
 	"github.com/candrewlee14/webman/utils"
 
-	"github.com/go-yaml/yaml"
+	"gopkg.in/yaml.v3"
 )
 
 type ReleaseInfo struct {
@@ -85,7 +85,7 @@ func ShouldRefreshRecipes() (bool, error) {
 		}
 	}
 	var refreshFile RefreshFile
-	if err = yaml.UnmarshalStrict(data, &refreshFile); err != nil {
+	if err = yaml.Unmarshal(data, &refreshFile); err != nil {
 		return true, err
 	}
 	if refreshFile.LastUpdated == nil {
