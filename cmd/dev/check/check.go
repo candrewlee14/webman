@@ -2,12 +2,12 @@ package check
 
 import (
 	"errors"
+	"fmt"
+	"github.com/candrewlee14/webman/schema"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
-
-	"github.com/candrewlee14/webman/schema"
 
 	"github.com/candrewlee14/webman/utils"
 
@@ -22,19 +22,19 @@ var CheckCmd = &cobra.Command{
 	Long: `
 The "check" subcommand checks that all recipes in a directory are valid.`,
 	Example: `webman check ~/repos/webman-pkgs/`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) != 1 {
 			cmd.Help()
-			os.Exit(0)
+			return nil
 		}
 		recipeDir, err := filepath.Abs(args[0])
 		utils.WebmanRecipeDir = recipeDir
 		if err != nil {
-			panic(err)
+			return err
 		}
 		entries, err := os.ReadDir(filepath.Join(recipeDir, "pkgs"))
 		if err != nil {
-			panic(err)
+			return err
 		} else {
 			var wg sync.WaitGroup
 			success := true
@@ -62,10 +62,10 @@ The "check" subcommand checks that all recipes in a directory are valid.`,
 			}
 			wg.Wait()
 			if !success {
-				color.Magenta("Not all packages are valid!")
-				os.Exit(1)
+				return fmt.Errorf("Not all packages are valid!")
 			}
 			color.Green("All packages are valid!")
+			return nil
 		}
 	},
 }

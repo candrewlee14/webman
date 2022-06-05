@@ -34,14 +34,14 @@ The "search" subcommand starts an interactive window to find and display info ab
 		utils.Init()
 		files, err := os.ReadDir(filepath.Join(utils.WebmanRecipeDir, "pkgs"))
 		if err != nil {
-			panic(err)
+			return err
 		}
 		pkgInfos := make([]*pkgparse.PkgInfo, len(files))
 		for i, file := range files {
 			pkg := strings.Split(file.Name(), utils.PkgRecipeExt)[0]
 			pkgInfo, err := pkgparse.ParsePkgInfo(pkg)
 			if err != nil {
-				panic(err)
+				return err
 			}
 			pkgInfos[i] = pkgInfo
 		}

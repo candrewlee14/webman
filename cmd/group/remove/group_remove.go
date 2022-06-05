@@ -24,7 +24,7 @@ The "group remove" subcommand removes a group of packages.
 `,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		utils.Init()
 		if len(args) != 1 {
 			cmd.Help()
@@ -43,8 +43,7 @@ The "group remove" subcommand removes a group of packages.
 			}
 			err := survey.AskOne(surveyPrompt, &pkgsToRemove)
 			if err != nil {
-				fmt.Printf("Prompt failed %v\n", err)
-				return
+				return fmt.Errorf("Prompt failed %v\n", err)
 			}
 		}
 		if len(pkgsToRemove) == 0 {
@@ -54,13 +53,11 @@ The "group remove" subcommand removes a group of packages.
 		for _, pkg := range pkgsToRemove {
 			pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg, false)
 			if err != nil {
-				color.Red(err.Error())
-				os.Exit(1)
+				return err
 			}
 			removed, err := remove.RemoveAllVers(pkg, pkgConf)
 			if err != nil {
-				color.Red(err.Error())
-				os.Exit(1)
+				return err
 			}
 			if removed {
 				fmt.Println("Removed", color.CyanString(pkg))
@@ -69,6 +66,7 @@ The "group remove" subcommand removes a group of packages.
 			}
 		}
 		fmt.Printf("All %d selected packages in group %s are uninstalled.\n", len(pkgsToRemove), color.YellowString(group))
+		return nil
 	},
 }
 

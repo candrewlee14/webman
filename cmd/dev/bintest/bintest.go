@@ -28,15 +28,15 @@ var BintestCmd = &cobra.Command{
 	Long: `
 The "bintest" tests that binary paths given in a package recipe have valid binaries, and displays them.`,
 	Example: `webman bintest zoxide -l ~/repos/webman-pkgs/`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) != 1 {
 			cmd.Help()
-			os.Exit(0)
+			return nil
 		}
 		utils.Init()
 		homedir, err := os.UserHomeDir()
 		if err != nil {
-			panic(err)
+			return err
 		}
 		pkg := args[0]
 		var pairResults map[string]bool = map[string]bool{}
@@ -45,13 +45,11 @@ The "bintest" tests that binary paths given in a package recipe have valid binar
 		}
 		pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg, true)
 		if err != nil {
-			color.Red("Error parsing recipe: %v", err)
-			os.Exit(1)
+			return fmt.Errorf("Error parsing recipe: %v", err)
 		}
 		latestVer, err := pkgConf.GetLatestVersion()
 		if err != nil {
-			color.Red("Error getting latest version: %v", err)
-			os.Exit(1)
+			return fmt.Errorf("Error getting latest version: %v", err)
 		}
 		testDir := filepath.Join(homedir, ".webman", "test")
 	osLoop:
@@ -77,7 +75,9 @@ The "bintest" tests that binary paths given in a package recipe have valid binar
 					}
 				}
 				fmt.Printf("Trying %s-%s installation\n", osStr, arch)
-				InitTestDir(osStr, arch, homedir, testDir)
+				if err = InitTestDir(osStr, arch, homedir, testDir); err != nil {
+					return err
+				}
 				var wg sync.WaitGroup
 				ml := multiline.New(len(args), os.Stdout)
 				wg.Add(1)
@@ -117,16 +117,16 @@ The "bintest" tests that binary paths given in a package recipe have valid binar
 			os.RemoveAll(testDir)
 
 		} else {
-			color.HiRed("\nSome supported OSs & Arches for %s have invalid installs.", pkg)
 			if runtime.GOOS == "windows" {
 				color.HiYellow("Windows may require admin privileges to create symlinks.")
 			}
-			os.Exit(1)
+			return fmt.Errorf("\nSome supported OSs & Arches for %s have invalid installs.", pkg)
 		}
+		return nil
 	},
 }
 
-func InitTestDir(osStr string, arch string, homedir string, testdir string) {
+func InitTestDir(osStr string, arch string, homedir string, testdir string) error {
 	utils.WebmanDir = filepath.Join(testdir, osStr, arch)
 	utils.WebmanPkgDir = filepath.Join(utils.WebmanDir, "/pkg")
 	utils.WebmanBinDir = filepath.Join(utils.WebmanDir, "/bin")
@@ -134,16 +134,17 @@ func InitTestDir(osStr string, arch string, homedir string, testdir string) {
 	// leave WebmanRecipesDir the way it was
 
 	if err := os.MkdirAll(utils.WebmanBinDir, os.ModePerm); err != nil {
-		panic(err)
+		return err
 	}
 	if err := os.MkdirAll(utils.WebmanPkgDir, os.ModePerm); err != nil {
-		panic(err)
+		return err
 	}
 	if err := os.MkdirAll(utils.WebmanTmpDir, os.ModePerm); err != nil {
-		panic(err)
+		return err
 	}
 	utils.GOOS = osStr
 	utils.GOARCH = arch
+	return nil
 }
 
 func init() {

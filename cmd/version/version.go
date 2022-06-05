@@ -1,8 +1,6 @@
 package version
 
 import (
-	"os"
-
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
@@ -20,10 +18,10 @@ var VersionCmd = &cobra.Command{
 	Long: `
 The "version" subcommand displays the latest webman version.`,
 	Example: `webman version`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) != 0 {
 			cmd.Help()
-			os.Exit(0)
+			return nil
 		}
 		color.Cyan("webman (%s)", Version)
 		verLen := 8
@@ -37,5 +35,6 @@ The "version" subcommand displays the latest webman version.`,
 		}
 		color.Magenta("Built on %s by %s", Date[:dateLen], BuiltBy)
 		color.HiBlack("Created by candrewlee14")
+		return nil
 	},
 }

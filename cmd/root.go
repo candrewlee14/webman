@@ -23,6 +23,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/fatih/color"
 	"os"
 
 	"github.com/candrewlee14/webman/multiline"
@@ -35,8 +36,10 @@ import (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "webman",
-	Short: "A cross-platform package manager for the web",
+	Use:           "webman",
+	Short:         "A cross-platform package manager for the web",
+	SilenceErrors: true,
+	SilenceUsage:  true,
 	Long: `
 __          __  _
 \ \        / / | |
@@ -72,6 +75,7 @@ func Execute() {
 	})
 	err := rootCmd.Execute()
 	if err != nil {
+		color.HiRed("%v", err)
 		if ansiOn {
 			fmt.Printf("%s", multiline.ShowCursor)
 		}

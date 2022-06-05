@@ -26,18 +26,17 @@ The "group add" subcommand installs a group of packages.
 `,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		utils.Init()
 		if len(args) != 1 {
-			color.Red("Expected a single package group name")
 			cmd.Help()
-			os.Exit(1)
+			return fmt.Errorf("Expected a single package group name")
 		}
 		if utils.RecipeDirFlag == "" {
 			// only refresh if not using local
 			shouldRefresh, err := pkgparse.ShouldRefreshRecipes()
 			if err != nil {
-				panic(err)
+				return err
 			}
 			if shouldRefresh || doRefresh {
 				color.HiBlue("Refreshing package recipes...")
@@ -84,6 +83,7 @@ The "group add" subcommand installs a group of packages.
 			}
 			color.Green("All %d selected packages from group %s are installed", len(pkgsToInstall), color.YellowString(group))
 		}
+		return nil
 	},
 }
 

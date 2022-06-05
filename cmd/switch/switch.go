@@ -22,26 +22,25 @@ var SwitchCmd = &cobra.Command{
 	Example: `webman switch go
 webman switch zig
 webman switch rg`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		utils.Init()
 		if len(args) != 1 {
 			cmd.Help()
-			os.Exit(0)
+			return nil
 		}
 		pkg := args[0]
 		pkgDir := filepath.Join(utils.WebmanPkgDir, pkg)
 		dirEntries, err := os.ReadDir(pkgDir)
 		if err != nil {
 			if os.IsNotExist(err) {
-				fmt.Printf("No versions of %s are currently installed.\n", color.CyanString(pkg))
-				os.Exit(0)
+				return fmt.Errorf("No versions of %s are currently installed.\n", pkg)
 			}
-			panic(err)
+			return err
 		}
 
 		using, err := pkgparse.CheckUsing(pkg)
 		if err != nil {
-			panic(err)
+			return err
 		}
 		if using != nil {
 			fmt.Println("Currently using: ", color.CyanString(*using))
@@ -57,15 +56,14 @@ webman switch rg`,
 		}
 		pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg, false)
 		if err != nil {
-			color.Red("%v", err)
-			os.Exit(1)
+			return err
 		}
 		var pkgVerStem string
 		if len(pkgVersions) == 1 {
 			pkgVerStem = pkgVersions[0]
 			if using != nil && *using == pkgVerStem {
 				fmt.Printf("Only one version of %s installed, which is already in use.\n", pkg)
-				os.Exit(0)
+				return nil
 			}
 		} else {
 			surveyPrompt := &survey.Select{
@@ -74,25 +72,24 @@ webman switch rg`,
 			}
 			err := survey.AskOne(surveyPrompt, &pkgVerStem)
 			if err != nil {
-				fmt.Printf("Prompt failed %v\n", err)
-				os.Exit(1)
+				return fmt.Errorf("Prompt failed %v\n", err)
 			}
 		}
 		binPaths, err := pkgConf.GetMyBinPaths()
 		if err != nil {
-			fmt.Println(color.RedString("%v", err))
-			return
+			return err
 		}
 		_, ver := utils.ParseStem(pkgVerStem)
 		madeLinks, err := link.CreateLinks(pkg, ver, binPaths)
 		if err != nil {
-			panic(err)
+			return err
 		}
 		if !madeLinks {
-			panic("Unable to create all links")
+			return fmt.Errorf("Unable to create all links")
 		}
 		fmt.Printf("Created links for %s\n", pkgVerStem)
 		color.Green("Successfully switched, %s now using %s\n", pkg, color.CyanString(pkgVerStem))
+		return nil
 	},
 }
 

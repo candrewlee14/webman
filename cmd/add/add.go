@@ -35,11 +35,11 @@ The "add" subcommand installs packages.`,
 webman add go@18.0.0
 webman add go zig rg
 webman add go@18.0.0 zig@9.1.0 rg@13.0.0`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		utils.Init()
 		if len(args) == 0 {
 			cmd.Help()
-			os.Exit(0)
+			return nil
 		}
 		defer os.RemoveAll(utils.WebmanTmpDir)
 		// if local recipe flag is not set
@@ -47,20 +47,20 @@ webman add go@18.0.0 zig@9.1.0 rg@13.0.0`,
 			// only refresh if not using local
 			shouldRefresh, err := pkgparse.ShouldRefreshRecipes()
 			if err != nil {
-				panic(err)
+				return err
 			}
 			if shouldRefresh || doRefresh {
 				color.HiBlue("Refreshing package recipes")
 				if err = pkgparse.RefreshRecipes(); err != nil {
-					fmt.Println(err)
+					color.Red("%v", err)
 				}
 			}
 		}
 		if !InstallAllPkgs(args) {
-			color.Magenta("Not all packages installed successfully")
-			os.Exit(1)
+			return fmt.Errorf("Not all packages installed successfully")
 		}
 		color.Green("All %d packages are installed!", len(args))
+		return nil
 	},
 }
 
