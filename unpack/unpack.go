@@ -37,12 +37,13 @@ func Unpack(src string, pkg string, stem string, hasRoot bool) error {
 		if err = os.Rename(extractFolder, pkgDest); err != nil {
 			return fmt.Errorf("unable to move %q to %q: %v", extractFolder, pkgDest, err)
 		}
-	}
-	if err := os.MkdirAll(pkgDest, 0777); err != nil {
-		return fmt.Errorf("unable to create pkg destination dir %q: %v", pkgDest, err)
-	}
-	if err := unpack(pkg, src, pkgDest); err != nil {
-		return fmt.Errorf("failed to extract file: %v", err)
+	} else {
+		if err := os.MkdirAll(pkgDest, 0777); err != nil {
+			return fmt.Errorf("unable to create pkg destination dir %q: %v", pkgDest, err)
+		}
+		if err := unpack(pkg, src, pkgDest); err != nil {
+			return fmt.Errorf("failed to extract file: %v", err)
+		}
 	}
 	return nil
 }
