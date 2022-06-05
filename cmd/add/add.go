@@ -166,7 +166,7 @@ func CreateLinks(pkg string, stem string, confBinPaths []string) (bool, error) {
 	var eg errgroup.Group
 	for i, linkPath := range linkPaths {
 		binPath := binPaths[i]
-		linkPath := linkPath // this supresses the warning for linkPath closure capture
+		linkPath := linkPath // this suppresses the warning for linkPath closure capture
 		eg.Go(func() error {
 			didLink, err := link.AddLink(binPath, linkPath)
 			if err != nil {

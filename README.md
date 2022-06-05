@@ -8,6 +8,7 @@
 
 ![schema-linter](https://github.com/candrewlee14/webman-pkgs/actions/workflows/schema-linter.yml/badge.svg)
 ![bintest](https://github.com/candrewlee14/webman-pkgs/actions/workflows/bintest.yml/badge.svg)
+![report-card](https://goreportcard.com/badge/github.com/candrewlee14/webman)
 
 Add, remove, and manage different versions of web-distributed software binaries.
 No elevated permissions required!

@@ -79,7 +79,7 @@ func ShouldRefreshRecipes() (bool, error) {
 	refreshFileDir := filepath.Join(utils.WebmanRecipeDir, utils.RefreshFileName)
 	data, err := os.ReadFile(refreshFileDir)
 	if err != nil {
-		// if err occured and file does exist
+		// if err occurred and file does exist
 		if !os.IsNotExist(err) {
 			return false, err
 		}
