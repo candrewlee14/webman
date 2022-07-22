@@ -16,7 +16,7 @@ import (
 	"github.com/fatih/color"
 )
 
-func InstallAllPkgs(pkgRepos []config.PkgRepo, args []string) bool {
+func InstallAllPkgs(pkgRepos []*config.PkgRepo, args []string) bool {
 	var wg sync.WaitGroup
 	ml := multiline.New(len(args), os.Stdout)
 	wg.Add(len(args))
@@ -37,7 +37,7 @@ func InstallAllPkgs(pkgRepos []config.PkgRepo, args []string) bool {
 	return success
 }
 
-func InstallPkg(pkgRepos []config.PkgRepo, arg string, argIndex int, argCount int, wg *sync.WaitGroup, ml *multiline.MultiLogger) bool {
+func InstallPkg(pkgRepos []*config.PkgRepo, arg string, argIndex int, argCount int, wg *sync.WaitGroup, ml *multiline.MultiLogger) bool {
 	defer wg.Done()
 	pkg, ver, err := utils.ParsePkgVer(arg)
 	if err != nil {

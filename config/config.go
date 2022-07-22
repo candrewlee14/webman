@@ -1,27 +1,29 @@
 package config
 
 import (
+	"bytes"
 	_ "embed"
 	"errors"
+	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"time"
 
+	"github.com/candrewlee14/webman/schema"
 	"github.com/candrewlee14/webman/utils"
 
+	"github.com/mholt/archiver/v3"
 	"gopkg.in/yaml.v3"
 )
 
-//go:embed default.yml
+//go:embed config.yaml
 var defaultConfig []byte
 
 type Config struct {
 	RefreshInterval time.Duration `yaml:"refresh_interval"`
-	PkgRepos        []PkgRepo     `yaml:"pkg_repos"`
-}
-
-type RefreshFile struct {
-	LastUpdated time.Time
+	PkgRepos        []*PkgRepo    `yaml:"pkg_repos"`
 }
 
 type PkgRepoType string
@@ -46,30 +48,65 @@ func (p PkgRepo) Path() string {
 }
 
 func (p PkgRepo) ShouldRefreshRecipes(refreshInterval time.Duration) (bool, error) {
-	refreshFileDir := filepath.Join(p.Path(), utils.RefreshFileName)
-	data, err := os.ReadFile(refreshFileDir)
+	fi, err := os.Stat(p.Path())
 	if err != nil {
-		// if err occurred and file does exist
-		if !os.IsNotExist(err) {
-			return false, err
-		}
+		return false, err
 	}
-	var refreshFile RefreshFile
-	if err = yaml.Unmarshal(data, &refreshFile); err != nil {
-		return true, err
-	}
-	return time.Since(refreshFile.LastUpdated) > refreshInterval, nil
+	return time.Since(fi.ModTime()) > refreshInterval, nil
 }
 
 func (p PkgRepo) RefreshRecipes() error {
+	var url string
 	switch p.Type {
 	case PkgRepoTypeGitHub:
-		return p.githubRefresh()
+		url = fmt.Sprintf("https://github.com/%s/%s/archive/refs/heads/%s.tar.gz", p.User, p.Repo, p.Branch)
 	case PkgRepoTypeGitea:
-		return p.giteaRefresh()
+		url = fmt.Sprintf("%s/api/v1/repos/%s/%s/archive/%s.tar.gz", p.GiteaURL, p.User, p.Repo, p.Branch)
 	default:
 		return errors.New("unknown package repository type")
 	}
+
+	r, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer r.Body.Close()
+
+	if !(r.StatusCode >= 200 && r.StatusCode < 300) {
+		return fmt.Errorf("Bad HTTP Response: %s", r.Status)
+	}
+
+	if err = os.RemoveAll(p.Path()); err != nil {
+		return err
+	}
+	if err = os.MkdirAll(utils.WebmanTmpDir, os.ModePerm); err != nil {
+		return err
+	}
+	tmpZipFile, err := os.CreateTemp(utils.WebmanTmpDir, "recipes-*.tar.gz")
+	if err != nil {
+		return err
+	}
+	if _, err = io.Copy(tmpZipFile, r.Body); err != nil {
+		return err
+	}
+
+	tmpRecipeDir := filepath.Join(utils.WebmanTmpDir, "recipes")
+	if err = archiver.Unarchive(tmpZipFile.Name(), tmpRecipeDir); err != nil {
+		return err
+	}
+	fdir, err := os.ReadDir(tmpRecipeDir)
+	if err != nil {
+		return err
+	}
+	if len(fdir) != 1 {
+		return fmt.Errorf("expected unzipped refresh to have a single root folder")
+	}
+	innerTmpFolder := filepath.Join(tmpRecipeDir, fdir[0].Name())
+	if err = os.Rename(innerTmpFolder, p.Path()); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func Load() (*Config, error) {
@@ -78,7 +115,7 @@ func Load() (*Config, error) {
 		utils.WebmanRecipeDir = utils.RecipeDirFlag
 		return &Config{
 			RefreshInterval: 0,
-			PkgRepos: []PkgRepo{
+			PkgRepos: []*PkgRepo{
 				{Name: "."},
 			},
 		}, nil
@@ -97,10 +134,22 @@ func Load() (*Config, error) {
 	}
 	defer fi.Close()
 
-	var cfg Config
-	if err := yaml.NewDecoder(fi).Decode(&cfg); err != nil {
+	var buf bytes.Buffer
+	tee := io.TeeReader(fi, &buf)
+	if err := schema.LintConfig(tee); err != nil {
 		return nil, err
 	}
+
+	var cfg Config
+	if err := yaml.NewDecoder(&buf).Decode(&cfg); err != nil {
+		return nil, err
+	}
+	for _, pkgRepo := range cfg.PkgRepos {
+		if pkgRepo.Branch == "" {
+			pkgRepo.Branch = "main"
+		}
+	}
+
 	return &cfg, nil
 }
 

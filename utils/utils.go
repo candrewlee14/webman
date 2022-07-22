@@ -25,7 +25,6 @@ var (
 	GOARCH          string
 	PkgRecipeExt    = ".webman-pkg.yml"
 	GroupRecipeExt  = ".webman-group.yml"
-	RefreshFileName = "refresh.yaml"
 	UsingFileName   = "using.yaml"
 )
 

@@ -140,7 +140,7 @@ func RemoveUsing(pkg string) error {
 	return nil
 }
 
-func ParsePkgConfigLocal(pkgRepos []config.PkgRepo, pkg string) (*PkgConfig, error) {
+func ParsePkgConfigLocal(pkgRepos []*config.PkgRepo, pkg string) (*PkgConfig, error) {
 	var pkgConfPath string
 	for _, pkgRepo := range pkgRepos {
 		pkgConfPath = filepath.Join(pkgRepo.Path(), "pkgs", pkg+utils.PkgRecipeExt)

@@ -29,19 +29,12 @@ webman run node@17.0.0 --version
 webman run node@17.0.0:npm --version
 webman run node:npm --version`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		utils.Init()
 		if len(args) == 0 {
-			cmd.Help()
-			return nil
+			return cmd.Help()
 		}
 		return runPackage(args)
 	},
 	DisableFlagParsing: true,
-}
-
-func init() {
-	// RunCmd.Flags().StringVarP(&selectBin, "select-bin", "s", "",
-	// 	"select a given binary from the package, rather than running the default binary")
 }
 
 func runPackage(args []string) error {

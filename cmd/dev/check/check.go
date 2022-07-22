@@ -24,8 +24,7 @@ The "check" subcommand checks that all recipes in a directory are valid.`,
 	Example: `webman check ~/repos/webman-pkgs/`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) != 1 {
-			cmd.Help()
-			return nil
+			return cmd.Help()
 		}
 		recipeDir, err := filepath.Abs(args[0])
 		utils.WebmanRecipeDir = recipeDir
@@ -77,17 +76,5 @@ func CheckPkgConfig(pkg string) error {
 		return err
 	}
 	defer fi.Close()
-	return schema.Lint(fi)
-}
-
-func init() {
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// removeCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// removeCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	return schema.LintRecipe(fi)
 }

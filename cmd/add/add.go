@@ -11,16 +11,13 @@ import (
 	"time"
 
 	"github.com/candrewlee14/webman/config"
-	"github.com/candrewlee14/webman/link"
 	"github.com/candrewlee14/webman/multiline"
-	"github.com/candrewlee14/webman/pkgparse"
 	"github.com/candrewlee14/webman/utils"
 
 	"github.com/fatih/color"
 	"github.com/mattn/go-isatty"
 	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
-	"golang.org/x/sync/errgroup"
 )
 
 var (
@@ -39,13 +36,12 @@ webman add go@18.0.0
 webman add go zig rg
 webman add go@18.0.0 zig@9.1.0 rg@13.0.0`,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if len(args) == 0 {
+			return cmd.Help()
+		}
 		cfg, err := config.Load()
 		if err != nil {
 			return err
-		}
-		if len(args) == 0 {
-			cmd.Help()
-			return nil
 		}
 		defer os.RemoveAll(utils.WebmanTmpDir)
 		// if local recipe flag is not set
@@ -75,15 +71,6 @@ webman add go@18.0.0 zig@9.1.0 rg@13.0.0`,
 func init() {
 	AddCmd.Flags().BoolVar(&doRefresh, "refresh", false, "force refresh of package recipes")
 	AddCmd.Flags().BoolVar(&switchFlag, "switch", false, "switch to use this new package version")
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// addCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// addCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 func cleanUpFailedInstall(pkg string, extractPath string) {
@@ -163,34 +150,4 @@ func DownloadUrl(url string, filePath string, pkg string, ver string, argNum int
 		return false
 	}
 	return true
-}
-
-func CreateLinks(pkg string, stem string, confBinPaths []string) (bool, error) {
-	binPaths, linkPaths, err := link.GetBinPathsAndLinkPaths(pkg, stem, confBinPaths)
-	if err != nil {
-		return false, err
-	}
-
-	var eg errgroup.Group
-	for i, linkPath := range linkPaths {
-		binPath := binPaths[i]
-		linkPath := linkPath // this suppresses the warning for linkPath closure capture
-		eg.Go(func() error {
-			didLink, err := link.AddLink(binPath, linkPath)
-			if err != nil {
-				return err
-			}
-			if !didLink {
-				return fmt.Errorf("failed to create link to %s", binPath)
-			}
-			return nil
-		})
-	}
-	if err := eg.Wait(); err != nil {
-		return false, err
-	}
-	if err = pkgparse.WriteUsing(pkg, stem); err != nil {
-		panic(err)
-	}
-	return true, nil
 }

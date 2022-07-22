@@ -25,13 +25,12 @@ var RemoveCmd = &cobra.Command{
 webman remove zig
 webman remove rg`,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if len(args) != 1 {
+			return cmd.Help()
+		}
 		cfg, err := config.Load()
 		if err != nil {
 			return err
-		}
-		if len(args) != 1 {
-			cmd.Help()
-			return nil
 		}
 		pkg := args[0]
 
@@ -166,22 +165,4 @@ func RemoveAllVers(pkg string, pkgConf *pkgparse.PkgConfig) (bool, error) {
 		return false, err
 	}
 	return true, nil
-}
-
-func GetPkgVerStems(pkg string) error {
-	return nil
-}
-
-func init() {
-	// rootCmd.AddCommand(removeCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// removeCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// removeCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

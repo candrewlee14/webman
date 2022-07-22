@@ -28,16 +28,14 @@ var AddCmd = &cobra.Command{
 
 The "group add" subcommand installs a group of packages.
 `,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cfg, err := config.Load()
-		if err != nil {
-			return err
-		}
 		if len(args) != 1 {
 			cmd.Help()
 			return errors.New("Expected a single package group name")
+		}
+		cfg, err := config.Load()
+		if err != nil {
+			return err
 		}
 		if utils.RecipeDirFlag == "" {
 			// only refresh if not using local
@@ -97,12 +95,6 @@ The "group add" subcommand installs a group of packages.
 }
 
 func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
 	AddCmd.Flags().BoolVar(&doRefresh, "refresh", false, "force refresh of package recipes")
 	AddCmd.Flags().BoolVarP(&allFlag, "all", "a", false, "add latest versions of all packages in group")
 }

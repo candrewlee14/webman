@@ -20,8 +20,8 @@ import (
 )
 
 var (
-	OsOptions   []string = []string{"windows", "darwin", "linux"}
-	ArchOptions []string = []string{"amd64", "arm64"}
+	OsOptions   = []string{"windows", "darwin", "linux"}
+	ArchOptions = []string{"amd64", "arm64"}
 )
 
 // CheckCmd represents the remove command
@@ -33,8 +33,7 @@ The "bintest" tests that binary paths given in a package recipe have valid binar
 	Example: `webman bintest zoxide -l ~/repos/webman-pkgs/`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) != 1 {
-			cmd.Help()
-			return nil
+			return cmd.Help()
 		}
 		cfg, err := config.Load()
 		if err != nil {
@@ -151,16 +150,4 @@ func InitTestDir(osStr string, arch string, homedir string, testdir string) erro
 	utils.GOOS = osStr
 	utils.GOARCH = arch
 	return nil
-}
-
-func init() {
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// removeCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// removeCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

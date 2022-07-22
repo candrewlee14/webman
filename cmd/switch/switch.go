@@ -24,13 +24,12 @@ var SwitchCmd = &cobra.Command{
 webman switch zig
 webman switch rg`,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if len(args) != 1 {
+			return cmd.Help()
+		}
 		cfg, err := config.Load()
 		if err != nil {
 			return err
-		}
-		if len(args) != 1 {
-			cmd.Help()
-			return nil
 		}
 		pkg := args[0]
 		pkgDir := filepath.Join(utils.WebmanPkgDir, pkg)
@@ -95,18 +94,4 @@ webman switch rg`,
 		color.Green("Successfully switched, %s now using %s\n", pkg, color.CyanString(pkgVerStem))
 		return nil
 	},
-}
-
-func init() {
-	// rootCmd.AddCommand(switchCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// removeCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// removeCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
