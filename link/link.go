@@ -79,7 +79,7 @@ func GetLinkPathIfExec(binPath string) *string {
 			return nil
 		}
 		// If not executable
-		if !(fi.Mode()&0111 != 0) && runtime.GOOS != "windows" {
+		if !(fi.Mode()&0o111 != 0) && runtime.GOOS != "windows" {
 			return nil
 		}
 	}

@@ -11,12 +11,25 @@ import (
 
 var (
 	//go:embed pkg_schema.json
-	schema       []byte
-	schemaLoader = gojsonschema.NewBytesLoader(schema)
+	recipeSchema       []byte
+	recipeSchemaLoader = gojsonschema.NewBytesLoader(recipeSchema)
+
+	//go:embed config_schema.json
+	configSchema       []byte
+	configSchemaLoader = gojsonschema.NewBytesLoader(configSchema)
 )
 
-// Lint is for linting a recipe against the schema
-func Lint(r io.Reader) error {
+// LintRecipe is for linting a recipe against the schema
+func LintRecipe(r io.Reader) error {
+	return lint(r, recipeSchemaLoader)
+}
+
+// LintConfig is for linting a config against the schema
+func LintConfig(r io.Reader) error {
+	return lint(r, configSchemaLoader)
+}
+
+func lint(r io.Reader, loader gojsonschema.JSONLoader) error {
 	data, err := io.ReadAll(r)
 	if err != nil {
 		return err
@@ -26,7 +39,7 @@ func Lint(r io.Reader) error {
 		return err
 	}
 	sourceLoader := gojsonschema.NewGoLoader(m)
-	result, err := gojsonschema.Validate(schemaLoader, sourceLoader)
+	result, err := gojsonschema.Validate(loader, sourceLoader)
 	if err != nil {
 		return err
 	}

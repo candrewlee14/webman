@@ -5,8 +5,8 @@ import (
 	"os"
 
 	"github.com/candrewlee14/webman/cmd/remove"
+	"github.com/candrewlee14/webman/config"
 	"github.com/candrewlee14/webman/pkgparse"
-	"github.com/candrewlee14/webman/utils"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/fatih/color"
@@ -22,13 +22,13 @@ var RemoveCmd = &cobra.Command{
 
 The "group remove" subcommand removes a group of packages.
 `,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
 	RunE: func(cmd *cobra.Command, args []string) error {
-		utils.Init()
 		if len(args) != 1 {
-			cmd.Help()
-			os.Exit(1)
+			return cmd.Help()
+		}
+		cfg, err := config.Load()
+		if err != nil {
+			return err
 		}
 		group := args[0]
 		groupConf := pkgparse.ParseGroupConfig(group)
@@ -51,7 +51,7 @@ The "group remove" subcommand removes a group of packages.
 			os.Exit(0)
 		}
 		for _, pkg := range pkgsToRemove {
-			pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg, false)
+			pkgConf, err := pkgparse.ParsePkgConfigLocal(cfg.PkgRepos, pkg)
 			if err != nil {
 				return err
 			}
@@ -71,12 +71,5 @@ The "group remove" subcommand removes a group of packages.
 }
 
 func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-
 	RemoveCmd.Flags().BoolVarP(&allFlag, "all", "a", false, "remove all versions of the packages in group")
 }

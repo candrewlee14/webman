@@ -20,8 +20,7 @@ The "version" subcommand displays the latest webman version.`,
 	Example: `webman version`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) != 0 {
-			cmd.Help()
-			return nil
+			return cmd.Help()
 		}
 		color.Cyan("webman (%s)", Version)
 		verLen := 8

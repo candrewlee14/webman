@@ -7,11 +7,11 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/candrewlee14/webman/config"
 	"github.com/candrewlee14/webman/pkgparse"
 	"github.com/candrewlee14/webman/utils"
 
 	"github.com/fatih/color"
-
 	"github.com/spf13/cobra"
 )
 
@@ -29,19 +29,12 @@ webman run node@17.0.0 --version
 webman run node@17.0.0:npm --version
 webman run node:npm --version`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		utils.Init()
 		if len(args) == 0 {
-			cmd.Help()
-			return nil
+			return cmd.Help()
 		}
 		return runPackage(args)
 	},
 	DisableFlagParsing: true,
-}
-
-func init() {
-	// RunCmd.Flags().StringVarP(&selectBin, "select-bin", "s", "",
-	// 	"select a given binary from the package, rather than running the default binary")
 }
 
 func runPackage(args []string) error {
@@ -52,6 +45,11 @@ func runPackage(args []string) error {
 	var pkgRunFolder string
 	var pkgBinDirOrFile string
 	var argsApp []string
+
+	cfg, err := config.Load()
+	if err != nil {
+		return err
+	}
 
 	// Version information
 	pkgVerAndBinParts := strings.Split(args[0], ":")
@@ -79,7 +77,7 @@ func runPackage(args []string) error {
 		argsApp = args[1:]
 	}
 
-	pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg, false)
+	pkgConf, err := pkgparse.ParsePkgConfigLocal(cfg.PkgRepos, pkg)
 	if err != nil {
 		return err
 	}

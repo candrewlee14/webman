@@ -23,12 +23,12 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/fatih/color"
 	"os"
 
 	"github.com/candrewlee14/webman/multiline"
 	"github.com/candrewlee14/webman/utils"
 
+	"github.com/fatih/color"
 	cc "github.com/ivanpirog/coloredcobra"
 	"github.com/mattn/go-isatty"
 	"github.com/spf13/cobra"
@@ -52,9 +52,6 @@ A cross-platform package manager for the web!
 	- created by candrewlee14
 
 `,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -84,16 +81,6 @@ func Execute() {
 }
 
 func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
 	utils.Init()
-
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.webman.yaml)")
 	rootCmd.PersistentFlags().StringVarP(&utils.RecipeDirFlag, "local-recipes", "l", "", "use given local recipe directory")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-
-	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
