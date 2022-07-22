@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/candrewlee14/webman/cmd/remove"
-	"github.com/candrewlee14/webman/pkgparse"
-	"github.com/candrewlee14/webman/utils"
-
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/candrewlee14/webman/cmd/remove"
+	"github.com/candrewlee14/webman/config"
+	"github.com/candrewlee14/webman/pkgparse"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
@@ -25,7 +24,10 @@ The "group remove" subcommand removes a group of packages.
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	RunE: func(cmd *cobra.Command, args []string) error {
-		utils.Init()
+		cfg, err := config.Load()
+		if err != nil {
+			return err
+		}
 		if len(args) != 1 {
 			cmd.Help()
 			os.Exit(1)
@@ -51,7 +53,7 @@ The "group remove" subcommand removes a group of packages.
 			os.Exit(0)
 		}
 		for _, pkg := range pkgsToRemove {
-			pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg, false)
+			pkgConf, err := pkgparse.ParsePkgConfigLocal(cfg.PkgRepos, pkg)
 			if err != nil {
 				return err
 			}

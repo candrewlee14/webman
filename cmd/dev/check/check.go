@@ -3,12 +3,12 @@ package check
 import (
 	"errors"
 	"fmt"
-	"github.com/candrewlee14/webman/schema"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 
+	"github.com/candrewlee14/webman/schema"
 	"github.com/candrewlee14/webman/utils"
 
 	"github.com/fatih/color"
@@ -81,7 +81,6 @@ func CheckPkgConfig(pkg string) error {
 }
 
 func init() {
-
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command

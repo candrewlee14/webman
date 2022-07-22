@@ -7,11 +7,11 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/candrewlee14/webman/config"
 	"github.com/candrewlee14/webman/pkgparse"
 	"github.com/candrewlee14/webman/utils"
 
 	"github.com/fatih/color"
-
 	"github.com/spf13/cobra"
 )
 
@@ -53,6 +53,11 @@ func runPackage(args []string) error {
 	var pkgBinDirOrFile string
 	var argsApp []string
 
+	cfg, err := config.Load()
+	if err != nil {
+		return err
+	}
+
 	// Version information
 	pkgVerAndBinParts := strings.Split(args[0], ":")
 	if len(pkgVerAndBinParts) == 1 {
@@ -79,7 +84,7 @@ func runPackage(args []string) error {
 		argsApp = args[1:]
 	}
 
-	pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg, false)
+	pkgConf, err := pkgparse.ParsePkgConfigLocal(cfg.PkgRepos, pkg)
 	if err != nil {
 		return err
 	}

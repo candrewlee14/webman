@@ -9,6 +9,7 @@ import (
 
 	"github.com/candrewlee14/webman/cmd/add"
 	"github.com/candrewlee14/webman/cmd/dev/check"
+	"github.com/candrewlee14/webman/config"
 	"github.com/candrewlee14/webman/link"
 	"github.com/candrewlee14/webman/multiline"
 	"github.com/candrewlee14/webman/pkgparse"
@@ -18,8 +19,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var OsOptions []string = []string{"windows", "darwin", "linux"}
-var ArchOptions []string = []string{"amd64", "arm64"}
+var (
+	OsOptions   []string = []string{"windows", "darwin", "linux"}
+	ArchOptions []string = []string{"amd64", "arm64"}
+)
 
 // CheckCmd represents the remove command
 var BintestCmd = &cobra.Command{
@@ -33,7 +36,10 @@ The "bintest" tests that binary paths given in a package recipe have valid binar
 			cmd.Help()
 			return nil
 		}
-		utils.Init()
+		cfg, err := config.Load()
+		if err != nil {
+			return err
+		}
 		homedir, err := os.UserHomeDir()
 		if err != nil {
 			return err
@@ -43,7 +49,7 @@ The "bintest" tests that binary paths given in a package recipe have valid binar
 		if err := check.CheckPkgConfig(pkg); err != nil {
 			color.Red("Pkg Config Error: %v", err)
 		}
-		pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg, true)
+		pkgConf, err := pkgparse.ParsePkgConfigLocal(cfg.PkgRepos, pkg)
 		if err != nil {
 			return fmt.Errorf("Error parsing recipe: %v", err)
 		}
@@ -54,7 +60,7 @@ The "bintest" tests that binary paths given in a package recipe have valid binar
 		testDir := filepath.Join(homedir, ".webman", "test")
 	osLoop:
 		for _, osStr := range OsOptions {
-			//Example: convert "windows" GOOS to "win" pkgOS
+			// Example: convert "windows" GOOS to "win" pkgOS
 			osPkgStr := pkgparse.GOOStoPkgOs[osStr]
 		archLoop:
 			for _, arch := range ArchOptions {
@@ -81,7 +87,7 @@ The "bintest" tests that binary paths given in a package recipe have valid binar
 				var wg sync.WaitGroup
 				ml := multiline.New(len(args), os.Stdout)
 				wg.Add(1)
-				pairResults[osPairStr] = add.InstallPkg(pkg+"@"+*latestVer, 0, 1, &wg, &ml)
+				pairResults[osPairStr] = add.InstallPkg(cfg.PkgRepos, pkg+"@"+*latestVer, 0, 1, &wg, &ml)
 
 				binPaths, err := pkgConf.GetMyBinPaths()
 				if err != nil {
@@ -148,7 +154,6 @@ func InitTestDir(osStr string, arch string, homedir string, testdir string) erro
 }
 
 func init() {
-
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command

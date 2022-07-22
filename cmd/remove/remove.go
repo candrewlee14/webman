@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/candrewlee14/webman/config"
 	"github.com/candrewlee14/webman/link"
 	"github.com/candrewlee14/webman/multiline"
 	"github.com/candrewlee14/webman/pkgparse"
@@ -24,7 +25,10 @@ var RemoveCmd = &cobra.Command{
 webman remove zig
 webman remove rg`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		utils.Init()
+		cfg, err := config.Load()
+		if err != nil {
+			return err
+		}
 		if len(args) != 1 {
 			cmd.Help()
 			return nil
@@ -74,7 +78,7 @@ webman remove rg`,
 			color.HiBlack("No packages selected for removal.")
 			return nil
 		}
-		pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg, false)
+		pkgConf, err := pkgparse.ParsePkgConfigLocal(cfg.PkgRepos, pkg)
 		if err != nil {
 			return err
 		}
@@ -163,12 +167,13 @@ func RemoveAllVers(pkg string, pkgConf *pkgparse.PkgConfig) (bool, error) {
 	}
 	return true, nil
 }
+
 func GetPkgVerStems(pkg string) error {
 	return nil
 }
 
 func init() {
-	//rootCmd.AddCommand(removeCmd)
+	// rootCmd.AddCommand(removeCmd)
 
 	// Here you will define your flags and configuration settings.
 

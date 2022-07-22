@@ -1,14 +1,15 @@
 package pkgparse
 
 import (
+	"errors"
 	"fmt"
-	"io/ioutil"
-	"net/http"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 
+	"github.com/candrewlee14/webman/config"
 	"github.com/candrewlee14/webman/utils"
 
 	"gopkg.in/yaml.v3"
@@ -139,51 +140,30 @@ func RemoveUsing(pkg string) error {
 	return nil
 }
 
-func ParsePkgConfigOnline(pkg string) (*PkgConfig, error) {
-	pkgConfUrl := "https://raw.githubusercontent.com/candrewlee14/webman-pkgs/main/pkgs/" + pkg + utils.PkgRecipeExt
-	r, err := http.Get(pkgConfUrl)
-	if err != nil {
-		return nil, fmt.Errorf("unable to download %s package recipe: %v", pkg, err)
-	}
-	defer r.Body.Close()
-	if !(r.StatusCode >= 200 && r.StatusCode < 300) {
-		switch r.StatusCode {
-		case 404, 403:
-			return nil, fmt.Errorf("no package recipe for %q exists", pkg)
-		default:
-			return nil, fmt.Errorf(
-				"bad HTTP response when downloading package recipe for %q: %s", pkg, r.Status)
+func ParsePkgConfigLocal(pkgRepos []config.PkgRepo, pkg string) (*PkgConfig, error) {
+	var pkgConfPath string
+	for _, pkgRepo := range pkgRepos {
+		pkgConfPath = filepath.Join(pkgRepo.Path(), "pkgs", pkg+utils.PkgRecipeExt)
+		_, err := os.Stat(pkgConfPath)
+		if err != nil {
+			if !errors.Is(err, fs.ErrNotExist) {
+				return nil, err
+			}
+			continue
 		}
+		break
 	}
-	dat, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		return nil, fmt.Errorf("unable to download %s package recipe: %v", pkg, err)
+	if pkgConfPath == "" {
+		return nil, fmt.Errorf("no package recipe exists for %s", pkg)
 	}
-	var pkgConf PkgConfig
-	if err = yaml.Unmarshal(dat, &pkgConf); err != nil {
-		return nil, fmt.Errorf("unable parse package recipe for %s: %v", pkg, err)
-	}
-	return &pkgConf, nil
-}
 
-func ParsePkgConfigLocal(pkg string, strict bool) (*PkgConfig, error) {
-	pkgConfPath := filepath.Join(utils.WebmanRecipeDir, "pkgs", pkg+utils.PkgRecipeExt)
 	dat, err := os.ReadFile(pkgConfPath)
 	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, fmt.Errorf("no package recipe exists for %s", pkg)
-		}
 		return nil, err
 	}
 	var pkgConf PkgConfig
-	if strict {
-		if err = yaml.Unmarshal(dat, &pkgConf); err != nil {
-			return nil, fmt.Errorf("unable to strict parse package recipe for %s: %v", pkg, err)
-		}
-	} else {
-		if err = yaml.Unmarshal(dat, &pkgConf); err != nil {
-			return nil, fmt.Errorf("unable to parse package recipe for %s: %v", pkg, err)
-		}
+	if err = yaml.Unmarshal(dat, &pkgConf); err != nil {
+		return nil, fmt.Errorf("unable to parse package recipe for %s: %v", pkg, err)
 	}
 	pkgConf.Title = pkg
 

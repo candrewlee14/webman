@@ -13,29 +13,33 @@ import (
 	"github.com/mattn/go-isatty"
 )
 
-var WebmanDir string
-var WebmanPkgDir string
-var WebmanBinDir string
-var WebmanRecipeDir string
-var WebmanTmpDir string
-var RecipeDirFlag string
-var GOOS string
-var GOARCH string
-var PkgRecipeExt string = ".webman-pkg.yml"
-var GroupRecipeExt string = ".webman-group.yml"
-var RefreshFileName string = "refresh.yaml"
-var UsingFileName string = "using.yaml"
+var (
+	WebmanDir       string
+	WebmanConfig    string
+	WebmanPkgDir    string
+	WebmanBinDir    string
+	WebmanRecipeDir string
+	WebmanTmpDir    string
+	RecipeDirFlag   string
+	GOOS            string
+	GOARCH          string
+	PkgRecipeExt    = ".webman-pkg.yml"
+	GroupRecipeExt  = ".webman-group.yml"
+	RefreshFileName = "refresh.yaml"
+	UsingFileName   = "using.yaml"
+)
 
 func Init() {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		panic(err)
 	}
-	WebmanDir = filepath.Join(homeDir, "/.webman")
-	WebmanPkgDir = filepath.Join(WebmanDir, "/pkg")
-	WebmanBinDir = filepath.Join(WebmanDir, "/bin")
-	WebmanRecipeDir = filepath.Join(WebmanDir, "/recipes")
-	WebmanTmpDir = filepath.Join(WebmanDir, "/tmp")
+	WebmanDir = filepath.Join(homeDir, ".webman")
+	WebmanConfig = filepath.Join(WebmanDir, "config.yaml")
+	WebmanPkgDir = filepath.Join(WebmanDir, "pkg")
+	WebmanBinDir = filepath.Join(WebmanDir, "bin")
+	WebmanRecipeDir = filepath.Join(WebmanDir, "recipes")
+	WebmanTmpDir = filepath.Join(WebmanDir, "tmp")
 	GOOS = runtime.GOOS
 	GOARCH = runtime.GOARCH
 

@@ -33,5 +33,4 @@ func init() {
 
 	DevCmd.AddCommand(check.CheckCmd)
 	DevCmd.AddCommand(bintest.BintestCmd)
-
 }

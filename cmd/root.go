@@ -23,12 +23,12 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/fatih/color"
 	"os"
 
 	"github.com/candrewlee14/webman/multiline"
 	"github.com/candrewlee14/webman/utils"
 
+	"github.com/fatih/color"
 	cc "github.com/ivanpirog/coloredcobra"
 	"github.com/mattn/go-isatty"
 	"github.com/spf13/cobra"

@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/candrewlee14/webman/config"
 	"github.com/candrewlee14/webman/link"
 	"github.com/candrewlee14/webman/pkgparse"
 	"github.com/candrewlee14/webman/utils"
@@ -23,7 +24,10 @@ var SwitchCmd = &cobra.Command{
 webman switch zig
 webman switch rg`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		utils.Init()
+		cfg, err := config.Load()
+		if err != nil {
+			return err
+		}
 		if len(args) != 1 {
 			cmd.Help()
 			return nil
@@ -54,7 +58,7 @@ webman switch rg`,
 				pkgVersions = append(pkgVersions, entry.Name())
 			}
 		}
-		pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg, false)
+		pkgConf, err := pkgparse.ParsePkgConfigLocal(cfg.PkgRepos, pkg)
 		if err != nil {
 			return err
 		}
@@ -94,7 +98,7 @@ webman switch rg`,
 }
 
 func init() {
-	//rootCmd.AddCommand(switchCmd)
+	// rootCmd.AddCommand(switchCmd)
 
 	// Here you will define your flags and configuration settings.
 

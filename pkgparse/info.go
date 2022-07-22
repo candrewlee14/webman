@@ -18,8 +18,8 @@ type PkgInfo struct {
 	About   string
 }
 
-func ParsePkgInfo(pkg string) (*PkgInfo, error) {
-	pkgConfPath := filepath.Join(utils.WebmanRecipeDir, "pkgs", pkg+utils.PkgRecipeExt)
+func ParsePkgInfo(pkgRepo, pkg string) (*PkgInfo, error) {
+	pkgConfPath := filepath.Join(pkgRepo, "pkgs", pkg+utils.PkgRecipeExt)
 	dat, err := os.ReadFile(pkgConfPath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -43,7 +43,7 @@ func ParseMultiPkgInfo(pkgs []string) ([]PkgInfo, error) {
 		i := i
 		pkg := pkg
 		eg.Go(func() error {
-			pkgInfo, err := ParsePkgInfo(pkg)
+			pkgInfo, err := ParsePkgInfo("", pkg)
 			if err != nil {
 				return nil
 			}

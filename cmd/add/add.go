@@ -1,6 +1,7 @@
 package add
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -9,6 +10,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/candrewlee14/webman/config"
 	"github.com/candrewlee14/webman/link"
 	"github.com/candrewlee14/webman/multiline"
 	"github.com/candrewlee14/webman/pkgparse"
@@ -16,14 +18,15 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/mattn/go-isatty"
-	"golang.org/x/sync/errgroup"
-
 	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
+	"golang.org/x/sync/errgroup"
 )
 
-var doRefresh bool
-var switchFlag bool
+var (
+	doRefresh  bool
+	switchFlag bool
+)
 
 // addCmd represents the add command
 var AddCmd = &cobra.Command{
@@ -36,7 +39,10 @@ webman add go@18.0.0
 webman add go zig rg
 webman add go@18.0.0 zig@9.1.0 rg@13.0.0`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		utils.Init()
+		cfg, err := config.Load()
+		if err != nil {
+			return err
+		}
 		if len(args) == 0 {
 			cmd.Help()
 			return nil
@@ -45,19 +51,21 @@ webman add go@18.0.0 zig@9.1.0 rg@13.0.0`,
 		// if local recipe flag is not set
 		if utils.RecipeDirFlag == "" {
 			// only refresh if not using local
-			shouldRefresh, err := pkgparse.ShouldRefreshRecipes()
-			if err != nil {
-				return err
-			}
-			if shouldRefresh || doRefresh {
-				color.HiBlue("Refreshing package recipes")
-				if err = pkgparse.RefreshRecipes(); err != nil {
-					color.Red("%v", err)
+			for _, pkgRepo := range cfg.PkgRepos {
+				shouldRefresh, err := pkgRepo.ShouldRefreshRecipes(cfg.RefreshInterval)
+				if err != nil {
+					return err
+				}
+				if shouldRefresh || doRefresh {
+					color.HiBlue("Refreshing package recipes for %q...", pkgRepo.Name)
+					if err = pkgRepo.RefreshRecipes(); err != nil {
+						color.Red("%v", err)
+					}
 				}
 			}
 		}
-		if !InstallAllPkgs(args) {
-			return fmt.Errorf("Not all packages installed successfully")
+		if !InstallAllPkgs(cfg.PkgRepos, args) {
+			return errors.New("Not all packages installed successfully")
 		}
 		color.Green("All %d packages are installed!", len(args))
 		return nil
@@ -89,7 +97,7 @@ func cleanUpFailedInstall(pkg string, extractPath string) {
 
 func DownloadUrl(url string, filePath string, pkg string, ver string, argNum int, argCount int, ml *multiline.MultiLogger) bool {
 	f, err := os.OpenFile(filePath,
-		os.O_CREATE|os.O_WRONLY, 0644)
+		os.O_CREATE|os.O_WRONLY, 0o644)
 	if err != nil {
 		ml.Printf(argNum, color.RedString("%v", err))
 		return false
