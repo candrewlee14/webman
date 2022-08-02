@@ -22,11 +22,19 @@ Webman locates version numbers online and installs packages from the web, so you
 
 Windows (Powershell), Linux, and MacOS are supported!
 
-Install `webman` by running the following command in MacOS, Linux, or Git Bash for Windows :
+### Installation
+
+#### MacOS, Linux, Git Bash, WSL, etc.
 ```bash
 curl https://raw.githubusercontent.com/candrewlee14/webman/main/scripts/install.sh | sh
 ```
-> NOTE: Never blindly run a shell script from the internet. Please check the source shell file `scripts/install.sh`
+
+#### Windows Powershell
+```powershell
+iex (New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/candrewlee14/webman/main/scripts/install.ps1')
+```
+
+> NOTE: Never blindly run a shell script from the internet. Please check the source [shell](scripts/install.sh) or [powershell](scripts/install.ps1) file.
 Alternatively, download the [latest release](/releases/latest) manually.
 
 
