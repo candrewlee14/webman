@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/candrewlee14/webman/main/schema/config_schema.json",
+  "title": "Webman config",
+  "description": "The configuration for webman",
+  "type": "object",
+  "required": [
+    "refresh_interval",
+    "pkg_repos"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "refresh_interval": {
+      "description": "Refresh interval",
+      "type": "string",
+      "pattern": "^(\\d+h)?(\\d+m)?(\\d+s)?(\\d+ms)?(\\d+us)?(\\d+ns)?$"
+    },
+    "pkg_repos": {
+      "description": "Package repositories",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "description": "Package repository",
+        "type": "object",
+        "required": [
+          "name",
+          "type",
+          "user",
+          "repo"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "description": "Repository name",
+            "type": "string"
+          },
+          "type": {
+            "description": "Repository type",
+            "type": "string",
+            "enum": [
+              "github",
+              "gitea"
+            ]
+          },
+          "user": {
+            "description": "Repository user name",
+            "type": "string"
+          },
+          "repo": {
+            "description": "Repository repo name",
+            "type": "string"
+          },
+          "branch": {
+            "description": "Repository branch ref",
+            "type": "string"
+          },
+          "gitea_url": {
+            "description": "Gitea URL",
+            "type": "string"
+          }
+        },
+        "anyOf": [
+          {
+            "properties": {
+              "type": {
+                "const": "gitea"
+              }
+            },
+            "required": [
+              "gitea_url"
+            ]
+          },
+          {
+            "properties": {
+              "type": {
+                "const": "github"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

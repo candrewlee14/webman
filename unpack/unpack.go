@@ -5,21 +5,21 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/mholt/archiver/v3"
-
 	"github.com/candrewlee14/webman/utils"
+
+	"github.com/mholt/archiver/v3"
 )
 
 func Unpack(src string, pkg string, stem string, hasRoot bool) error {
 	pkgDir := filepath.Join(utils.WebmanPkgDir, pkg)
-	err := os.MkdirAll(pkgDir, 0755)
+	err := os.MkdirAll(pkgDir, 0o755)
 	if err != nil {
 		return fmt.Errorf("unable to create dir %q: %v", pkgDir, err)
 	}
 	pkgDest := filepath.Join(pkgDir, stem)
 	if hasRoot {
 		tmpPkgDir := filepath.Join(utils.WebmanTmpDir, pkg)
-		if err := os.MkdirAll(tmpPkgDir, 0755); err != nil {
+		if err := os.MkdirAll(tmpPkgDir, 0o755); err != nil {
 			return fmt.Errorf("unable to create dir %q: %v", tmpPkgDir, err)
 		}
 		if err := unpack(pkg, src, tmpPkgDir); err != nil {
@@ -38,7 +38,7 @@ func Unpack(src string, pkg string, stem string, hasRoot bool) error {
 			return fmt.Errorf("unable to move %q to %q: %v", extractFolder, pkgDest, err)
 		}
 	} else {
-		if err := os.MkdirAll(pkgDest, 0777); err != nil {
+		if err := os.MkdirAll(pkgDest, 0o777); err != nil {
 			return fmt.Errorf("unable to create pkg destination dir %q: %v", pkgDest, err)
 		}
 		if err := unpack(pkg, src, pkgDest); err != nil {
@@ -68,7 +68,7 @@ func unpack(pkg, src, dest string) error {
 		if err := c.DecompressFile(src, dest); err != nil {
 			return err
 		}
-		return os.Chmod(dest, 0755)
+		return os.Chmod(dest, 0o755)
 	}
 	return u.Unarchive(src, dest)
 }
