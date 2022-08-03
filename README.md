@@ -31,7 +31,7 @@ curl https://raw.githubusercontent.com/candrewlee14/webman/main/scripts/install.
 
 #### Windows Powershell
 ```powershell
-iex (New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/candrewlee14/webman/main/scripts/install.ps1')
+Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/candrewlee14/webman/main/scripts/install.ps1')
 ```
 
 > NOTE: Never blindly run a shell script from the internet. Please check the source [shell](scripts/install.sh) or [powershell](scripts/install.ps1) file.
