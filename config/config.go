@@ -50,6 +50,10 @@ func (p PkgRepo) Path() string {
 func (p PkgRepo) ShouldRefreshRecipes(refreshInterval time.Duration) (bool, error) {
 	fi, err := os.Stat(p.Path())
 	if err != nil {
+		// if dir does not exist, refresh
+		if os.IsNotExist(err) {
+			return true, nil
+		}
 		return false, err
 	}
 	return time.Since(fi.ModTime()) > refreshInterval, nil

@@ -30,7 +30,7 @@ var BintestCmd = &cobra.Command{
 	Short: "Test the installation & binary paths for each platform for a package",
 	Long: `
 The "bintest" tests that binary paths given in a package recipe have valid binaries, and displays them.`,
-	Example: `webman bintest zoxide -l ~/repos/webman-pkgs/`,
+	Example: `webman dev bintest zoxide -l ~/repos/webman-pkgs/`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) != 1 {
 			return cmd.Help()
@@ -104,6 +104,9 @@ The "bintest" tests that binary paths given in a package recipe have valid binar
 				for i := range binPaths {
 					color.Magenta("   %s", binPaths[i])
 				}
+				if pairResults[osPairStr] {
+					os.RemoveAll(testDir)
+				}
 			}
 		}
 		allSucceed := true
@@ -118,9 +121,6 @@ The "bintest" tests that binary paths given in a package recipe have valid binar
 		}
 		if allSucceed {
 			color.HiGreen("\nAll supported OSs & Arches for %s have valid installs!", pkg)
-			color.HiBlack("Cleaning up %s", testDir)
-			os.RemoveAll(testDir)
-
 		} else {
 			if runtime.GOOS == "windows" {
 				color.HiYellow("Windows may require admin privileges to create symlinks.")
