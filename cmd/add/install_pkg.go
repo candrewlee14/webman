@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/candrewlee14/webman/config"
 	"github.com/candrewlee14/webman/link"
 	"github.com/candrewlee14/webman/multiline"
 	"github.com/candrewlee14/webman/pkgparse"
@@ -17,7 +18,7 @@ import (
 	"github.com/fatih/color"
 )
 
-func InstallAllPkgs(args []string) bool {
+func InstallAllPkgs(pkgRepos []*config.PkgRepo, args []string) bool {
 	var wg sync.WaitGroup
 	ml := multiline.New(len(args), os.Stdout)
 	wg.Add(len(args))
@@ -26,7 +27,7 @@ func InstallAllPkgs(args []string) bool {
 		i := i
 		arg := arg
 		go func() {
-			res := InstallPkg(arg, i, len(args), &wg, &ml)
+			res := InstallPkg(pkgRepos, arg, i, len(args), &wg, &ml)
 			results <- res
 		}()
 	}
@@ -38,7 +39,7 @@ func InstallAllPkgs(args []string) bool {
 	return success
 }
 
-func InstallPkg(arg string, argIndex int, argCount int, wg *sync.WaitGroup, ml *multiline.MultiLogger) bool {
+func InstallPkg(pkgRepos []*config.PkgRepo, arg string, argIndex int, argCount int, wg *sync.WaitGroup, ml *multiline.MultiLogger) bool {
 	defer wg.Done()
 	pkg, ver, err := utils.ParsePkgVer(arg)
 	if err != nil {
@@ -47,7 +48,6 @@ func InstallPkg(arg string, argIndex int, argCount int, wg *sync.WaitGroup, ml *
 	}
 	if len(ver) == 0 {
 		ml.SetPrefix(argIndex, color.CyanString(pkg)+": ")
-
 	} else {
 		ml.SetPrefix(argIndex, color.CyanString(pkg)+"@"+color.CyanString(ver)+": ")
 	}
@@ -57,7 +57,7 @@ func InstallPkg(arg string, argIndex int, argCount int, wg *sync.WaitGroup, ml *
 		foundRecipe,
 		500,
 	)
-	pkgConf, err := pkgparse.ParsePkgConfigLocal(pkg, false)
+	pkgConf, err := pkgparse.ParsePkgConfigLocal(pkgRepos, pkg)
 	foundRecipe <- true
 	if err != nil {
 		ml.Printf(argIndex, color.RedString("%v", err))
@@ -122,7 +122,7 @@ func InstallPkg(arg string, argIndex int, argCount int, wg *sync.WaitGroup, ml *
 		isRawBinary = m.IsRawBinary
 	}
 	if isRawBinary {
-		if err = os.Chmod(downloadPath, 0755); err != nil {
+		if err = os.Chmod(downloadPath, 0o755); err != nil {
 			ml.Printf(argIndex, color.RedString("Failed to make download executable!"))
 			return false
 		}

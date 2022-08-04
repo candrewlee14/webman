@@ -1,10 +1,12 @@
 package add
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
 	"github.com/candrewlee14/webman/cmd/add"
+	"github.com/candrewlee14/webman/config"
 	"github.com/candrewlee14/webman/multiline"
 	"github.com/candrewlee14/webman/pkgparse"
 	"github.com/candrewlee14/webman/utils"
@@ -14,8 +16,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var doRefresh bool
-var allFlag bool
+var (
+	doRefresh bool
+	allFlag   bool
+)
 
 var AddCmd = &cobra.Command{
 	Use:   "add [group]",
@@ -24,27 +28,30 @@ var AddCmd = &cobra.Command{
 
 The "group add" subcommand installs a group of packages.
 `,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
 	RunE: func(cmd *cobra.Command, args []string) error {
-		utils.Init()
 		if len(args) != 1 {
 			cmd.Help()
-			return fmt.Errorf("Expected a single package group name")
+			return errors.New("Expected a single package group name")
+		}
+		cfg, err := config.Load()
+		if err != nil {
+			return err
 		}
 		if utils.RecipeDirFlag == "" {
 			// only refresh if not using local
-			shouldRefresh, err := pkgparse.ShouldRefreshRecipes()
-			if err != nil {
-				return err
-			}
-			if shouldRefresh || doRefresh {
-				color.HiBlue("Refreshing package recipes...")
-				if err = pkgparse.RefreshRecipes(); err != nil {
-					fmt.Println(err)
-				} else {
-					color.HiBlue("%s%sRefreshed package recipes!",
-						multiline.MoveUp, multiline.ClearLine)
+			for _, pkgRepo := range cfg.PkgRepos {
+				shouldRefresh, err := pkgRepo.ShouldRefreshRecipes(cfg.RefreshInterval)
+				if err != nil {
+					return err
+				}
+				if shouldRefresh || doRefresh {
+					color.HiBlue("Refreshing package recipes for %q...", pkgRepo.Name)
+					if err = pkgRepo.RefreshRecipes(); err != nil {
+						fmt.Println(err)
+					} else {
+						color.HiBlue("%s%sRefreshed package recipes!",
+							multiline.MoveUp, multiline.ClearLine)
+					}
 				}
 			}
 		}
@@ -77,7 +84,7 @@ The "group add" subcommand installs a group of packages.
 		if len(pkgsToInstall) == 0 {
 			color.HiBlack("No packages selected for installation.")
 		} else {
-			if !add.InstallAllPkgs(pkgsToInstall) {
+			if !add.InstallAllPkgs(cfg.PkgRepos, pkgsToInstall) {
 				color.Magenta("Not all packages installed successfully")
 				os.Exit(1)
 			}
@@ -88,12 +95,6 @@ The "group add" subcommand installs a group of packages.
 }
 
 func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
 	AddCmd.Flags().BoolVar(&doRefresh, "refresh", false, "force refresh of package recipes")
 	AddCmd.Flags().BoolVarP(&allFlag, "all", "a", false, "add latest versions of all packages in group")
 }

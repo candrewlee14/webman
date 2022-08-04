@@ -1,0 +1,7 @@
+refresh_interval: 6h
+pkg_repos:
+  - name: webman
+    type: github
+    user: candrewlee14
+    repo: webman-pkgs
+    branch: main
