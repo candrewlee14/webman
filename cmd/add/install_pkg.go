@@ -3,7 +3,9 @@ package add
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/candrewlee14/webman/config"
@@ -182,5 +184,8 @@ func InstallPkg(pkgRepos []*config.PkgRepo, arg string, argIndex int, argCount i
 		ml.Printf(argIndex, "Now using %s@%s", color.CyanString(pkg), color.MagentaString(ver))
 	}
 	ml.Printf(argIndex, color.GreenString("Successfully installed!"))
+	if p, err := exec.LookPath(pkg); err == nil && !strings.Contains(p, utils.WebmanBinDir) {
+		ml.Printf(argIndex, color.YellowString("Found another binary at %q that may interfere", p))
+	}
 	return true
 }
