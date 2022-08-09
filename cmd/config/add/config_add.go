@@ -4,9 +4,10 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/candrewlee14/webman/config"
+
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/AlecAivazis/survey/v2/core"
-	"github.com/candrewlee14/webman/config"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )

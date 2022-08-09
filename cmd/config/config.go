@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/fatih/color"
-
-	"github.com/AlecAivazis/survey/v2"
 	"github.com/candrewlee14/webman/cmd/config/add"
 	"github.com/candrewlee14/webman/cmd/config/remove"
 	"github.com/candrewlee14/webman/config"
+
+	"github.com/AlecAivazis/survey/v2"
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
