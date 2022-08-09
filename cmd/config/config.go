@@ -28,7 +28,7 @@ The "config" subcommand allows you to change your base webman config.
 
 		q := &survey.Input{
 			Message: "Refresh interval",
-			Help:    "How long before webman should refresh a package repository",
+			Help:    "How long before webman should refresh a package repository (ex: `6h`)",
 			Default: cfg.RefreshInterval.String(),
 		}
 

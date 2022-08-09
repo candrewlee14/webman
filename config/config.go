@@ -96,6 +96,7 @@ func (p PkgRepo) RefreshRecipes() error {
 	if err != nil {
 		return err
 	}
+	defer os.RemoveAll(tmpZipFile.Name())
 	if _, err = io.Copy(tmpZipFile, r.Body); err != nil {
 		return err
 	}

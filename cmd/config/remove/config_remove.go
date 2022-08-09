@@ -1,6 +1,9 @@
 package remove
 
 import (
+	"errors"
+	"os"
+
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/candrewlee14/webman/config"
 	"github.com/fatih/color"
@@ -21,6 +24,10 @@ The "config remove" subcommand allows you to remove a package repository.
 			return err
 		}
 
+		if len(cfg.PkgRepos) == 1 {
+			return errors.New("cannot remove only package repository")
+		}
+
 		opts := make([]string, 0, len(cfg.PkgRepos))
 		for _, pkgRepo := range cfg.PkgRepos {
 			opts = append(opts, pkgRepo.Name)
@@ -36,12 +43,21 @@ The "config remove" subcommand allows you to remove a package repository.
 			return err
 		}
 
+		var remove *config.PkgRepo
 		for idx, pkgRepo := range cfg.PkgRepos {
 			if pkgRepo.Name == pkg {
+				remove = pkgRepo
 				cfg.PkgRepos = append(cfg.PkgRepos[:idx], cfg.PkgRepos[idx+1:]...)
 				break
 			}
 		}
+
+		if remove != nil {
+			if err := os.RemoveAll(remove.Path()); err != nil {
+				return err
+			}
+		}
+
 		if err := cfg.Save(); err != nil {
 			return err
 		}

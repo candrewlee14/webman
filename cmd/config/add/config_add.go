@@ -78,6 +78,11 @@ The "config add" subcommand allows you to add a package repository.
 		}
 
 		p := config.PkgRepo(repo)
+
+		if err := p.RefreshRecipes(); err != nil {
+			return err
+		}
+
 		cfg.PkgRepos = append(cfg.PkgRepos, &p)
 
 		if err := cfg.Save(); err != nil {
