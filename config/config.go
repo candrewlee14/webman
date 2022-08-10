@@ -21,11 +21,13 @@ import (
 //go:embed config.yaml
 var defaultConfig []byte
 
+// Config is a Webman config
 type Config struct {
 	RefreshInterval time.Duration `yaml:"refresh_interval"`
 	PkgRepos        []*PkgRepo    `yaml:"pkg_repos"`
 }
 
+// PkgRepoType is the package repository type
 type PkgRepoType string
 
 const (
@@ -33,6 +35,7 @@ const (
 	PkgRepoTypeGitea  PkgRepoType = "gitea"
 )
 
+// PkgRepo is a package repository
 type PkgRepo struct {
 	Name   string      `yaml:"name"`
 	Type   PkgRepoType `yaml:"type"`
@@ -43,10 +46,12 @@ type PkgRepo struct {
 	GiteaURL string `yaml:"gitea_url"`
 }
 
+// Path is the filepath to a given PkgRepo
 func (p PkgRepo) Path() string {
 	return filepath.Join(utils.WebmanRecipeDir, p.Name)
 }
 
+// ShouldRefreshRecipes determines whether a PkgRepo needs to be refreshed
 func (p PkgRepo) ShouldRefreshRecipes(refreshInterval time.Duration) (bool, error) {
 	fi, err := os.Stat(p.Path())
 	if err != nil {
@@ -59,6 +64,7 @@ func (p PkgRepo) ShouldRefreshRecipes(refreshInterval time.Duration) (bool, erro
 	return time.Since(fi.ModTime()) > refreshInterval, nil
 }
 
+// RefreshRecipes refreshes the recipes for a PkgRepo
 func (p PkgRepo) RefreshRecipes() error {
 	var url string
 	switch p.Type {
@@ -90,6 +96,7 @@ func (p PkgRepo) RefreshRecipes() error {
 	if err != nil {
 		return err
 	}
+	defer os.RemoveAll(tmpZipFile.Name())
 	if _, err = io.Copy(tmpZipFile, r.Body); err != nil {
 		return err
 	}
@@ -113,6 +120,17 @@ func (p PkgRepo) RefreshRecipes() error {
 	return nil
 }
 
+// Save saves the Config
+func (c *Config) Save() error {
+	fi, err := os.Create(utils.WebmanConfig)
+	if err != nil {
+		return err
+	}
+	defer fi.Close()
+	return yaml.NewEncoder(fi).Encode(c)
+}
+
+// Load loads the Webman Config
 func Load() (*Config, error) {
 	if utils.RecipeDirFlag != "" {
 		// local only
