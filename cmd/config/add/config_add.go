@@ -80,6 +80,14 @@ The "config add" subcommand allows you to add a package repository.
 
 		p := config.PkgRepo(repo)
 
+		ok, err := p.Validate()
+		if err != nil {
+			return err
+		}
+		if !ok {
+			return fmt.Errorf("%q is an invalid package repository; no `pkgs` sub-directory", p.Name)
+		}
+
 		if err := p.RefreshRecipes(); err != nil {
 			return err
 		}
