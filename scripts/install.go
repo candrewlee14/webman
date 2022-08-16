@@ -39,6 +39,7 @@ func main() {
 		return
 	}
 
+	fmt.Println("Getting latest webman release...")
 	resp, err := http.Get(latestURL)
 	if err != nil {
 		fmt.Printf("could not get latest release: %v\n", err)
@@ -64,6 +65,7 @@ func main() {
 	}()
 
 	downloadURL := fmt.Sprintf("https://github.com/candrewlee14/webman/releases/download/%s/webman_%s_%s_%s.%s", release.Tag, strings.TrimPrefix(release.Tag, "v"), runtime.GOOS, arch, ext)
+	fmt.Printf("Downloading %s ...\n", downloadURL)
 	dl, err := http.Get(downloadURL)
 	if err != nil {
 		fmt.Printf("could not download latest release: %v\n", err)
@@ -77,6 +79,7 @@ func main() {
 		fmt.Printf("could not create temp archive: %v\n", err)
 		return
 	}
+	defer tmpArchive.Close()
 	if _, err := io.Copy(tmpArchive, dl.Body); err != nil {
 		fmt.Printf("could not copy download into temp archive: %v\n", err)
 		return
@@ -93,6 +96,7 @@ func main() {
 	}
 	binPath := filepath.Join(tmp, "webman"+binExt)
 
+	fmt.Println("Installing webman...")
 	cmd := exec.Command(binPath, "add", "webman", "--switch")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
