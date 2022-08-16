@@ -34,6 +34,11 @@ curl https://raw.githubusercontent.com/candrewlee14/webman/main/scripts/install.
 Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/candrewlee14/webman/main/scripts/install.ps1')
 ```
 
+#### Go
+```bash
+go run github.com/candrewlee14/webman/scripts@latest
+```
+
 > NOTE: Never blindly run a shell script from the internet. Please check the source [shell](scripts/install.sh) or [powershell](scripts/install.ps1) file.
 Alternatively, download the [latest release](/releases/latest) manually.
 
