@@ -46,6 +46,39 @@ type PkgRepo struct {
 	GiteaURL string `yaml:"gitea_url"`
 }
 
+// Validate checks if a PkgRepo is valid
+func (p PkgRepo) Validate() (bool, error) {
+	var url string
+	switch p.Type {
+	case PkgRepoTypeGitHub:
+		url = fmt.Sprintf("https://api.github.com/repos/%s/%s/contents/pkgs?ref=%s", p.User, p.Repo, p.Branch)
+	case PkgRepoTypeGitea:
+		url = fmt.Sprintf("%s/api/v1/repos/%s/%s/contents/pkgs?ref=%s", p.GiteaURL, p.User, p.Repo, p.Branch)
+	default:
+		return false, errors.New("unknown package repository type")
+	}
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return false, err
+	}
+	defer resp.Body.Close()
+
+	switch resp.StatusCode {
+	case http.StatusOK:
+		return true, nil
+	case http.StatusNotFound:
+		return false, nil
+	default:
+		var errMsg string
+		b, err := io.ReadAll(resp.Body)
+		if err == nil {
+			errMsg = string(b)
+		}
+		return false, fmt.Errorf("unexpected status %s: %s", resp.Status, errMsg)
+	}
+}
+
 // Path is the filepath to a given PkgRepo
 func (p PkgRepo) Path() string {
 	return filepath.Join(utils.WebmanRecipeDir, p.Name)
