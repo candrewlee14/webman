@@ -170,7 +170,12 @@ func InstallPkg(pkgRepos []*config.PkgRepo, arg string, argIndex int, argCount i
 			ml.Printf(argIndex, color.RedString("%v", err))
 			return false
 		}
-		madeLinks, err := link.CreateLinks(pkg, ver, binPaths)
+		renames, err := pkgConf.GetRenames()
+		if err != nil {
+			ml.Printf(argIndex, color.RedString("Failed creating links: %v", err))
+			return false
+		}
+		madeLinks, err := link.CreateLinks(pkg, ver, binPaths, renames)
 		if err != nil {
 			cleanUpFailedInstall(pkg, extractPath)
 			ml.Printf(argIndex, color.RedString("Failed creating links: %v", err))

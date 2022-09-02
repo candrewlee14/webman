@@ -88,13 +88,17 @@ The "bintest" tests that binary paths given in a package recipe have valid binar
 				wg.Add(1)
 				pairResults[osPairStr] = add.InstallPkg(cfg.PkgRepos, pkg+"@"+*latestVer, 0, 1, &wg, &ml)
 
-				binPaths, err := pkgConf.GetMyBinPaths()
+				relbinPaths, err := pkgConf.GetMyBinPaths()
 				if err != nil {
 					color.Red("Error getting bin paths: %v", err)
 					pairResults[osPairStr] = false
 					continue
 				}
-				binPaths, _, err = link.GetBinPathsAndLinkPaths(pkg, *latestVer, binPaths)
+				renames, err := pkgConf.GetRenames()
+				if err != nil {
+					return err
+				}
+				binPaths, _, err := link.GetBinPathsAndLinkPaths(pkg, *latestVer, relbinPaths, renames)
 				if err != nil {
 					color.Red("Error getting bin paths and link paths: %v", err)
 					pairResults[osPairStr] = false

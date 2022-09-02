@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"github.com/candrewlee14/webman/pkgparse"
 	"github.com/candrewlee14/webman/utils"
@@ -16,6 +17,7 @@ func GetBinPathsAndLinkPaths(
 	pkg string,
 	ver string,
 	confBinPaths []string,
+	renames []pkgparse.RenameItem,
 ) ([]string, []string, error) {
 	var binPaths []string
 	var linkPaths []string
@@ -29,7 +31,7 @@ func GetBinPathsAndLinkPaths(
 		fileInfo, err := os.Stat(binPath)
 		// If config binary path points to a file
 		if err == nil && !fileInfo.IsDir() {
-			linkPath := GetLinkPathIfExec(binPath)
+			linkPath := GetLinkPathIfExec(binPath, renames)
 			if linkPath != nil {
 				binPaths = append(binPaths, binPath)
 				linkPaths = append(linkPaths, *linkPath)
@@ -43,7 +45,7 @@ func GetBinPathsAndLinkPaths(
 			for _, entry := range binDirEntries {
 				if !entry.Type().IsDir() {
 					binPath := filepath.Join(binDir, entry.Name())
-					linkPath := GetLinkPathIfExec(binPath)
+					linkPath := GetLinkPathIfExec(binPath, renames)
 					if linkPath != nil {
 						binPaths = append(binPaths, binPath)
 						linkPaths = append(linkPaths, *linkPath)
@@ -61,9 +63,12 @@ func GetBinPathsAndLinkPaths(
 
 // Returns a link path to ~/.webman/bin/foo
 // This is system-agnostic, it will always be that format
-func GetLinkPathIfExec(binPath string) *string {
+func GetLinkPathIfExec(binPath string, renames []pkgparse.RenameItem) *string {
 	binFile := filepath.Base(binPath)
 	binName := binFile[:len(binFile)-len(filepath.Ext(binFile))]
+	for _, r := range renames {
+		binName = strings.ReplaceAll(binName, r.From, r.To)
+	}
 	linkPath := filepath.Join(utils.WebmanBinDir, binName)
 	if utils.GOOS == "windows" {
 		switch filepath.Ext(binPath) {
@@ -115,8 +120,8 @@ func AddLink(old string, new string) (bool, error) {
 	return true, nil
 }
 
-func CreateLinks(pkg string, ver string, confBinPaths []string) (bool, error) {
-	binPaths, linkPaths, err := GetBinPathsAndLinkPaths(pkg, ver, confBinPaths)
+func CreateLinks(pkg string, ver string, confBinPaths []string, renames []pkgparse.RenameItem) (bool, error) {
+	binPaths, linkPaths, err := GetBinPathsAndLinkPaths(pkg, ver, confBinPaths, renames)
 	if err != nil {
 		return false, err
 	}

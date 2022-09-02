@@ -19,6 +19,11 @@ type UsingInfo struct {
 	Using string
 }
 
+type RenameItem struct {
+	From string `yaml:"from"`
+	To   string `yaml:"to"`
+}
+
 type OsInfo struct {
 	Name                   string        `yaml:"name"`
 	Ext                    string        `yaml:"ext"`
@@ -26,6 +31,7 @@ type OsInfo struct {
 	ExtractHasRoot         bool          `yaml:"extract_has_root"`
 	IsRawBinary            bool          `yaml:"is_raw_binary"`
 	FilenameFormatOverride string        `yaml:"filename_format_override"`
+	Renames                []RenameItem  `yaml:"renames"`
 }
 
 type OsArchPair struct {
@@ -101,6 +107,18 @@ func (pkgConf *PkgConfig) GetMyBinPaths() ([]string, error) {
 		osInfo.BinPaths = SingleOrMulti{[]string{""}}
 	}
 	return osInfo.BinPaths.Values, nil
+}
+
+func (pkgConf *PkgConfig) GetRenames() ([]RenameItem, error) {
+	osStr, exists := GOOStoPkgOs[utils.GOOS]
+	if !exists {
+		return []RenameItem{}, fmt.Errorf("unsupported OS")
+	}
+	osInfo, exists := pkgConf.OsMap[osStr]
+	if !exists {
+		return []RenameItem{}, fmt.Errorf("package does not support this OS")
+	}
+	return osInfo.Renames, nil
 }
 
 // Check using file.

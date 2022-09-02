@@ -108,12 +108,16 @@ func UninstallBins(pkg string, pkgConf *pkgparse.PkgConfig) error {
 		return nil
 	}
 	pkgVerStem := *using
-	binPaths, err := pkgConf.GetMyBinPaths()
+	relbinPaths, err := pkgConf.GetMyBinPaths()
 	if err != nil {
 		return err
 	}
 	_, ver := utils.ParseStem(pkgVerStem)
-	_, linkPaths, err := link.GetBinPathsAndLinkPaths(pkg, ver, binPaths)
+	renames, err := pkgConf.GetRenames()
+	if err != nil {
+		return err
+	}
+	_, linkPaths, err := link.GetBinPathsAndLinkPaths(pkg, ver, relbinPaths, renames)
 	if err != nil {
 		return err
 	}

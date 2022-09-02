@@ -78,12 +78,16 @@ webman switch rg`,
 				return fmt.Errorf("Prompt failed %v\n", err)
 			}
 		}
-		binPaths, err := pkgConf.GetMyBinPaths()
+		relbinPaths, err := pkgConf.GetMyBinPaths()
 		if err != nil {
 			return err
 		}
 		_, ver := utils.ParseStem(pkgVerStem)
-		madeLinks, err := link.CreateLinks(pkg, ver, binPaths)
+		renames, err := pkgConf.GetRenames()
+		if err != nil {
+			return err
+		}
+		madeLinks, err := link.CreateLinks(pkg, ver, relbinPaths, renames)
 		if err != nil {
 			return err
 		}
