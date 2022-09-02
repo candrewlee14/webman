@@ -20,11 +20,12 @@ type UsingInfo struct {
 }
 
 type OsInfo struct {
-	Name           string        `yaml:"name"`
-	Ext            string        `yaml:"ext"`
-	BinPaths       SingleOrMulti `yaml:"bin_path"`
-	ExtractHasRoot bool          `yaml:"extract_has_root"`
-	IsRawBinary    bool          `yaml:"is_raw_binary"`
+	Name                   string        `yaml:"name"`
+	Ext                    string        `yaml:"ext"`
+	BinPaths               SingleOrMulti `yaml:"bin_path"`
+	ExtractHasRoot         bool          `yaml:"extract_has_root"`
+	IsRawBinary            bool          `yaml:"is_raw_binary"`
+	FilenameFormatOverride string        `yaml:"filename_format_override"`
 }
 
 type OsArchPair struct {
@@ -254,6 +255,9 @@ func (pkgConf *PkgConfig) GetAssetStemExtUrl(version string) (*string, *string, 
 	baseUrl = strings.ReplaceAll(baseUrl, "[EXT]", osInf.Ext)
 
 	fileStem := pkgConf.FilenameFormat
+	if osInf.FilenameFormatOverride != "" {
+		fileStem = osInf.FilenameFormatOverride
+	}
 	fileStem = strings.ReplaceAll(fileStem, "[VER]", version)
 	fileStem = strings.ReplaceAll(fileStem, "[OS]", osInf.Name)
 	fileStem = strings.ReplaceAll(fileStem, "[ARCH]", archStr)

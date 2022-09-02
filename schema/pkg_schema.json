@@ -260,6 +260,10 @@
         "is_raw_binary": {
           "description": "Download is a raw binary",
           "type": "boolean"
+        },
+        "filename_format_override": {
+          "description": "Override for the global filename format",
+          "type": "string"
         }
       }
     }
