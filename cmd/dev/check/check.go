@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/candrewlee14/webman/pkgparse"
 	"github.com/candrewlee14/webman/schema"
 	"github.com/candrewlee14/webman/utils"
 
@@ -64,9 +65,47 @@ The "check" subcommand checks that all recipes in a directory are valid.`,
 				return fmt.Errorf("Not all packages are valid!")
 			}
 			color.Green("All packages are valid!")
+
+			groups, err := os.ReadDir(filepath.Join(recipeDir, "groups"))
+			if err != nil {
+				return err
+			}
+			var wg2 sync.WaitGroup
+			success = true
+			wg2.Add(len(groups))
+			for _, groupEntry := range groups {
+				groupEntry := groupEntry
+				go func() {
+					recipeName := groupEntry.Name()
+					group := strings.ReplaceAll(recipeName, utils.GroupRecipeExt, "")
+					if err := CheckGroup(group); err != nil {
+						color.Red("%s: %s", color.MagentaString(group), color.RedString("%v", err))
+						success = false
+					}
+					wg2.Done()
+				}()
+			}
+			wg2.Wait()
+			if !success {
+				return fmt.Errorf("Not all groups are valid!")
+			}
+			color.Green("All groups are valid!")
 			return nil
 		}
 	},
+}
+
+func CheckGroup(group string) error {
+	groupConf := pkgparse.ParseGroupConfig(group)
+	if groupConf == nil {
+		return fmt.Errorf("no group file found for %s", group)
+	}
+	for _, pkg := range groupConf.Packages {
+		if err := CheckPkgConfig(pkg); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func CheckPkgConfig(pkg string) error {
