@@ -7,6 +7,7 @@ require (
 	github.com/fatih/color v1.13.0
 	github.com/ivanpirog/coloredcobra v1.0.1
 	github.com/ktr0731/go-fuzzyfinder v0.6.0
+	github.com/matryer/is v1.4.0
 	github.com/mattn/go-isatty v0.0.14
 	github.com/mholt/archiver/v3 v3.5.1
 	github.com/schollz/progressbar/v3 v3.8.6
