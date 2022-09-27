@@ -34,7 +34,7 @@ func GetBinPathsAndLinkPaths(
 			linkPath := GetLinkPathIfExec(binPath, renames)
 			if linkPath != nil {
 				binPaths = append(binPaths, binPath)
-				linkPaths = append(linkPaths, *linkPath)
+				linkPaths = append(linkPaths, *linkPath+binExt)
 			}
 		} else {
 			binDir := filepath.Join(utils.WebmanPkgDir, pkg, stem, confBinPath)
@@ -48,7 +48,7 @@ func GetBinPathsAndLinkPaths(
 					linkPath := GetLinkPathIfExec(binPath, renames)
 					if linkPath != nil {
 						binPaths = append(binPaths, binPath)
-						linkPaths = append(linkPaths, *linkPath)
+						linkPaths = append(linkPaths, *linkPath+binExt)
 					}
 				}
 			}
