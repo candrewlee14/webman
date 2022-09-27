@@ -70,13 +70,23 @@ func GetLinkPathIfExec(binPath string, renames []pkgparse.RenameItem) *string {
 		binName = strings.ReplaceAll(binName, r.From, r.To)
 	}
 	linkPath := filepath.Join(utils.WebmanBinDir, binName)
-	fi, err := os.Stat(binPath)
-	if err != nil {
-		return nil
-	}
-	// If not executable
-	if !(fi.Mode()&0o111 != 0) && runtime.GOOS != "windows" {
-		return nil
+	if utils.GOOS == "windows" {
+		switch filepath.Ext(binPath) {
+		case ".bat", ".exe", ".cmd":
+			break
+		// if not an executable filetype
+		default:
+			return nil
+		}
+	} else {
+		fi, err := os.Stat(binPath)
+		if err != nil {
+			return nil
+		}
+		// If not executable
+		if !(fi.Mode()&0o111 != 0) && runtime.GOOS != "windows" {
+			return nil
+		}
 	}
 	return &linkPath
 }
