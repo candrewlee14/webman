@@ -23,8 +23,12 @@
       "description": "Package description",
       "type": "string"
     },
-    "note": {
+    "install_note": {
       "description": "Installation notes for this package",
+      "type": "string"
+    },
+    "remove_note": {
+      "description": "Removal notes for this package",
       "type": "string"
     },
     "info_url": {
@@ -286,8 +290,12 @@
 
           }
         },
-        "note": {
+        "install_note": {
           "description": "Installation notes for this OS",
+          "type": "string"
+        },
+        "remove_note": {
+          "description": "Removal notes for this OS",
           "type": "string"
         }
       }

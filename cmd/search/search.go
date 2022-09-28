@@ -110,18 +110,7 @@ The "search" subcommand starts an interactive window to find and display info ab
 		if pkg == nil {
 			return errors.New("failed to install pkg")
 		}
-		pkgOS := pkgparse.GOOStoPkgOs[utils.GOOS]
-		note := pkg.Note
-		osNote := pkg.OsMap[pkgOS].Note
-		if note != "" || osNote != "" {
-			color.Blue("== %s", pkg.Title)
-		}
-		if note != "" {
-			color.Yellow(note)
-		}
-		if osNote != "" {
-			color.Yellow(osNote)
-		}
+		fmt.Print(pkg.InstallNotes())
 		return nil
 	},
 }

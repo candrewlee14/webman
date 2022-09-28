@@ -8,10 +8,11 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-
+	
 	"github.com/candrewlee14/webman/config"
 	"github.com/candrewlee14/webman/utils"
 
+	"github.com/fatih/color"
 	"gopkg.in/yaml.v3"
 )
 
@@ -32,7 +33,8 @@ type OsInfo struct {
 	IsRawBinary            bool          `yaml:"is_raw_binary"`
 	FilenameFormatOverride string        `yaml:"filename_format_override"`
 	Renames                []RenameItem  `yaml:"renames"`
-	Note                   string        `yaml:"note"`
+	InstallNote            string        `yaml:"install_note"`
+	RemoveNote             string        `yaml:"remove_note"`
 }
 
 type OsArchPair struct {
@@ -41,10 +43,11 @@ type OsArchPair struct {
 }
 
 type PkgConfig struct {
-	Title   string `yaml:"-"`
-	Tagline string
-	About   string
-	Note    string
+	Title       string `yaml:"-"`
+	Tagline     string `yaml:"tagline"`
+	About       string `yaml:"about"`
+	InstallNote string `yaml:"install_note"`
+	RemoveNote  string `yaml:"remove_note"`
 
 	InfoUrl         string `yaml:"info_url"`
 	ReleasesUrl     string `yaml:"releases_url"`
@@ -64,6 +67,42 @@ type PkgConfig struct {
 	OsMap   map[string]OsInfo `yaml:"os_map"`
 	ArchMap map[string]string `yaml:"arch_map"`
 	Ignore  []OsArchPair      `yaml:"ignore"`
+}
+
+func (pkgConf *PkgConfig) InstallNotes() string {
+	var installNotes string
+
+	pkgOS := GOOStoPkgOs[utils.GOOS]
+	note := pkgConf.InstallNote
+	osNote := pkgConf.OsMap[pkgOS].InstallNote
+	if note != "" || osNote != "" {
+		installNotes += color.BlueString("== %s\n", pkgConf.Title)
+	}
+	if note != "" {
+		installNotes += color.YellowString(note) + "\n"
+	}
+	if osNote != "" {
+		installNotes += color.YellowString(osNote) + "\n"
+	}
+	return installNotes
+}
+
+func (pkgConf *PkgConfig) RemoveNotes() string {
+	var removeNotes string
+
+	pkgOS := GOOStoPkgOs[utils.GOOS]
+	note := pkgConf.RemoveNote
+	osNote := pkgConf.OsMap[pkgOS].RemoveNote
+	if note != "" || osNote != "" {
+		removeNotes += color.BlueString("== %s\n", pkgConf.Title)
+	}
+	if note != "" {
+		removeNotes += color.YellowString(note) + "\n"
+	}
+	if osNote != "" {
+		removeNotes += color.YellowString(osNote) + "\n"
+	}
+	return removeNotes
 }
 
 var GOOStoPkgOs = map[string]string{

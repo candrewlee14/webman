@@ -12,7 +12,6 @@ import (
 
 	"github.com/candrewlee14/webman/config"
 	"github.com/candrewlee14/webman/multiline"
-	"github.com/candrewlee14/webman/pkgparse"
 	"github.com/candrewlee14/webman/utils"
 
 	"github.com/fatih/color"
@@ -61,20 +60,9 @@ webman add go@18.0.0 zig@9.1.0 rg@13.0.0`,
 				}
 			}
 		}
-		pkgOS := pkgparse.GOOStoPkgOs[utils.GOOS]
 		pkgs := InstallAllPkgs(cfg.PkgRepos, args)
 		for _, pkg := range pkgs {
-			note := pkg.Note
-			osNote := pkg.OsMap[pkgOS].Note
-			if note != "" || osNote != "" {
-				color.Blue("== %s", pkg.Title)
-			}
-			if note != "" {
-				color.Yellow(note)
-			}
-			if osNote != "" {
-				color.Yellow(osNote)
-			}
+			fmt.Print(pkg.InstallNotes())
 		}
 		if len(args) != len(pkgs) {
 			return errors.New("Not all packages installed successfully")
