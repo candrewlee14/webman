@@ -73,10 +73,19 @@ The "search" subcommand starts an interactive window to find and display info ab
 			return pkgInfos[i].Title < pkgInfos[j].Title
 		})
 
+		installed := utils.InstalledPackages()
+		installedSet := make(map[string]struct{})
+		for _, i := range installed {
+			installedSet[i] = struct{}{}
+		}
 		idx, err := fuzzyfinder.Find(
 			pkgInfos,
 			func(i int) string {
-				return pkgInfos[i].Title + " - " + pkgInfos[i].Tagline
+				pre := "   "
+				if _, ok := installedSet[pkgInfos[i].Title]; ok {
+					pre = "✅  "
+				}
+				return pre + pkgInfos[i].Title + " - " + pkgInfos[i].Tagline
 			},
 			fuzzyfinder.WithPreviewWindow(func(i, w, h int) string {
 				if i == -1 {
