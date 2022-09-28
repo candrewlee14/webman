@@ -32,6 +32,7 @@ type OsInfo struct {
 	IsRawBinary            bool          `yaml:"is_raw_binary"`
 	FilenameFormatOverride string        `yaml:"filename_format_override"`
 	Renames                []RenameItem  `yaml:"renames"`
+	Note                   string        `yaml:"note"`
 }
 
 type OsArchPair struct {
@@ -40,9 +41,10 @@ type OsArchPair struct {
 }
 
 type PkgConfig struct {
-	Title   string
+	Title   string `yaml:"-"`
 	Tagline string
 	About   string
+	Note    string
 
 	InfoUrl         string `yaml:"info_url"`
 	ReleasesUrl     string `yaml:"releases_url"`
@@ -252,7 +254,7 @@ func ParseVersion(versionStr string, versionFmt string) (*string, error) {
 	return &matchedVer[1], nil
 }
 
-///
+// /
 func (pkgConf *PkgConfig) GetAssetStemExtUrl(version string) (*string, *string, *string, error) {
 	pkgOs, exists := GOOStoPkgOs[utils.GOOS]
 	if !exists {

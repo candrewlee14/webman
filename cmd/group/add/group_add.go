@@ -3,7 +3,6 @@ package add
 import (
 	"errors"
 	"fmt"
-	"os"
 
 	"github.com/candrewlee14/webman/cmd/add"
 	"github.com/candrewlee14/webman/config"
@@ -84,9 +83,23 @@ The "group add" subcommand installs a group of packages.
 		if len(pkgsToInstall) == 0 {
 			color.HiBlack("No packages selected for installation.")
 		} else {
-			if !add.InstallAllPkgs(cfg.PkgRepos, pkgsToInstall) {
-				color.Magenta("Not all packages installed successfully")
-				os.Exit(1)
+			pkgOS := pkgparse.GOOStoPkgOs[utils.GOOS]
+			pkgs := add.InstallAllPkgs(cfg.PkgRepos, pkgsToInstall)
+			for _, pkg := range pkgs {
+				note := pkg.Note
+				osNote := pkg.OsMap[pkgOS].Note
+				if note != "" || osNote != "" {
+					color.Blue("== %s", pkg.Title)
+				}
+				if note != "" {
+					color.Yellow(note)
+				}
+				if osNote != "" {
+					color.Yellow(osNote)
+				}
+			}
+			if len(pkgs) != len(pkgsToInstall) {
+				return errors.New("Not all packages installed successfully")
 			}
 			color.Green("All %d selected packages from group %s are installed", len(pkgsToInstall), color.YellowString(group))
 		}

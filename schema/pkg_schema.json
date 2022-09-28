@@ -23,6 +23,10 @@
       "description": "Package description",
       "type": "string"
     },
+    "note": {
+      "description": "Installation notes for this package",
+      "type": "string"
+    },
     "info_url": {
       "description": "URL for information/documentation",
       "type": "string"
@@ -281,6 +285,10 @@
             }
 
           }
+        },
+        "note": {
+          "description": "Installation notes for this OS",
+          "type": "string"
         }
       }
     }
