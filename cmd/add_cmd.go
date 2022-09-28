@@ -4,6 +4,7 @@ import (
 	"github.com/candrewlee14/webman/cmd/add"
 	"github.com/candrewlee14/webman/cmd/config"
 	"github.com/candrewlee14/webman/cmd/dev"
+	"github.com/candrewlee14/webman/cmd/doctor"
 	"github.com/candrewlee14/webman/cmd/group"
 	"github.com/candrewlee14/webman/cmd/remove"
 	"github.com/candrewlee14/webman/cmd/run"
@@ -16,6 +17,7 @@ func init() {
 	rootCmd.AddCommand(add.AddCmd)
 	rootCmd.AddCommand(config.ConfigCmd)
 	rootCmd.AddCommand(dev.DevCmd)
+	rootCmd.AddCommand(doctor.DoctorCmd)
 	rootCmd.AddCommand(remove.RemoveCmd)
 	rootCmd.AddCommand(run.RunCmd)
 	rootCmd.AddCommand(switchcmd.SwitchCmd)
