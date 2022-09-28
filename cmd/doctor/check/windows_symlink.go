@@ -1,8 +1,11 @@
 package check
 
 import (
+	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/candrewlee14/webman/config"
 	"github.com/candrewlee14/webman/link"
@@ -40,34 +43,54 @@ var WindowsSymlink = Check{
 			if err != nil {
 				return err
 			}
-			ver, err := pkgparse.CheckUsing(i.Name())
+			using, err := pkgparse.CheckUsing(i.Name())
 			if err != nil {
 				return err
 			}
+			parts := strings.Split(*using, "-")
+			ver := parts[len(parts)-1]
+
+			_, err = os.Lstat(filepath.Join(utils.WebmanBinDir, i.Name()+".exe"))
+			if err == nil {
+				continue
+			}
+			if err != nil {
+				if !errors.Is(err, fs.ErrNotExist) {
+					color.HiRed("could not lstat %q: %v", i.Name(), err)
+					continue
+				}
+			}
 
 			if !fix {
-				_, err := os.Stat(filepath.Join(utils.WebmanBinDir, i.Name()+".exe"))
-				if err != nil {
-					color.HiRed("could not find symlink for %q: %v", i.Name(), err)
-				}
-				color.HiGreen("symlink found for %s", i.Name())
+				color.HiRed("no symlink(s) found for %q", i.Name())
 				continue
 			}
 
-			if _, err := link.CreateLinks(i.Name(), *ver, binPaths, renames); err != nil {
+			color.HiGreen("creating symlink(s) for %s", i.Name())
+			if _, err := link.CreateLinks(i.Name(), ver, binPaths, renames); err != nil {
 				color.HiRed("could not create symlink(s) for %q: %v", i.Name(), err)
 			}
 		}
 
-		if fix {
-			bats, err := filepath.Glob(filepath.Join(utils.WebmanBinDir, "*.bat"))
-			if err != nil {
-				return err
-			}
-			for _, bat := range bats {
-				if err := os.Remove(bat); err != nil {
-					color.HiRed("could not remove batch file %q: %v", bat, err)
-				}
+		bats, err := filepath.Glob(filepath.Join(utils.WebmanBinDir, "*.bat"))
+		if err != nil {
+			return err
+		}
+
+		if len(bats) == 0 {
+			color.HiGreen("no batch files found")
+			return nil
+		}
+
+		if !fix {
+			color.HiRed("found %d batch file(s)", len(bats))
+			return nil
+		}
+
+		color.HiGreen("removing batch file(s)")
+		for _, bat := range bats {
+			if err := os.Remove(bat); err != nil {
+				color.HiRed("could not remove batch file %q: %v", bat, err)
 			}
 		}
 
