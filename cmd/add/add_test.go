@@ -1,6 +1,8 @@
 package add
 
 import (
+	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"testing"
@@ -31,5 +33,5 @@ func TestAdd(t *testing.T) {
 	assert.NoErr(err) // rg binary should exist
 
 	_, err = os.Stat(filepath.Join(utils.WebmanBinDir, "bat"))
-	assert.True(err != nil) // bat binary should not exist
+	assert.True(errors.Is(err, fs.ErrNotExist)) // bat binary should not exist
 }

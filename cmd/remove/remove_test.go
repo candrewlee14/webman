@@ -1,6 +1,8 @@
 package remove
 
 import (
+	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"testing"
@@ -32,5 +34,8 @@ func TestRemove(t *testing.T) {
 	assert.NoErr(err) // Command should execute
 
 	_, err = os.Stat(filepath.Join(utils.WebmanBinDir, "jq"))
-	assert.True(err != nil) // jq binary should no longer exist
+	assert.True(errors.Is(err, fs.ErrNotExist)) // jq binary should not exist
+
+	_, err = os.Stat(filepath.Join(utils.WebmanPkgDir, "jq"))
+	assert.True(errors.Is(err, fs.ErrNotExist)) // jq pkg should not exist
 }
