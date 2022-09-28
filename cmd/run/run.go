@@ -145,7 +145,11 @@ func runPackage(args []string) error {
 			}
 		}
 		if pkgBinFileInfo.IsDir() { // dir
-			pkgBinDirOrFile = filepath.Join(pkgBinDirOrFile, binName)
+			var binExt string
+			if utils.GOOS == "windows" {
+				binExt = ".exe"
+			}
+			pkgBinDirOrFile = filepath.Join(pkgBinDirOrFile, binName+binExt)
 			if _, err = os.Stat(pkgBinDirOrFile); err != nil {
 				if !os.IsNotExist(err) {
 					return fmt.Errorf("Error when accessing binary: %v\n", err)
