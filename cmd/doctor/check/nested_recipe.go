@@ -29,7 +29,7 @@ var NestedRecipe = Check{
 		}
 
 		// As of https://github.com/candrewlee14/webman-pkgs/tree/9eda7908a9f25398c1c693e4ec7dc7a727eddf71
-		remove := []string{".github", "groups", "pkgs", ".mega-linter.yml", ".pre-commit-config.yaml", "LICENSE", "README.md", "full-bintest.sh"}
+		remove := []string{".github", "groups", "pkgs", ".mega-linter.yml", ".pre-commit-config.yaml", "LICENSE", "README.md", "full-bintest.sh", "refresh.yaml"}
 		for _, r := range remove {
 			if err := os.RemoveAll(filepath.Join(utils.WebmanRecipeDir, r)); err != nil {
 				color.HiRed("could not remove %q: %v", r, err)
