@@ -83,7 +83,7 @@ The "search" subcommand starts an interactive window to find and display info ab
 			func(i int) string {
 				pre := "   "
 				if _, ok := installedSet[pkgInfos[i].Title]; ok {
-					pre = "✅  "
+					pre = "✅ "
 				}
 				return pre + pkgInfos[i].Title + " - " + pkgInfos[i].Tagline
 			},
