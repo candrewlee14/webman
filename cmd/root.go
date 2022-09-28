@@ -81,6 +81,10 @@ func Execute() {
 }
 
 func init() {
-	utils.Init()
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		panic(err)
+	}
+	utils.Init(homeDir)
 	rootCmd.PersistentFlags().StringVarP(&utils.RecipeDirFlag, "local-recipes", "l", "", "use given local recipe directory")
 }

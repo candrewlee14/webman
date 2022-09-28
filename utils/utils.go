@@ -28,11 +28,7 @@ var (
 	UsingFileName   = "using.yaml"
 )
 
-func Init() {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		panic(err)
-	}
+func Init(homeDir string) {
 	WebmanDir = filepath.Join(homeDir, ".webman")
 	WebmanConfig = filepath.Join(WebmanDir, "config.yaml")
 	WebmanPkgDir = filepath.Join(WebmanDir, "pkg")
@@ -42,13 +38,13 @@ func Init() {
 	GOOS = runtime.GOOS
 	GOARCH = runtime.GOARCH
 
-	if err = os.MkdirAll(WebmanBinDir, os.ModePerm); err != nil {
+	if err := os.MkdirAll(WebmanBinDir, os.ModePerm); err != nil {
 		panic(err)
 	}
-	if err = os.MkdirAll(WebmanPkgDir, os.ModePerm); err != nil {
+	if err := os.MkdirAll(WebmanPkgDir, os.ModePerm); err != nil {
 		panic(err)
 	}
-	if err = os.MkdirAll(WebmanTmpDir, os.ModePerm); err != nil {
+	if err := os.MkdirAll(WebmanTmpDir, os.ModePerm); err != nil {
 		panic(err)
 	}
 	if RecipeDirFlag != "" {
@@ -59,6 +55,9 @@ func Init() {
 		}
 		color.Magenta("Using local recipe directory: %s", color.HiBlackString(recipeDir))
 		WebmanRecipeDir = recipeDir
+	}
+	if err := os.MkdirAll(WebmanRecipeDir, os.ModePerm); err != nil {
+		panic(err)
 	}
 	if !isatty.IsTerminal(os.Stdout.Fd()) {
 		multiline.ClearLine = []byte{}
