@@ -60,6 +60,7 @@ The "group remove" subcommand removes a group of packages.
 				return err
 			}
 			if removed {
+				fmt.Print(pkgConf.RemoveNotes())
 				fmt.Println("Removed", color.CyanString(pkg))
 			} else {
 				color.HiBlack("%s was not previously installed", pkg)

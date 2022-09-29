@@ -93,6 +93,7 @@ webman remove rg`,
 				}
 			}
 		}
+		fmt.Print(pkgConf.RemoveNotes())
 		fmt.Printf("All %d selected packages are uninstalled.\n", len(pkgVerStems))
 		return nil
 	},

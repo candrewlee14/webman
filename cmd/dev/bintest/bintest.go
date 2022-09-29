@@ -44,7 +44,7 @@ The "bintest" tests that binary paths given in a package recipe have valid binar
 			return err
 		}
 		pkg := args[0]
-		var pairResults map[string]bool = map[string]bool{}
+		pairResults := make(map[string]bool)
 		if err := check.CheckPkgConfig(pkg); err != nil {
 			color.Red("Pkg Config Error: %v", err)
 		}
@@ -86,7 +86,7 @@ The "bintest" tests that binary paths given in a package recipe have valid binar
 				var wg sync.WaitGroup
 				ml := multiline.New(len(args), os.Stdout)
 				wg.Add(1)
-				pairResults[osPairStr] = add.InstallPkg(cfg.PkgRepos, pkg+"@"+*latestVer, 0, 1, &wg, &ml)
+				pairResults[osPairStr] = add.InstallPkg(cfg.PkgRepos, pkg+"@"+*latestVer, 0, 1, &wg, &ml) != nil
 
 				relbinPaths, err := pkgConf.GetMyBinPaths()
 				if err != nil {
