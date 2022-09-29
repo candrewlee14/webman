@@ -73,10 +73,19 @@ The "search" subcommand starts an interactive window to find and display info ab
 			return pkgInfos[i].Title < pkgInfos[j].Title
 		})
 
+		installed := utils.InstalledPackages()
+		installedSet := make(map[string]struct{})
+		for _, i := range installed {
+			installedSet[i] = struct{}{}
+		}
 		idx, err := fuzzyfinder.Find(
 			pkgInfos,
 			func(i int) string {
-				return pkgInfos[i].Title + " - " + pkgInfos[i].Tagline
+				pre := "   "
+				if _, ok := installedSet[pkgInfos[i].Title]; ok {
+					pre = "✅ "
+				}
+				return pre + pkgInfos[i].Title + " - " + pkgInfos[i].Tagline
 			},
 			fuzzyfinder.WithPreviewWindow(func(i, w, h int) string {
 				if i == -1 {
@@ -94,9 +103,9 @@ The "search" subcommand starts an interactive window to find and display info ab
 			color.HiBlack("No package selected.")
 			return nil
 		}
-		pkg := pkgInfos[idx].Title
+		pkgName := pkgInfos[idx].Title
 		prompt := &survey.Confirm{
-			Message: "Would you like to install the latest version of " + color.CyanString(pkg) + "?",
+			Message: "Would you like to install the latest version of " + color.CyanString(pkgName) + "?",
 		}
 		shouldInstall := false
 		if err := survey.AskOne(prompt, &shouldInstall); err != nil || !shouldInstall {
@@ -106,9 +115,11 @@ The "search" subcommand starts an interactive window to find and display info ab
 		var wg sync.WaitGroup
 		ml := multiline.New(1, os.Stdout)
 		wg.Add(1)
-		if !add.InstallPkg(cfg.PkgRepos, pkg, 0, 1, &wg, &ml) {
+		pkg := add.InstallPkg(cfg.PkgRepos, pkgName, 0, 1, &wg, &ml)
+		if pkg == nil {
 			return errors.New("failed to install pkg")
 		}
+		fmt.Print(pkg.InstallNotes())
 		return nil
 	},
 }

@@ -60,7 +60,11 @@ webman add go@18.0.0 zig@9.1.0 rg@13.0.0`,
 				}
 			}
 		}
-		if !InstallAllPkgs(cfg.PkgRepos, args) {
+		pkgs := InstallAllPkgs(cfg.PkgRepos, args)
+		for _, pkg := range pkgs {
+			fmt.Print(pkg.InstallNotes())
+		}
+		if len(args) != len(pkgs) {
 			return errors.New("Not all packages installed successfully")
 		}
 		color.Green("All %d packages are installed!", len(args))

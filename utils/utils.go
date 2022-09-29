@@ -89,3 +89,16 @@ func ParseStem(pkgVerStem string) (string, string) {
 	pkg, ver, _ := strings.Cut(pkgVerStem, "-")
 	return pkg, ver
 }
+
+// InstalledPackages returns a list of currently installed packages, as per the webman pkgs directory
+func InstalledPackages() []string {
+	var pkgs []string
+	entries, err := os.ReadDir(WebmanPkgDir)
+	if err != nil {
+		return nil
+	}
+	for _, entry := range entries {
+		pkgs = append(pkgs, entry.Name())
+	}
+	return pkgs
+}
