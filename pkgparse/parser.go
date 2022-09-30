@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-	
+
 	"github.com/candrewlee14/webman/config"
 	"github.com/candrewlee14/webman/utils"
 

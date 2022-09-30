@@ -1,6 +1,8 @@
 package version
 
 import (
+	"runtime/debug"
+
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
@@ -8,6 +10,7 @@ import (
 var (
 	Version = "dev"
 	Commit  = "none"
+	dirty   bool
 	Date    = "unknown"
 	BuiltBy = "unknown"
 )
@@ -27,7 +30,11 @@ The "version" subcommand displays the latest webman version.`,
 		if len(Commit) < 8 {
 			verLen = len(Commit)
 		}
-		color.Yellow("Commit %s", Commit[:verLen])
+		Commit = Commit[:verLen]
+		if dirty {
+			Commit += " (with changes)"
+		}
+		color.Yellow("Commit %s", Commit)
 		dateLen := 10
 		if len(Date) < 10 {
 			dateLen = len(Date)
@@ -36,4 +43,23 @@ The "version" subcommand displays the latest webman version.`,
 		color.HiBlack("Created by candrewlee14")
 		return nil
 	},
+}
+
+func init() {
+	if Version != "dev" {
+		return
+	}
+	info, ok := debug.ReadBuildInfo()
+	if ok {
+		for _, setting := range info.Settings {
+			switch setting.Key {
+			case "vcs.revision":
+				Commit = setting.Value
+			case "vcs.time":
+				Date = setting.Value
+			case "vcs.modified":
+				dirty = setting.Value == "true"
+			}
+		}
+	}
 }
