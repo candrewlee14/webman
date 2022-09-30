@@ -91,13 +91,22 @@ The "search" subcommand starts an interactive window to find and display info ab
 				if i == -1 {
 					return ""
 				}
-				return wrapText(fmt.Sprintf("%s: %s\n\n%s:\n %s\n\n%s:\n%s",
+				preview := fmt.Sprintf("%s: %s\n\n%s:\n %s\n\n%s:\n%s",
 					"📦 Title",
 					pkgInfos[i].Title,
 					"💾 Tagline",
 					pkgInfos[i].Tagline,
 					"📄 About",
-					pkgInfos[i].About), w)
+					pkgInfos[i].About,
+				)
+				notes := pkgInfos[i].InstallNotes()
+				if notes != "" {
+					preview += fmt.Sprintf("\n\n%s:\n %s",
+						"🗒 Notes",
+						pkgInfos[i].InstallNotes(),
+					)
+				}
+				return wrapText(preview, w)
 			}))
 		if err != nil {
 			color.HiBlack("No package selected.")
