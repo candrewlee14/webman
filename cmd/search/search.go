@@ -102,7 +102,7 @@ The "search" subcommand starts an interactive window to find and display info ab
 				notes := pkgInfos[i].InstallNotes()
 				if notes != "" {
 					preview += fmt.Sprintf("\n\n%s:\n %s",
-						"🗒 Notes",
+						"📝 Notes",
 						pkgInfos[i].InstallNotes(),
 					)
 				}
