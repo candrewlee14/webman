@@ -30,6 +30,8 @@ curl https://raw.githubusercontent.com/candrewlee14/webman/main/scripts/install.
 ```
 
 #### Windows Powershell
+Webman requires the ability to create symlinks!
+Make sure to [enable developer mode](https://learn.microsoft.com/en-us/windows/apps/get-started/enable-your-device-for-development) so that admin privileges aren't required.
 ```powershell
 Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/candrewlee14/webman/main/scripts/install.ps1')
 ```

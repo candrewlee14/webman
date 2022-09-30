@@ -293,7 +293,6 @@ func ParseVersion(versionStr string, versionFmt string) (*string, error) {
 	return &matchedVer[1], nil
 }
 
-// /
 func (pkgConf *PkgConfig) GetAssetStemExtUrl(version string) (*string, *string, *string, error) {
 	pkgOs, exists := GOOStoPkgOs[utils.GOOS]
 	if !exists {

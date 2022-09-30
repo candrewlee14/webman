@@ -34,7 +34,7 @@ func GetBinPathsAndLinkPaths(
 			linkPath := GetLinkPathIfExec(binPath, renames)
 			if linkPath != nil {
 				binPaths = append(binPaths, binPath)
-				linkPaths = append(linkPaths, *linkPath)
+				linkPaths = append(linkPaths, *linkPath+binExt)
 			}
 		} else {
 			binDir := filepath.Join(utils.WebmanPkgDir, pkg, stem, confBinPath)
@@ -48,7 +48,7 @@ func GetBinPathsAndLinkPaths(
 					linkPath := GetLinkPathIfExec(binPath, renames)
 					if linkPath != nil {
 						binPaths = append(binPaths, binPath)
-						linkPaths = append(linkPaths, *linkPath)
+						linkPaths = append(linkPaths, *linkPath+binExt)
 					}
 				}
 			}
@@ -92,30 +92,15 @@ func GetLinkPathIfExec(binPath string, renames []pkgparse.RenameItem) *string {
 }
 
 // Create a link to an old file at the new path
-// On windows, .bat will be appended to the new path to make a batch file
 func AddLink(old string, new string) (bool, error) {
-	if utils.GOOS == "windows" {
-		f, err := os.Create(new + ".bat")
-		if err != nil {
+	if err := os.Remove(new); err != nil {
+		// if the file did exist and it's a different error, return it
+		if !os.IsNotExist(err) {
 			return false, err
 		}
-		defer f.Close()
-		_, err = f.WriteString(
-			fmt.Sprintf("@echo off\n%s", old) + ` %*`,
-		)
-		if err != nil {
-			return false, err
-		}
-	} else {
-		if err := os.Remove(new); err != nil {
-			// if the file did exist and it's a different error, return it
-			if !os.IsNotExist(err) {
-				return false, err
-			}
-		}
-		if err := os.Symlink(old, new); err != nil {
-			return false, err
-		}
+	}
+	if err := os.Symlink(old, new); err != nil {
+		return false, err
 	}
 	return true, nil
 }

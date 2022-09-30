@@ -124,9 +124,6 @@ func UninstallBins(pkg string, pkgConf *pkgparse.PkgConfig) error {
 	}
 	fmt.Printf("Removing %s links ...\n", color.CyanString(pkg))
 	for _, linkPath := range linkPaths {
-		if utils.GOOS == "windows" {
-			linkPath = linkPath + ".bat"
-		}
 		err := os.Remove(linkPath)
 		if err != nil {
 			return err
