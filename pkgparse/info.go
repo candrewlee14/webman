@@ -13,9 +13,30 @@ import (
 )
 
 type PkgInfo struct {
-	Title   string
-	Tagline string
-	About   string
+	Title       string `yaml:"-"`
+	Tagline     string `yaml:"tagline"`
+	About       string `yaml:"about"`
+	InstallNote string `yaml:"install_note"`
+	RemoveNote  string `yaml:"remove_note"`
+	OsInfo      map[string]struct {
+		InstallNote string `yaml:"install_note"`
+		RemoveNote  string `yaml:"remove_note"`
+	} `yaml:"os_map"`
+}
+
+func (pkgInfo *PkgInfo) InstallNotes() string {
+	var installNotes string
+
+	pkgOS := GOOStoPkgOs[utils.GOOS]
+	note := pkgInfo.InstallNote
+	osNote := pkgInfo.OsInfo[pkgOS].InstallNote
+	if note != "" {
+		installNotes += note + "\n"
+	}
+	if osNote != "" {
+		installNotes += osNote + "\n"
+	}
+	return installNotes
 }
 
 func ParsePkgInfo(pkgRepo, pkg string) (*PkgInfo, error) {
