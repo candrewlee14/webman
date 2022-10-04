@@ -56,7 +56,7 @@ func ParsePkgInfo(pkgRepo, pkg string) (*PkgInfo, error) {
 	return &pkgInfo, nil
 }
 
-func ParseMultiPkgInfo(pkgs []string) ([]PkgInfo, error) {
+func ParseMultiPkgInfo(pkgRepoPath string, pkgs []string) ([]PkgInfo, error) {
 	var m sync.Mutex
 	pkgInfos := make([]PkgInfo, len(pkgs))
 	var eg errgroup.Group
@@ -64,7 +64,7 @@ func ParseMultiPkgInfo(pkgs []string) ([]PkgInfo, error) {
 		i := i
 		pkg := pkg
 		eg.Go(func() error {
-			pkgInfo, err := ParsePkgInfo("", pkg)
+			pkgInfo, err := ParsePkgInfo(pkgRepoPath, pkg)
 			if err != nil {
 				return nil
 			}

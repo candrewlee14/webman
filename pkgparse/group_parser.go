@@ -1,9 +1,14 @@
 package pkgparse
 
 import (
+	"errors"
+	"fmt"
+	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 
+	"github.com/candrewlee14/webman/config"
 	"github.com/candrewlee14/webman/utils"
 
 	"github.com/fatih/color"
@@ -19,29 +24,47 @@ type PkgGroupConfig struct {
 	Packages []string `yaml:"packages"`
 }
 
-func ParseGroupConfig(group string) *PkgGroupConfig {
-	groupPath := filepath.Join(utils.WebmanRecipeDir, "groups", group+utils.GroupRecipeExt)
-	if _, err := os.Stat(groupPath); err != nil {
-		if os.IsNotExist(err) {
-			color.Red("No package group named %s", color.YellowString(group))
-			os.Exit(1)
-		}
-		color.Red("Error accessing package group: %v", err)
-		os.Exit(1)
-	}
+func ParseGroupConfig(r io.Reader, name string) (*PkgGroupConfig, error) {
 	var groupConf PkgGroupConfig
-	data, err := os.ReadFile(groupPath)
+	data, err := io.ReadAll(r)
 	if err != nil {
-		color.Red("Failed to read package group file: %v", err)
-		os.Exit(1)
+		return nil, fmt.Errorf("failed to read package group file: %v", err)
 	}
 	if err = yaml.Unmarshal(data, &groupConf); err != nil {
-		color.Red("Invalid format for package group: %v", err)
-		os.Exit(1)
+		return nil, fmt.Errorf("invalid format for package group: %v", err)
 	}
 	if len(groupConf.Packages) == 0 {
-		color.Red("No packages in package group %s", color.YellowString(group))
-		os.Exit(1)
+		return nil, fmt.Errorf("no packages in package group %s", color.YellowString(name))
 	}
-	return &groupConf
+	return &groupConf, nil
+}
+
+func ParseGroupConfigLocal(pkgRepos []*config.PkgRepo, group string) (*PkgGroupConfig, string, error) {
+	var groupConfPath string
+	var repo string
+	for _, pkgRepo := range pkgRepos {
+		groupPath := filepath.Join(pkgRepo.Path(), "groups", group+utils.GroupRecipeExt)
+		_, err := os.Stat(groupPath)
+		if err != nil {
+			if !errors.Is(err, fs.ErrNotExist) {
+				return nil, "", err
+			}
+			continue
+		}
+		groupConfPath = groupPath
+		repo = pkgRepo.Path()
+		break
+	}
+	if groupConfPath == "" {
+		return nil, "", fmt.Errorf("no package group exists for %s", group)
+	}
+
+	fi, err := os.Open(groupConfPath)
+	if err != nil {
+		return nil, "", err
+	}
+	defer fi.Close()
+
+	groupCfg, err := ParseGroupConfig(fi, group)
+	return groupCfg, repo, err
 }
