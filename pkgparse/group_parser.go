@@ -39,29 +39,32 @@ func ParseGroupConfig(r io.Reader, name string) (*PkgGroupConfig, error) {
 	return &groupConf, nil
 }
 
-func ParseGroupConfigLocal(pkgRepos []*config.PkgRepo, group string) (*PkgGroupConfig, error) {
+func ParseGroupConfigLocal(pkgRepos []*config.PkgRepo, group string) (*PkgGroupConfig, string, error) {
 	var groupConfPath string
+	var repo string
 	for _, pkgRepo := range pkgRepos {
 		groupPath := filepath.Join(pkgRepo.Path(), "groups", group+utils.GroupRecipeExt)
 		_, err := os.Stat(groupPath)
 		if err != nil {
 			if !errors.Is(err, fs.ErrNotExist) {
-				return nil, err
+				return nil, "", err
 			}
 			continue
 		}
 		groupConfPath = groupPath
+		repo = pkgRepo.Path()
 		break
 	}
 	if groupConfPath == "" {
-		return nil, fmt.Errorf("no package group exists for %s", group)
+		return nil, "", fmt.Errorf("no package group exists for %s", group)
 	}
 
 	fi, err := os.Open(groupConfPath)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	defer fi.Close()
 
-	return ParseGroupConfig(fi, group)
+	groupCfg, err := ParseGroupConfig(fi, group)
+	return groupCfg, repo, err
 }
