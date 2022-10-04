@@ -55,7 +55,10 @@ The "group add" subcommand installs a group of packages.
 			}
 		}
 		group := args[0]
-		groupConf := pkgparse.ParseGroupConfig(group)
+		groupConf, err := pkgparse.ParseGroupConfigLocal(cfg.PkgRepos, group)
+		if err != nil {
+			return err
+		}
 
 		var pkgsToInstall []string
 		if allFlag {
