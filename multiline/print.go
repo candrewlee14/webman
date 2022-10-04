@@ -7,18 +7,26 @@ import (
 	"sync"
 	"time"
 
+	"github.com/candrewlee14/webman/colors"
 	"github.com/fatih/color"
 )
 
 const esc = "\033["
 
 var (
-	ClearLine  = []byte(esc + "2K\r")
-	MoveUp     = []byte(esc + "1F")
-	MoveDown   = []byte(esc + "1E")
-	ShowCursor = []byte(esc + "?25h")
-	HideCursor = []byte(esc + "?25l")
+	ClearLine  = cl(esc + "2K\r")
+	MoveUp     = cl(esc + "1F")
+	MoveDown   = cl(esc + "1E")
+	ShowCursor = cl(esc + "?25h")
+	HideCursor = cl(esc + "?25l")
 )
+
+func cl(s string) []byte {
+	if colors.Enabled() {
+		return []byte(s)
+	}
+	return []byte{}
+}
 
 type LineLogger struct {
 	index  int

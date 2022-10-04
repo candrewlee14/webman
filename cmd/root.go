@@ -25,12 +25,13 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/candrewlee14/webman/colors"
 	"github.com/candrewlee14/webman/multiline"
 	"github.com/candrewlee14/webman/utils"
+	"github.com/mattn/go-isatty"
 
 	"github.com/fatih/color"
 	cc "github.com/ivanpirog/coloredcobra"
-	"github.com/mattn/go-isatty"
 	"github.com/spf13/cobra"
 )
 
@@ -57,19 +58,23 @@ A cross-platform package manager for the web!
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
+	colorEnabled := colors.Enabled()
+	color.NoColor = !colorEnabled
 	ansiOn := isatty.IsTerminal(os.Stdout.Fd())
-	if ansiOn {
+	if ansiOn && colorEnabled {
 		fmt.Printf("%s", multiline.HideCursor)
 		defer fmt.Printf("%s", multiline.ShowCursor)
 	}
-	cc.Init(&cc.Config{
-		RootCmd:  rootCmd,
-		Headings: cc.HiCyan + cc.Bold + cc.Underline,
-		Commands: cc.HiYellow + cc.Bold,
-		Example:  cc.Italic,
-		ExecName: cc.Bold,
-		Flags:    cc.Bold,
-	})
+	if colorEnabled {
+		cc.Init(&cc.Config{
+			RootCmd:  rootCmd,
+			Headings: cc.HiCyan + cc.Bold + cc.Underline,
+			Commands: cc.HiYellow + cc.Bold,
+			Example:  cc.Italic,
+			ExecName: cc.Bold,
+			Flags:    cc.Bold,
+		})
+	}
 	err := rootCmd.Execute()
 	if err != nil {
 		color.HiRed("%v", err)
