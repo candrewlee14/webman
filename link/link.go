@@ -99,10 +99,7 @@ func AddLink(old string, new string) (bool, error) {
 			return false, err
 		}
 	}
-	if err := os.Symlink(old, new); err != nil {
-		return false, err
-	}
-	return true, nil
+	return symlink(old, new)
 }
 
 func CreateLinks(pkg string, ver string, confBinPaths []string, renames []pkgparse.RenameItem) (bool, error) {
