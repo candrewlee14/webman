@@ -32,7 +32,7 @@ The "group remove" subcommand removes a group of packages.
 		}
 
 		group := args[0]
-		groupConf, err := pkgparse.ParseGroupConfigLocal(cfg.PkgRepos, group)
+		groupConf, _, err := pkgparse.ParseGroupConfigLocal(cfg.PkgRepos, group)
 		if err != nil {
 			return err
 		}

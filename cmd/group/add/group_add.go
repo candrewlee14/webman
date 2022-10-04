@@ -55,7 +55,7 @@ The "group add" subcommand installs a group of packages.
 			}
 		}
 		group := args[0]
-		groupConf, err := pkgparse.ParseGroupConfigLocal(cfg.PkgRepos, group)
+		groupConf, repoPath, err := pkgparse.ParseGroupConfigLocal(cfg.PkgRepos, group)
 		if err != nil {
 			return err
 		}
@@ -64,7 +64,7 @@ The "group add" subcommand installs a group of packages.
 		if allFlag {
 			pkgsToInstall = groupConf.Packages
 		} else {
-			pkgInfos, err := pkgparse.ParseMultiPkgInfo(groupConf.Packages)
+			pkgInfos, err := pkgparse.ParseMultiPkgInfo(repoPath, groupConf.Packages)
 			if err != nil {
 				color.Red("failed to parse package info: %v", err)
 			}
