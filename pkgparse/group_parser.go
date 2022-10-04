@@ -16,11 +16,6 @@ import (
 )
 
 type PkgGroupConfig struct {
-	Title   string
-	Tagline string
-	About   string
-
-	InfoUrl  string   `yaml:"info_url"`
 	Packages []string `yaml:"packages"`
 }
 
@@ -67,4 +62,16 @@ func ParseGroupConfigLocal(pkgRepos []*config.PkgRepo, group string) (*PkgGroupC
 
 	groupCfg, err := ParseGroupConfig(fi, group)
 	return groupCfg, repo, err
+}
+
+func ParseGroupPackages(repoPath string, pkgs []string) ([]*PkgConfig, error) {
+	pkgConfigs := make([]*PkgConfig, 0, len(pkgs))
+	for _, pkg := range pkgs {
+		pkgConfig, err := ParsePkgConfigPath(repoPath, pkg)
+		if err != nil {
+			return nil, err
+		}
+		pkgConfigs = append(pkgConfigs, pkgConfig)
+	}
+	return pkgConfigs, nil
 }

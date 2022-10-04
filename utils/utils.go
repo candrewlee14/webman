@@ -86,8 +86,8 @@ func CreateStem(pkg string, ver string) string {
 }
 
 func ParseStem(pkgVerStem string) (string, string) {
-	pkg, ver, _ := strings.Cut(pkgVerStem, "-")
-	return pkg, ver
+	parts := strings.Split(pkgVerStem, "-")
+	return strings.Join(parts[:len(parts)-1], "-"), parts[len(parts)-1]
 }
 
 // InstalledPackages returns a list of currently installed packages, as per the webman pkgs directory

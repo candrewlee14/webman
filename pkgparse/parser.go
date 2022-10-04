@@ -17,15 +17,13 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type UsingInfo struct {
-	Using string
-}
-
+// RenameItem is for package renames when installing
 type RenameItem struct {
 	From string `yaml:"from"`
 	To   string `yaml:"to"`
 }
 
+// OsInfo is specific information for a package based on OS
 type OsInfo struct {
 	Name                   string        `yaml:"name"`
 	Ext                    string        `yaml:"ext"`
@@ -38,11 +36,13 @@ type OsInfo struct {
 	RemoveNote             string        `yaml:"remove_note"`
 }
 
+// OsArchPair is a mapping of OS to ARCH
 type OsArchPair struct {
 	Os   string `yaml:"os"`
 	Arch string `yaml:"arch"`
 }
 
+// PkgConfig is a package configuration
 type PkgConfig struct {
 	Title       string `yaml:"-"`
 	Tagline     string `yaml:"tagline"`
@@ -70,6 +70,7 @@ type PkgConfig struct {
 	Ignore  []OsArchPair      `yaml:"ignore"`
 }
 
+// InstallNotes combines package-level and OS-level installation notes
 func (pkgConf *PkgConfig) InstallNotes() string {
 	var installNotes string
 
@@ -88,6 +89,7 @@ func (pkgConf *PkgConfig) InstallNotes() string {
 	return installNotes
 }
 
+// RemoveNotes combines package-level and OS-level removal notes
 func (pkgConf *PkgConfig) RemoveNotes() string {
 	var removeNotes string
 
@@ -106,16 +108,19 @@ func (pkgConf *PkgConfig) RemoveNotes() string {
 	return removeNotes
 }
 
+// GOOStoPkgOs is a mapping of GOOS to webman-specific OS names
 var GOOStoPkgOs = map[string]string{
 	"darwin":  "macos",
 	"windows": "win",
 	"linux":   "linux",
 }
 
+// SingleOrMulti is for YAML values that could be a single string or multiple
 type SingleOrMulti struct {
 	Values []string
 }
 
+// UnmarshalYAML implements yaml.Unmarshaler
 func (sm *SingleOrMulti) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var multi []string
 	err := unmarshal(&multi)
@@ -133,6 +138,7 @@ func (sm *SingleOrMulti) UnmarshalYAML(unmarshal func(interface{}) error) error 
 	return nil
 }
 
+// GetMyBinPaths gets all bin paths for this pakcage on this OS
 func (pkgConf *PkgConfig) GetMyBinPaths() ([]string, error) {
 	osStr, exists := GOOStoPkgOs[utils.GOOS]
 	if !exists {
@@ -151,6 +157,7 @@ func (pkgConf *PkgConfig) GetMyBinPaths() ([]string, error) {
 	return osInfo.BinPaths.Values, nil
 }
 
+// GetRenames gets all renames for this package on this OS
 func (pkgConf *PkgConfig) GetRenames() ([]RenameItem, error) {
 	osStr, exists := GOOStoPkgOs[utils.GOOS]
 	if !exists {
@@ -163,44 +170,7 @@ func (pkgConf *PkgConfig) GetRenames() ([]RenameItem, error) {
 	return osInfo.Renames, nil
 }
 
-// Check using file.
-// If UsingFile doesn't exist, it is not using anything
-func CheckUsing(pkg string) (*string, error) {
-	usingPath := filepath.Join(utils.WebmanPkgDir, pkg, utils.UsingFileName)
-	usingContent, err := os.ReadFile(usingPath)
-	if err != nil {
-		return nil, nil
-	}
-	var usingInfo UsingInfo
-	if err = yaml.Unmarshal(usingContent, &usingInfo); err != nil {
-		return nil, err
-	}
-	return &usingInfo.Using, nil
-}
-
-func WriteUsing(pkg string, using string) error {
-	usingInfo := UsingInfo{
-		Using: using,
-	}
-	data, err := yaml.Marshal(usingInfo)
-	if err != nil {
-		return err
-	}
-	usingPath := filepath.Join(utils.WebmanPkgDir, pkg, utils.UsingFileName)
-	if err := os.WriteFile(usingPath, data, os.ModePerm); err != nil {
-		return err
-	}
-	return nil
-}
-
-func RemoveUsing(pkg string) error {
-	usingPath := filepath.Join(utils.WebmanPkgDir, pkg, utils.UsingFileName)
-	if err := os.Remove(usingPath); err != nil {
-		return err
-	}
-	return nil
-}
-
+// ParsePkgConfig parses an io.Reader as a package configuration
 func ParsePkgConfig(name string, r io.Reader) (*PkgConfig, error) {
 	dat, err := io.ReadAll(r)
 	if err != nil {
@@ -229,6 +199,7 @@ func ParsePkgConfig(name string, r io.Reader) (*PkgConfig, error) {
 	return &pkgConf, nil
 }
 
+// ParsePkgConfigLocal checks all known repos for a given package
 func ParsePkgConfigLocal(pkgRepos []*config.PkgRepo, pkg string) (*PkgConfig, error) {
 	var pkgConfPath string
 	for _, pkgRepo := range pkgRepos {
@@ -256,6 +227,7 @@ func ParsePkgConfigLocal(pkgRepos []*config.PkgRepo, pkg string) (*PkgConfig, er
 	return ParsePkgConfig(pkg, fi)
 }
 
+// GetLatestVersion uses the configuration's latest-strategy to determine the latest version of the package
 func (pkgConf *PkgConfig) GetLatestVersion() (*string, error) {
 	var version string
 	switch pkgConf.LatestStrategy {
@@ -338,4 +310,21 @@ func (pkgConf *PkgConfig) GetAssetStemExtUrl(version string) (*string, *string, 
 	}
 	stem := baseUrl + fileStem + dot + osInf.Ext
 	return &fileStem, &osInf.Ext, &stem, nil
+}
+
+// ParsePkgConfigPath parses a package configuration from a repo path (~/.webman/recipes/webman) and package name (age)
+// It combines them to parse (~/.webman/recipes/webman/age.webman-pkg.yaml) and assigns the name (age)
+func ParsePkgConfigPath(repoPath, pkg string) (*PkgConfig, error) {
+	fi, err := os.Open(filepath.Join(repoPath, pkg+utils.PkgRecipeExt))
+	if err != nil {
+		return nil, err
+	}
+	defer fi.Close()
+
+	pkgConfig, err := ParsePkgConfig(pkg, fi)
+	if err != nil {
+		return nil, err
+	}
+
+	return pkgConfig, nil
 }

@@ -112,7 +112,10 @@ func CheckGroup(path string) error {
 			return err
 		}
 	}
-	return nil
+	if _, err := fi.Seek(0, 0); err != nil {
+		return err
+	}
+	return schema.LintGroup(fi)
 }
 
 func CheckPkgConfig(pkg string) error {
