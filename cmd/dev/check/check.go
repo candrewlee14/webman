@@ -66,7 +66,8 @@ The "check" subcommand checks that all recipes in a directory are valid.`,
 			}
 			color.Green("All packages are valid!")
 
-			groups, err := os.ReadDir(filepath.Join(recipeDir, "groups"))
+			groupsPath := filepath.Join(recipeDir, "groups")
+			groups, err := os.ReadDir(groupsPath)
 			if err != nil {
 				return err
 			}
@@ -78,7 +79,7 @@ The "check" subcommand checks that all recipes in a directory are valid.`,
 				go func() {
 					recipeName := groupEntry.Name()
 					group := strings.ReplaceAll(recipeName, utils.GroupRecipeExt, "")
-					if err := CheckGroup(group); err != nil {
+					if err := CheckGroup(filepath.Join(groupsPath, recipeName)); err != nil {
 						color.Red("%s: %s", color.MagentaString(group), color.RedString("%v", err))
 						success = false
 					}
@@ -95,10 +96,16 @@ The "check" subcommand checks that all recipes in a directory are valid.`,
 	},
 }
 
-func CheckGroup(group string) error {
-	groupConf := pkgparse.ParseGroupConfig(group)
-	if groupConf == nil {
-		return fmt.Errorf("no group file found for %s", group)
+func CheckGroup(path string) error {
+	group := filepath.Base(path)
+	fi, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer fi.Close()
+	groupConf, err := pkgparse.ParseGroupConfig(fi, group)
+	if err != nil {
+		return fmt.Errorf("no group file found for %s: %v", group, err)
 	}
 	for _, pkg := range groupConf.Packages {
 		if err := CheckPkgConfig(pkg); err != nil {
