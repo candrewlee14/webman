@@ -3,6 +3,7 @@ package pkgparse
 import (
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -200,32 +201,16 @@ func RemoveUsing(pkg string) error {
 	return nil
 }
 
-func ParsePkgConfigLocal(pkgRepos []*config.PkgRepo, pkg string) (*PkgConfig, error) {
-	var pkgConfPath string
-	for _, pkgRepo := range pkgRepos {
-		pkgConfPath = filepath.Join(pkgRepo.Path(), "pkgs", pkg+utils.PkgRecipeExt)
-		_, err := os.Stat(pkgConfPath)
-		if err != nil {
-			if !errors.Is(err, fs.ErrNotExist) {
-				return nil, err
-			}
-			continue
-		}
-		break
-	}
-	if pkgConfPath == "" {
-		return nil, fmt.Errorf("no package recipe exists for %s", pkg)
-	}
-
-	dat, err := os.ReadFile(pkgConfPath)
+func ParsePkgConfig(name string, r io.Reader) (*PkgConfig, error) {
+	dat, err := io.ReadAll(r)
 	if err != nil {
 		return nil, err
 	}
 	var pkgConf PkgConfig
 	if err = yaml.Unmarshal(dat, &pkgConf); err != nil {
-		return nil, fmt.Errorf("unable to parse package recipe for %s: %v", pkg, err)
+		return nil, fmt.Errorf("unable to parse package recipe for %s: %v", name, err)
 	}
-	pkgConf.Title = pkg
+	pkgConf.Title = name
 
 	pkgConf.BaseDownloadUrl = strings.ReplaceAll(pkgConf.BaseDownloadUrl, "[GIT_USER]", pkgConf.GitUser)
 	pkgConf.BaseDownloadUrl = strings.ReplaceAll(pkgConf.BaseDownloadUrl, "[GIT_REPO]", pkgConf.GitRepo)
@@ -242,6 +227,33 @@ func ParsePkgConfigLocal(pkgRepos []*config.PkgRepo, pkg string) (*PkgConfig, er
 	pkgConf.GiteaURL = strings.TrimRight(pkgConf.GiteaURL, "/")
 
 	return &pkgConf, nil
+}
+
+func ParsePkgConfigLocal(pkgRepos []*config.PkgRepo, pkg string) (*PkgConfig, error) {
+	var pkgConfPath string
+	for _, pkgRepo := range pkgRepos {
+		pkgPath := filepath.Join(pkgRepo.Path(), "pkgs", pkg+utils.PkgRecipeExt)
+		_, err := os.Stat(pkgPath)
+		if err != nil {
+			if !errors.Is(err, fs.ErrNotExist) {
+				return nil, err
+			}
+			continue
+		}
+		pkgConfPath = pkgPath
+		break
+	}
+	if pkgConfPath == "" {
+		return nil, fmt.Errorf("no package recipe exists for %s", pkg)
+	}
+
+	fi, err := os.Open(pkgConfPath)
+	if err != nil {
+		return nil, err
+	}
+	defer fi.Close()
+
+	return ParsePkgConfig(pkg, fi)
 }
 
 func (pkgConf *PkgConfig) GetLatestVersion() (*string, error) {
