@@ -1,0 +1,40 @@
+tagline: maven tagline
+about: |
+  maven about
+
+git_user: apache
+git_repo: maven
+info_url: info_url
+releases_url: releases_url
+source_url: source_url
+
+base_download_url: https://archive.apache.org/dist/maven/maven-3/[VER]/binaries/
+version_format: '[VER]'
+filename_format: apache-maven-[VER]-bin.[EXT]
+latest_strategy: fixed
+latest_version: '3.8.6' 
+
+os_map:
+  linux:
+    name: linux
+    ext: zip
+    bin_path: bin
+    extract_has_root: true
+  macos:
+    name: darwin
+    ext: zip
+    bin_path: bin
+    extract_has_root: true
+  win:
+    name: windows
+    ext: zip
+    bin_path: bin
+    extract_has_root: true
+
+arch_map:
+  amd64: x64
+  arm64: aarch64
+
+ignore:
+  - os: linux
+    arch: arm64
