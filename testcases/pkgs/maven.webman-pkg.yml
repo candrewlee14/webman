@@ -2,12 +2,6 @@ tagline: maven tagline
 about: |
   maven about
 
-git_user: apache
-git_repo: maven
-info_url: info_url
-releases_url: releases_url
-source_url: source_url
-
 base_download_url: https://archive.apache.org/dist/maven/maven-3/[VER]/binaries/
 version_format: '[VER]'
 filename_format: apache-maven-[VER]-bin.[EXT]
