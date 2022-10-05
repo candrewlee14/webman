@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/candrewlee14/webman/colors"
+	"github.com/candrewlee14/webman/ui"
 	"github.com/fatih/color"
 )
 
@@ -22,7 +22,7 @@ var (
 )
 
 func cl(s string) []byte {
-	if colors.Enabled() {
+	if ui.AreAnsiCodesEnabled() {
 		return []byte(s)
 	}
 	return []byte{}
