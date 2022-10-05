@@ -14,14 +14,14 @@ import (
 const esc = "\033["
 
 var (
-	ClearLine  = cl(esc + "2K\r")
-	MoveUp     = cl(esc + "1F")
-	MoveDown   = cl(esc + "1E")
-	ShowCursor = cl(esc + "?25h")
-	HideCursor = cl(esc + "?25l")
+	ClearLine  = code(esc + "2K\r")
+	MoveUp     = code(esc + "1F")
+	MoveDown   = code(esc + "1E")
+	ShowCursor = code(esc + "?25h")
+	HideCursor = code(esc + "?25l")
 )
 
-func cl(s string) []byte {
+func code(s string) []byte {
 	if ui.AreAnsiCodesEnabled() {
 		return []byte(s)
 	}
