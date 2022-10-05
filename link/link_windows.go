@@ -3,6 +3,11 @@
 
 package link
 
+import (
+	"fmt"
+	"os"
+)
+
 // If symlink creation fails, fallbacks to `.bat` script.
 func symlink(old string, new string) (bool, error) {
 	err := os.Symlink(old, new)
@@ -21,5 +26,5 @@ func symlink(old string, new string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-
+	return true, nil
 }
