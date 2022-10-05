@@ -61,6 +61,7 @@ type PkgConfig struct {
 	FilenameFormat   string `yaml:"filename_format"`
 	VersionFormat    string `yaml:"version_format"`
 	LatestStrategy   string `yaml:"latest_strategy"`
+	LatestVersion    string `yaml:"latest_version"`
 	ForceLatest      bool   `yaml:"force_latest"`
 	AllowPrerelease  bool   `yaml:"allow_prerelease"`
 	ArchLinuxPkgName string `yaml:"arch_linux_pkg_name"`
@@ -277,6 +278,8 @@ func (pkgConf *PkgConfig) GetLatestVersion() (*string, error) {
 			return nil, err
 		}
 		version = rel.TagName
+	case "fixed":
+		version = pkgConf.LatestVersion
 	}
 	if version == "" {
 		return nil, fmt.Errorf("no implemented latest version resolution strategy for %q",
