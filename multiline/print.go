@@ -90,9 +90,14 @@ func (ml *MultiLogger) PrintUntilDone(index int, printStr string, done <-chan bo
 		for {
 			select {
 			case <-done:
+				if !ui.AreAnsiCodesEnabled() {
+					ml.Printf(index, printStr)
+				}
 				return
 			default:
-				ml.Printf(index, printStr+" "+color.HiBlackString(strings.Repeat(".", i)))
+				if ui.AreAnsiCodesEnabled() {
+					ml.Printf(index, printStr+" "+color.HiBlackString(strings.Repeat(".", i)))
+				}
 			}
 			time.Sleep(time.Duration(millis) * time.Millisecond)
 			i += 1

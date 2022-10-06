@@ -111,6 +111,15 @@ func DownloadUrl(url string, filePath string, pkg string, ver string, argNum int
 		}
 		return false
 	}
+	ansiOn := ui.AreAnsiCodesEnabled()
+	if !ansiOn {
+		if _, err = io.Copy(f, r.Body); err != nil {
+			ml.Printf(argNum, color.RedString("%v", err))
+			return false
+		}
+		ml.Printf(argNum, `Completed downloading %s`, pkg)
+		return true
+	}
 	colorOn := ui.AreAnsiCodesEnabled()
 	saucer := "[green]▅[reset]"
 	saucerHead := "[green]▅[reset]"
@@ -126,7 +135,6 @@ func DownloadUrl(url string, filePath string, pkg string, ver string, argNum int
 		barStart = "["
 		barEnd = "]"
 	}
-	ansiOn := ui.AreAnsiCodesEnabled()
 	bar := progressbar.NewOptions64(r.ContentLength,
 		progressbar.OptionEnableColorCodes(colorOn),
 		progressbar.OptionUseANSICodes(ansiOn),
