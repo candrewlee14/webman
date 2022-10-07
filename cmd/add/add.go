@@ -12,10 +12,10 @@ import (
 
 	"github.com/candrewlee14/webman/config"
 	"github.com/candrewlee14/webman/multiline"
+	"github.com/candrewlee14/webman/ui"
 	"github.com/candrewlee14/webman/utils"
 
 	"github.com/fatih/color"
-	"github.com/mattn/go-isatty"
 	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
 )
@@ -111,7 +111,16 @@ func DownloadUrl(url string, filePath string, pkg string, ver string, argNum int
 		}
 		return false
 	}
-	colorOn := isatty.IsTerminal(os.Stdout.Fd()) || isatty.IsCygwinTerminal(os.Stdout.Fd())
+	ansiOn := ui.AreAnsiCodesEnabled()
+	if !ansiOn {
+		if _, err = io.Copy(f, r.Body); err != nil {
+			ml.Printf(argNum, color.RedString("%v", err))
+			return false
+		}
+		ml.Printf(argNum, `Completed downloading %s`, pkg)
+		return true
+	}
+	colorOn := ui.AreAnsiCodesEnabled()
 	saucer := "[green]▅[reset]"
 	saucerHead := "[green]▅[reset]"
 	saucerPadding := "[light_gray]▅[reset]"
@@ -126,7 +135,6 @@ func DownloadUrl(url string, filePath string, pkg string, ver string, argNum int
 		barStart = "["
 		barEnd = "]"
 	}
-	ansiOn := isatty.IsTerminal(os.Stdout.Fd())
 	bar := progressbar.NewOptions64(r.ContentLength,
 		progressbar.OptionEnableColorCodes(colorOn),
 		progressbar.OptionUseANSICodes(ansiOn),
