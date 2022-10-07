@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"github.com/candrewlee14/webman/multiline"
+	"github.com/candrewlee14/webman/ui"
 
 	"github.com/fatih/color"
-	"github.com/mattn/go-isatty"
 )
 
 var (
@@ -59,7 +59,7 @@ func Init(homeDir string) {
 	if err := os.MkdirAll(WebmanRecipeDir, os.ModePerm); err != nil {
 		panic(err)
 	}
-	if !isatty.IsTerminal(os.Stdout.Fd()) {
+	if !ui.AreAnsiCodesEnabled() {
 		multiline.ClearLine = []byte{}
 		multiline.MoveDown = []byte{}
 		multiline.MoveUp = []byte{}

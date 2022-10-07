@@ -7,18 +7,26 @@ import (
 	"sync"
 	"time"
 
+	"github.com/candrewlee14/webman/ui"
 	"github.com/fatih/color"
 )
 
 const esc = "\033["
 
 var (
-	ClearLine  = []byte(esc + "2K\r")
-	MoveUp     = []byte(esc + "1F")
-	MoveDown   = []byte(esc + "1E")
-	ShowCursor = []byte(esc + "?25h")
-	HideCursor = []byte(esc + "?25l")
+	ClearLine  = code(esc + "2K\r")
+	MoveUp     = code(esc + "1F")
+	MoveDown   = code(esc + "1E")
+	ShowCursor = code(esc + "?25h")
+	HideCursor = code(esc + "?25l")
 )
+
+func code(s string) []byte {
+	if ui.AreAnsiCodesEnabled() {
+		return []byte(s)
+	}
+	return []byte{}
+}
 
 type LineLogger struct {
 	index  int
@@ -82,9 +90,14 @@ func (ml *MultiLogger) PrintUntilDone(index int, printStr string, done <-chan bo
 		for {
 			select {
 			case <-done:
+				if !ui.AreAnsiCodesEnabled() {
+					ml.Printf(index, printStr)
+				}
 				return
 			default:
-				ml.Printf(index, printStr+" "+color.HiBlackString(strings.Repeat(".", i)))
+				if ui.AreAnsiCodesEnabled() {
+					ml.Printf(index, printStr+" "+color.HiBlackString(strings.Repeat(".", i)))
+				}
 			}
 			time.Sleep(time.Duration(millis) * time.Millisecond)
 			i += 1

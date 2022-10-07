@@ -106,6 +106,10 @@ Next, `webman dev bintest [NEW-PKG] -l [WEBMAN-PKGs-DIR]` will do a cross-platfo
 
 The package recipe format was built around making it easy to contribute new packages to webman, so if you're missing a package, go ahead and create it!
 
+## Disable output color and ANSI escape codes
+
+Set `NO_COLOR` environment variable to hava a raw console output.
+
 # Setup
 
 Run the script above or download the binary for your OS and architecture [here](/releases/latest).
