@@ -31,7 +31,6 @@ func symlink(old string, new string) (bool, error) {
 }
 
 func cmdPath(orig string) string {
-	fmt.Printf("   orig %s \n", orig)
 	noext := orig[:len(orig)-len(filepath.Ext(orig))]
 	return fmt.Sprintf(`%s.cmd`, noext)
 }
