@@ -149,6 +149,8 @@ func runPackage(args []string) error {
 			if utils.GOOS == "windows" {
 				binExt = ".exe"
 			}
+			// WARNING: it assume the executable has .exe extension (not always true)
+			// would be better use utils.WebmanBinDir + utils.LinkName(binName) ?
 			pkgBinDirOrFile = filepath.Join(pkgBinDirOrFile, binName+binExt)
 			if _, err = os.Stat(pkgBinDirOrFile); err != nil {
 				if !os.IsNotExist(err) {

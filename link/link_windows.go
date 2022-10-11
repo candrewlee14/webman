@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/candrewlee14/webman/utils"
 )
 
 // If symlink creation fails, fallbacks to creating a script named `${executable name minus extension}.cmd`.
@@ -32,5 +34,5 @@ func symlink(old string, new string) (bool, error) {
 
 func cmdPath(orig string) string {
 	noext := orig[:len(orig)-len(filepath.Ext(orig))]
-	return fmt.Sprintf(`%s.cmd`, noext)
+	return utils.LinkName(noext)
 }
