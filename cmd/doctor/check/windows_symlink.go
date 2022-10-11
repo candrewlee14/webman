@@ -61,6 +61,10 @@ var WindowsSymlink = Check{
 				}
 			}
 
+			// ---
+			// here check if no `.cmd` script
+			// ---
+
 			if !fix {
 				color.HiRed("no symlink(s) found for %q", i.Name())
 				continue
