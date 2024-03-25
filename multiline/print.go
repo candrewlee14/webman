@@ -3,7 +3,6 @@ package multiline
 import (
 	"fmt"
 	"io"
-	"strings"
 	"sync"
 	"time"
 
@@ -84,6 +83,27 @@ func (ml *MultiLogger) SetPrefix(index int, pref string) {
 	ml.loggers[index].SetPrefix(pref)
 }
 
+// bouncing ball: ⠁⠂⠄⡀⢀⠠⠐⠈
+// spinning wheel: ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏
+var (
+	bouncingBall  = []string{"⠁", "⠂", "⠄", "⡀", "⢀", "⠠", "⠐", "⠈"}
+	spinningWheel = []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
+)
+
+func spinningWheelFrame(frame int) string {
+	return spinningWheel[frame%len(spinningWheel)]
+}
+
+func bouncingBallFrame(frame int) string {
+	loadingStr := ""
+	for j := 0; j < len(bouncingBall); j++ {
+		loadingStr += bouncingBall[(j+frame)%len(bouncingBall)]
+	}
+	return loadingStr
+}
+
+var loadingFrame = spinningWheelFrame
+
 func (ml *MultiLogger) PrintUntilDone(index int, printStr string, done <-chan bool, millis int) {
 	go func() {
 		i := 0
@@ -96,7 +116,7 @@ func (ml *MultiLogger) PrintUntilDone(index int, printStr string, done <-chan bo
 				return
 			default:
 				if ui.AreAnsiCodesEnabled() {
-					ml.Printf(index, printStr+" "+color.HiBlackString(strings.Repeat(".", i)))
+					ml.Printf(index, printStr+" "+color.HiBlackString(loadingFrame(i)))
 				}
 			}
 			time.Sleep(time.Duration(millis) * time.Millisecond)
