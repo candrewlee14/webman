@@ -27,3 +27,5 @@ webman
 
 dist/
 .vscode/*
+
+.env
