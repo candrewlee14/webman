@@ -127,7 +127,7 @@ The "bintest" tests that binary paths given in a package recipe have valid binar
 			color.HiGreen("\nAll supported OSs & Arches for %s have valid installs!", pkg)
 		} else {
 			if runtime.GOOS == "windows" {
-				color.HiYellow("Windows may require admin privileges to create symlinks.")
+				color.HiYellow("Windows requires developer mode or admin privileges to create symlinks.")
 			}
 			return fmt.Errorf("\nSome supported OSs & Arches for %s have invalid installs.", pkg)
 		}

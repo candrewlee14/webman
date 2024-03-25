@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
@@ -54,15 +53,15 @@ The "search" subcommand starts an interactive window to find and display info ab
 				}
 			}
 		}
-		pkgInfos := make([]*pkgparse.PkgInfo, 0)
+		pkgInfos := make([]*pkgparse.PkgConfig, 0)
 		for _, pkgRepo := range cfg.PkgRepos {
-			files, err := os.ReadDir(filepath.Join(pkgRepo.Path(), "pkgs"))
+			files, err := os.ReadDir(pkgRepo.PackagePath())
 			if err != nil {
 				return err
 			}
 			for _, file := range files {
 				pkg := strings.Split(file.Name(), utils.PkgRecipeExt)[0]
-				pkgInfo, err := pkgparse.ParsePkgInfo(pkgRepo.Path(), pkg)
+				pkgInfo, err := pkgparse.ParsePkgConfigPath(pkgRepo.PackagePath(), pkg)
 				if err != nil {
 					return err
 				}

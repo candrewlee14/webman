@@ -64,9 +64,9 @@ The "group add" subcommand installs a group of packages.
 		if allFlag {
 			pkgsToInstall = groupConf.Packages
 		} else {
-			pkgInfos, err := pkgparse.ParseMultiPkgInfo(repoPath, groupConf.Packages)
+			pkgInfos, err := pkgparse.ParseGroupPackages(repoPath, groupConf.Packages)
 			if err != nil {
-				color.Red("failed to parse package info: %v", err)
+				return err
 			}
 			infoLines := make([]string, len(pkgInfos))
 			for i, pkgInfo := range pkgInfos {

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/candrewlee14/webman/main/schema/group_schema.json",
+  "title": "Webman group",
+  "description": "A package group for webman",
+  "type": "object",
+  "required": [
+    "packages"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "packages": {
+      "description": "List of packages",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "description": "Package name",
+        "type": "string",
+        "additionalProperties": false
+      }
+    }
+  }
+}

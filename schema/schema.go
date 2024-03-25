@@ -14,6 +14,10 @@ var (
 	recipeSchema       []byte
 	recipeSchemaLoader = gojsonschema.NewBytesLoader(recipeSchema)
 
+	//go:embed group_schema.json
+	groupSchema       []byte
+	groupSchemaLoader = gojsonschema.NewBytesLoader(groupSchema)
+
 	//go:embed config_schema.json
 	configSchema       []byte
 	configSchemaLoader = gojsonschema.NewBytesLoader(configSchema)
@@ -22,6 +26,11 @@ var (
 // LintRecipe is for linting a recipe against the schema
 func LintRecipe(r io.Reader) error {
 	return lint(r, recipeSchemaLoader)
+}
+
+// LintGroup is for linting a group against the schema
+func LintGroup(r io.Reader) error {
+	return lint(r, groupSchemaLoader)
 }
 
 // LintConfig is for linting a config against the schema

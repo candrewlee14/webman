@@ -68,14 +68,10 @@ webman remove rg`,
 				Options:  pkgVersions,
 				PageSize: 10,
 			}
-			err := survey.AskOne(surveyPrompt, &pkgVerStems)
+			err := survey.AskOne(surveyPrompt, &pkgVerStems, survey.WithValidator(survey.Required))
 			if err != nil {
 				return fmt.Errorf("Prompt failed %v\n", err)
 			}
-		}
-		if len(pkgVerStems) == 0 {
-			color.HiBlack("No packages selected for removal.")
-			return nil
 		}
 		pkgConf, err := pkgparse.ParsePkgConfigLocal(cfg.PkgRepos, pkg)
 		if err != nil {

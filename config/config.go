@@ -84,6 +84,16 @@ func (p PkgRepo) Path() string {
 	return filepath.Join(utils.WebmanRecipeDir, p.Name)
 }
 
+// PackagePath is the filepath to a given PkgRepo's packages
+func (p PkgRepo) PackagePath() string {
+	return filepath.Join(p.Path(), "pkgs")
+}
+
+// GroupPath is the filepath to a given PkgRepo's groups
+func (p PkgRepo) GroupPath() string {
+	return filepath.Join(p.Path(), "groups")
+}
+
 // ShouldRefreshRecipes determines whether a PkgRepo needs to be refreshed
 func (p PkgRepo) ShouldRefreshRecipes(refreshInterval time.Duration) (bool, error) {
 	fi, err := os.Stat(p.Path())
