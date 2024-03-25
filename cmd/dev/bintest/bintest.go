@@ -86,7 +86,7 @@ The "bintest" tests that binary paths given in a package recipe have valid binar
 				var wg sync.WaitGroup
 				ml := multiline.New(len(args), os.Stdout)
 				wg.Add(1)
-				pairResults[osPairStr] = add.InstallPkg(cfg.PkgRepos, pkg+"@"+*latestVer, 0, 1, &wg, &ml) != nil
+				pairResults[osPairStr] = add.InstallPkg(cfg.PkgRepos, pkg+"@"+*latestVer, 0, 1, &wg, &ml, false, false) != nil
 
 				relbinPaths, err := pkgConf.GetMyBinPaths()
 				if err != nil {
