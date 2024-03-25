@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/candrewlee14/webman/cmd/remove"
 	"github.com/candrewlee14/webman/config"
 	"github.com/candrewlee14/webman/link"
 	"github.com/candrewlee14/webman/multiline"
@@ -18,31 +19,43 @@ import (
 	"github.com/fatih/color"
 )
 
-func InstallAllPkgs(pkgRepos []*config.PkgRepo, args []string) []*pkgparse.PkgConfig {
+type PkgInstallResult struct {
+	Name    string
+	Ver     string
+	PkgConf *pkgparse.PkgConfig
+}
+
+func InstallAllPkgs(pkgRepos []*config.PkgRepo, args []string, removeOld bool, switchFlag bool) []PkgInstallResult {
 	var wg sync.WaitGroup
 	ml := multiline.New(len(args), os.Stdout)
 	wg.Add(len(args))
-	results := make(chan *pkgparse.PkgConfig, len(args))
+	results := make(chan *PkgInstallResult, len(args))
 	for i, arg := range args {
 		i := i
 		arg := arg
 		go func() {
-			res := InstallPkg(pkgRepos, arg, i, len(args), &wg, &ml)
+			res := InstallPkg(pkgRepos, arg, i, len(args), &wg, &ml, removeOld, switchFlag)
 			results <- res
 		}()
 	}
 	wg.Wait()
-	pkgs := make([]*pkgparse.PkgConfig, 0, len(args))
+	pkgs := make([]PkgInstallResult, 0, len(args))
 	for i := 0; i < len(args); i++ {
 		res := <-results
 		if res != nil {
-			pkgs = append(pkgs, res)
+			pkgs = append(pkgs, *res)
 		}
 	}
 	return pkgs
 }
 
-func InstallPkg(pkgRepos []*config.PkgRepo, arg string, argIndex int, argCount int, wg *sync.WaitGroup, ml *multiline.MultiLogger) *pkgparse.PkgConfig {
+func InstallPkg(
+	pkgRepos []*config.PkgRepo,
+	arg string, argIndex int, argCount int,
+	wg *sync.WaitGroup, ml *multiline.MultiLogger,
+	removeOld bool,
+	switchFlag bool,
+) *PkgInstallResult {
 	defer wg.Done()
 	pkg, ver, err := utils.ParsePkgVer(arg)
 	if err != nil {
@@ -58,7 +71,7 @@ func InstallPkg(pkgRepos []*config.PkgRepo, arg string, argIndex int, argCount i
 	ml.PrintUntilDone(argIndex,
 		fmt.Sprintf("Finding package recipe for %s", color.CyanString(pkg)),
 		foundRecipe,
-		500,
+		50,
 	)
 	pkgConf, err := pkgparse.ParsePkgConfigLocal(pkgRepos, pkg)
 	foundRecipe <- true
@@ -78,7 +91,7 @@ func InstallPkg(pkgRepos []*config.PkgRepo, arg string, argIndex int, argCount i
 		ml.PrintUntilDone(argIndex,
 			fmt.Sprintf("Finding latest %s version tag", color.CyanString(pkg)),
 			foundLatest,
-			500,
+			50,
 		)
 		verPtr, err := pkgConf.GetLatestVersion()
 		foundLatest <- true
@@ -115,7 +128,7 @@ func InstallPkg(pkgRepos []*config.PkgRepo, arg string, argIndex int, argCount i
 	// If file exists
 	if _, err := os.Stat(extractPath); !os.IsNotExist(err) {
 		ml.Printf(argIndex, color.HiBlackString("Already installed!"))
-		return pkgConf
+		return &PkgInstallResult{pkg, ver, pkgConf}
 	}
 	if !DownloadUrl(url, downloadPath, pkg, ver, argIndex, argCount, ml) {
 		return nil
@@ -146,7 +159,7 @@ func InstallPkg(pkgRepos []*config.PkgRepo, arg string, argIndex int, argCount i
 		ml.PrintUntilDone(argIndex,
 			fmt.Sprintf("Unpacking %s.%s", stem, ext),
 			hasUnpacked,
-			500,
+			50,
 		)
 		var extractHasRoot bool
 		if m, ok := pkgConf.OsMap[pkgOS]; ok {
@@ -156,20 +169,29 @@ func InstallPkg(pkgRepos []*config.PkgRepo, arg string, argIndex int, argCount i
 		hasUnpacked <- true
 		if err != nil {
 			ml.Printf(argIndex, color.RedString("%v", err))
-			cleanUpFailedInstall(pkg, extractPath)
+			CleanUpFailedInstall(pkg, extractPath)
 			return nil
 		}
 		ml.Printf(argIndex, "Completed unpacking %s@%s", color.CyanString(pkg), color.MagentaString(ver))
 	}
 	using, err := pkgparse.CheckUsing(pkg)
 	if err != nil {
-		cleanUpFailedInstall(pkg, extractPath)
+		CleanUpFailedInstall(pkg, extractPath)
 		panic(err)
+	}
+	if using != nil {
+		if removeOld {
+			if err = remove.RemovePkgVer(*using, using, pkg, pkgConf); err != nil {
+				ml.Printf(argIndex, color.RedString("Failed to remove old version: %v", err))
+			} else {
+				ml.Printf(argIndex, "Removed old version %s", color.CyanString(*using))
+			}
+		}
 	}
 	if using == nil || switchFlag {
 		binPaths, err := pkgConf.GetMyBinPaths()
 		if err != nil {
-			cleanUpFailedInstall(pkg, extractPath)
+			CleanUpFailedInstall(pkg, extractPath)
 			ml.Printf(argIndex, color.RedString("%v", err))
 			return nil
 		}
@@ -180,20 +202,21 @@ func InstallPkg(pkgRepos []*config.PkgRepo, arg string, argIndex int, argCount i
 		}
 		madeLinks, err := link.CreateLinks(pkg, ver, binPaths, renames)
 		if err != nil {
-			cleanUpFailedInstall(pkg, extractPath)
+			CleanUpFailedInstall(pkg, extractPath)
 			ml.Printf(argIndex, color.RedString("Failed creating links: %v", err))
 			return nil
 		}
 		if !madeLinks {
-			cleanUpFailedInstall(pkg, extractPath)
+			CleanUpFailedInstall(pkg, extractPath)
 			ml.Printf(argIndex, color.RedString("Failed creating links"))
 			return nil
 		}
 		ml.Printf(argIndex, "Now using %s@%s", color.CyanString(pkg), color.MagentaString(ver))
 	}
+
 	ml.Printf(argIndex, color.GreenString("Successfully installed!"))
 	if p, err := exec.LookPath(pkg); err == nil && !strings.Contains(p, utils.WebmanBinDir) {
 		ml.Printf(argIndex, color.YellowString("Found another binary at %q that may interfere", p))
 	}
-	return pkgConf
+	return &PkgInstallResult{pkg, ver, pkgConf}
 }

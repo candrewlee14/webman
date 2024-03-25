@@ -86,9 +86,9 @@ The "group add" subcommand installs a group of packages.
 		if len(pkgsToInstall) == 0 {
 			color.HiBlack("No packages selected for installation.")
 		} else {
-			pkgs := add.InstallAllPkgs(cfg.PkgRepos, pkgsToInstall)
+			pkgs := add.InstallAllPkgs(cfg.PkgRepos, pkgsToInstall, false, true)
 			for _, pkg := range pkgs {
-				fmt.Print(pkg.InstallNotes())
+				fmt.Print(pkg.PkgConf.InstallNotes())
 			}
 			if len(pkgs) != len(pkgsToInstall) {
 				return errors.New("Not all packages installed successfully")

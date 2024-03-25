@@ -11,9 +11,9 @@
             "mode": "auto",
             "program": "main.go",
             "args": [
-                "add",
+                "upgrade",
                 // "rg@11.0.0",
-                "node"
+                "lsd"
             ]
         }
     ]

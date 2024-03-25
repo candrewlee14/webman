@@ -123,11 +123,11 @@ The "search" subcommand starts an interactive window to find and display info ab
 		var wg sync.WaitGroup
 		ml := multiline.New(1, os.Stdout)
 		wg.Add(1)
-		pkg := add.InstallPkg(cfg.PkgRepos, pkgName, 0, 1, &wg, &ml)
+		pkg := add.InstallPkg(cfg.PkgRepos, pkgName, 0, 1, &wg, &ml, false, false)
 		if pkg == nil {
 			return errors.New("failed to install pkg")
 		}
-		fmt.Print(pkg.InstallNotes())
+		fmt.Print(pkg.PkgConf.InstallNotes())
 		return nil
 	},
 }

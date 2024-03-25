@@ -10,6 +10,7 @@ import (
 	"github.com/candrewlee14/webman/cmd/run"
 	"github.com/candrewlee14/webman/cmd/search"
 	switchcmd "github.com/candrewlee14/webman/cmd/switch"
+	"github.com/candrewlee14/webman/cmd/upgrade"
 	"github.com/candrewlee14/webman/cmd/version"
 )
 
@@ -24,4 +25,5 @@ func init() {
 	rootCmd.AddCommand(group.GroupCmd)
 	rootCmd.AddCommand(search.SearchCmd)
 	rootCmd.AddCommand(version.VersionCmd)
+	rootCmd.AddCommand(upgrade.UpgradeCmd)
 }

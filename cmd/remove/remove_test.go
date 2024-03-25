@@ -1,4 +1,4 @@
-package remove
+package remove_test
 
 import (
 	"errors"
@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/candrewlee14/webman/cmd/add"
+	"github.com/candrewlee14/webman/cmd/remove"
 	"github.com/candrewlee14/webman/utils"
 
 	"github.com/matryer/is"
@@ -30,7 +31,7 @@ func TestRemove(t *testing.T) {
 	_, err = os.Stat(filepath.Join(utils.WebmanBinDir, "jq"))
 	assert.NoErr(err) // jq binary should exist
 
-	err = RemoveCmd.Execute()
+	err = remove.RemoveCmd.Execute()
 	assert.NoErr(err) // Command should execute
 
 	_, err = os.Stat(filepath.Join(utils.WebmanBinDir, "jq"))

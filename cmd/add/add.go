@@ -12,10 +12,10 @@ import (
 
 	"github.com/candrewlee14/webman/config"
 	"github.com/candrewlee14/webman/multiline"
+	"github.com/candrewlee14/webman/ui"
 	"github.com/candrewlee14/webman/utils"
 
 	"github.com/fatih/color"
-	"github.com/mattn/go-isatty"
 	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
 )
@@ -60,9 +60,9 @@ webman add go@18.0.0 zig@9.1.0 rg@13.0.0`,
 				}
 			}
 		}
-		pkgs := InstallAllPkgs(cfg.PkgRepos, args)
+		pkgs := InstallAllPkgs(cfg.PkgRepos, args, false, switchFlag)
 		for _, pkg := range pkgs {
-			fmt.Print(pkg.InstallNotes())
+			fmt.Print(pkg.PkgConf.InstallNotes())
 		}
 		if len(args) != len(pkgs) {
 			return errors.New("Not all packages installed successfully")
@@ -77,7 +77,7 @@ func init() {
 	AddCmd.Flags().BoolVar(&switchFlag, "switch", false, "switch to use this new package version")
 }
 
-func cleanUpFailedInstall(pkg string, extractPath string) {
+func CleanUpFailedInstall(pkg string, extractPath string) {
 	os.RemoveAll(extractPath)
 	pkgDir := filepath.Join(utils.WebmanPkgDir, pkg)
 	dirs, err := os.ReadDir(pkgDir)
@@ -111,10 +111,19 @@ func DownloadUrl(url string, filePath string, pkg string, ver string, argNum int
 		}
 		return false
 	}
-	colorOn := isatty.IsTerminal(os.Stdout.Fd()) || isatty.IsCygwinTerminal(os.Stdout.Fd())
-	saucer := "[green]▅[reset]"
-	saucerHead := "[green]▅[reset]"
-	saucerPadding := "[light_gray]▅[reset]"
+	ansiOn := ui.AreAnsiCodesEnabled()
+	if !ansiOn {
+		if _, err = io.Copy(f, r.Body); err != nil {
+			ml.Printf(argNum, color.RedString("%v", err))
+			return false
+		}
+		ml.Printf(argNum, `Completed downloading %s`, pkg)
+		return true
+	}
+	colorOn := ui.AreAnsiCodesEnabled()
+	saucer := "[green]━[reset]"
+	saucerHead := "[green]━[reset]"
+	saucerPadding := "[dark_gray]━[reset]"
 	barStart := ""
 	barEnd := ""
 	barDesc := fmt.Sprintf("[cyan][%d/%d][reset] Downloading [cyan]"+pkg+"[reset] file...", argNum+1, argCount)
@@ -126,7 +135,6 @@ func DownloadUrl(url string, filePath string, pkg string, ver string, argNum int
 		barStart = "["
 		barEnd = "]"
 	}
-	ansiOn := isatty.IsTerminal(os.Stdout.Fd())
 	bar := progressbar.NewOptions64(r.ContentLength,
 		progressbar.OptionEnableColorCodes(colorOn),
 		progressbar.OptionUseANSICodes(ansiOn),
