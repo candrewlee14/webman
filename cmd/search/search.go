@@ -61,7 +61,7 @@ The "search" subcommand starts an interactive window to find and display info ab
 			}
 			for _, file := range files {
 				pkg := strings.Split(file.Name(), utils.PkgRecipeExt)[0]
-				pkgInfo, err := pkgparse.ParsePkgConfigPath(pkgRepo.PackagePath(), pkg)
+				pkgInfo, err := pkgparse.ParsePkgConfigPath(pkgRepo.Path(), pkg)
 				if err != nil {
 					return err
 				}
