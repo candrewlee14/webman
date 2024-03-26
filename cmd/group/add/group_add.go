@@ -55,48 +55,52 @@ The "group add" subcommand installs a group of packages.
 			}
 		}
 		group := args[0]
-		groupConf, repoPath, err := pkgparse.ParseGroupConfigLocal(cfg.PkgRepos, group)
+		return InstallGroup(cfg, group)
+	},
+}
+
+func InstallGroup(cfg *config.Config, group string) error {
+	groupConf, repoPath, err := pkgparse.ParseGroupConfigLocal(cfg.PkgRepos, group)
+	if err != nil {
+		return err
+	}
+
+	var pkgsToInstall []string
+	if allFlag {
+		pkgsToInstall = groupConf.Packages
+	} else {
+		pkgInfos, err := pkgparse.ParseGroupPackages(repoPath, groupConf.Packages)
 		if err != nil {
 			return err
 		}
-
-		var pkgsToInstall []string
-		if allFlag {
-			pkgsToInstall = groupConf.Packages
-		} else {
-			pkgInfos, err := pkgparse.ParseGroupPackages(repoPath, groupConf.Packages)
-			if err != nil {
-				return err
-			}
-			infoLines := make([]string, len(pkgInfos))
-			for i, pkgInfo := range pkgInfos {
-				infoLines[i] = color.CyanString(pkgInfo.Title) + color.HiBlackString(" - ") + pkgInfo.Tagline
-			}
-			prompt := &survey.MultiSelect{
-				Message:  "Select packages from group " + color.YellowString(group) + " to install:",
-				Options:  infoLines,
-				PageSize: 10,
-			}
-			var indices []int
-			survey.AskOne(prompt, &indices)
-			for _, val := range indices {
-				pkgsToInstall = append(pkgsToInstall, groupConf.Packages[val])
-			}
+		infoLines := make([]string, len(pkgInfos))
+		for i, pkgInfo := range pkgInfos {
+			infoLines[i] = color.CyanString(pkgInfo.Title) + color.HiBlackString(" - ") + pkgInfo.Tagline
 		}
-		if len(pkgsToInstall) == 0 {
-			color.HiBlack("No packages selected for installation.")
-		} else {
-			pkgs := add.InstallAllPkgs(cfg.PkgRepos, pkgsToInstall, false, true)
-			for _, pkg := range pkgs {
-				fmt.Print(pkg.PkgConf.InstallNotes())
-			}
-			if len(pkgs) != len(pkgsToInstall) {
-				return errors.New("Not all packages installed successfully")
-			}
-			color.Green("All %d selected packages from group %s are installed", len(pkgsToInstall), color.YellowString(group))
+		prompt := &survey.MultiSelect{
+			Message:  "Select packages from group " + color.YellowString(group) + " to install:",
+			Options:  infoLines,
+			PageSize: 10,
 		}
-		return nil
-	},
+		var indices []int
+		survey.AskOne(prompt, &indices)
+		for _, val := range indices {
+			pkgsToInstall = append(pkgsToInstall, groupConf.Packages[val])
+		}
+	}
+	if len(pkgsToInstall) == 0 {
+		color.HiBlack("No packages selected for installation.")
+	} else {
+		pkgs := add.InstallAllPkgs(cfg.PkgRepos, pkgsToInstall, false, true)
+		for _, pkg := range pkgs {
+			fmt.Print(pkg.PkgConf.InstallNotes())
+		}
+		if len(pkgs) != len(pkgsToInstall) {
+			return errors.New("Not all packages installed successfully")
+		}
+		color.Green("All %d selected packages from group %s are installed", len(pkgsToInstall), color.YellowString(group))
+	}
+	return nil
 }
 
 func init() {

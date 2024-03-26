@@ -9,6 +9,21 @@
   ],
   "additionalProperties": false,
   "properties": {
+    "title": {
+      "description": "Group title",
+      "type": "string",
+      "additionalProperties": false
+    },
+    "tagline": {
+      "description": "Group tagline",
+      "type": "string",
+      "additionalProperties": false
+    },
+    "description": {
+      "description": "Group description",
+      "type": "string",
+      "additionalProperties": false
+    },
     "packages": {
       "description": "List of packages",
       "type": "array",

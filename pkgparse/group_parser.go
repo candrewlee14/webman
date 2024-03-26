@@ -16,7 +16,10 @@ import (
 )
 
 type PkgGroupConfig struct {
-	Packages []string `yaml:"packages"`
+	Title       string   `yaml:"title"`
+	Tagline     string   `yaml:"tagline"`
+	Description string   `yaml:"description"`
+	Packages    []string `yaml:"packages"`
 }
 
 func ParseGroupConfig(r io.Reader, name string) (*PkgGroupConfig, error) {
@@ -32,6 +35,18 @@ func ParseGroupConfig(r io.Reader, name string) (*PkgGroupConfig, error) {
 		return nil, fmt.Errorf("no packages in package group %s", color.YellowString(name))
 	}
 	return &groupConf, nil
+}
+
+func ParseGroupConfigInRepo(pkgRepo *config.PkgRepo, group string) (*PkgGroupConfig, error) {
+	groupPath := filepath.Join(pkgRepo.Path(), "groups", group+utils.GroupRecipeExt)
+	fi, err := os.Open(groupPath)
+	if err != nil {
+		return nil, err
+	}
+	defer fi.Close()
+
+	groupCfg, err := ParseGroupConfig(fi, group)
+	return groupCfg, err
 }
 
 func ParseGroupConfigLocal(pkgRepos []*config.PkgRepo, group string) (*PkgGroupConfig, string, error) {
