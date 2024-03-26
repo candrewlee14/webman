@@ -22,6 +22,8 @@ Webman locates version numbers online and installs packages from the web, so you
 
 Windows (Powershell), Linux, and MacOS are supported!
 
+<img alt="webman help example" src="/assets/tapes/webman.gif" width=600/>
+
 ### Installation
 
 #### MacOS, Linux, Git Bash, WSL, etc.
