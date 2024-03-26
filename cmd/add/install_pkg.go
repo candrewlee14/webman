@@ -128,51 +128,51 @@ func InstallPkg(
 	// If file exists
 	if _, err := os.Stat(extractPath); !os.IsNotExist(err) {
 		ml.Printf(argIndex, color.HiBlackString("Already installed!"))
-		return &PkgInstallResult{pkg, ver, pkgConf}
-	}
-	if !DownloadUrl(url, downloadPath, pkg, ver, argIndex, argCount, ml) {
-		return nil
-	}
-	var isRawBinary bool
-	if m, ok := pkgConf.OsMap[pkgOS]; ok {
-		isRawBinary = m.IsRawBinary
-	}
-	if isRawBinary {
-		if err = os.Chmod(downloadPath, 0o755); err != nil {
-			ml.Printf(argIndex, color.RedString("Failed to make download executable!"))
-			return nil
-		}
-		if err = os.MkdirAll(extractPath, os.ModePerm); err != nil {
-			ml.Printf(argIndex, color.RedString("Failed to create package-version path!"))
-			return nil
-		}
-		binPath := filepath.Join(extractPath, pkgConf.Title)
-		if utils.GOOS == "windows" {
-			binPath += ".exe"
-		}
-		if err = os.Rename(downloadPath, binPath); err != nil {
-			ml.Printf(argIndex, color.RedString("Failed to rename temporary download to new path!"))
-			return nil
-		}
 	} else {
-		hasUnpacked := make(chan bool)
-		ml.PrintUntilDone(argIndex,
-			fmt.Sprintf("Unpacking %s.%s", stem, ext),
-			hasUnpacked,
-			50,
-		)
-		var extractHasRoot bool
-		if m, ok := pkgConf.OsMap[pkgOS]; ok {
-			extractHasRoot = m.ExtractHasRoot
-		}
-		err = unpack.Unpack(downloadPath, pkg, extractStem, extractHasRoot)
-		hasUnpacked <- true
-		if err != nil {
-			ml.Printf(argIndex, color.RedString("%v", err))
-			CleanUpFailedInstall(pkg, extractPath)
+		if !DownloadUrl(url, downloadPath, pkg, ver, argIndex, argCount, ml) {
 			return nil
 		}
-		ml.Printf(argIndex, "Completed unpacking %s@%s", color.CyanString(pkg), color.MagentaString(ver))
+		var isRawBinary bool
+		if m, ok := pkgConf.OsMap[pkgOS]; ok {
+			isRawBinary = m.IsRawBinary
+		}
+		if isRawBinary {
+			if err = os.Chmod(downloadPath, 0o755); err != nil {
+				ml.Printf(argIndex, color.RedString("Failed to make download executable!"))
+				return nil
+			}
+			if err = os.MkdirAll(extractPath, os.ModePerm); err != nil {
+				ml.Printf(argIndex, color.RedString("Failed to create package-version path!"))
+				return nil
+			}
+			binPath := filepath.Join(extractPath, pkgConf.Title)
+			if utils.GOOS == "windows" {
+				binPath += ".exe"
+			}
+			if err = os.Rename(downloadPath, binPath); err != nil {
+				ml.Printf(argIndex, color.RedString("Failed to rename temporary download to new path!"))
+				return nil
+			}
+		} else {
+			hasUnpacked := make(chan bool)
+			ml.PrintUntilDone(argIndex,
+				fmt.Sprintf("Unpacking %s.%s", stem, ext),
+				hasUnpacked,
+				50,
+			)
+			var extractHasRoot bool
+			if m, ok := pkgConf.OsMap[pkgOS]; ok {
+				extractHasRoot = m.ExtractHasRoot
+			}
+			err = unpack.Unpack(downloadPath, pkg, extractStem, extractHasRoot)
+			hasUnpacked <- true
+			if err != nil {
+				ml.Printf(argIndex, color.RedString("%v", err))
+				CleanUpFailedInstall(pkg, extractPath)
+				return nil
+			}
+			ml.Printf(argIndex, "Completed unpacking %s@%s", color.CyanString(pkg), color.MagentaString(ver))
+		}
 	}
 	using, err := pkgparse.CheckUsing(pkg)
 	if err != nil {

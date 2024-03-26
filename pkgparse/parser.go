@@ -313,9 +313,9 @@ func (pkgConf *PkgConfig) GetAssetStemExtUrl(version string) (*string, *string, 
 }
 
 // ParsePkgConfigPath parses a package configuration from a repo path (~/.webman/recipes/webman) and package name (age)
-// It combines them to parse (~/.webman/recipes/webman/age.webman-pkg.yaml) and assigns the name (age)
+// It combines them to parse (~/.webman/recipes/webman/pkgs/age.webman-pkg.yaml) and assigns the name (age)
 func ParsePkgConfigPath(repoPath, pkg string) (*PkgConfig, error) {
-	fi, err := os.Open(filepath.Join(repoPath, pkg+utils.PkgRecipeExt))
+	fi, err := os.Open(filepath.Join(repoPath, "pkgs", pkg+utils.PkgRecipeExt))
 	if err != nil {
 		return nil, err
 	}
