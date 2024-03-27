@@ -4,6 +4,7 @@ import (
 	groupadd "github.com/candrewlee14/webman/cmd/group/add"
 	groupremove "github.com/candrewlee14/webman/cmd/group/remove"
 	groupsearch "github.com/candrewlee14/webman/cmd/group/search"
+	groupupgrade "github.com/candrewlee14/webman/cmd/group/upgrade"
 
 	"github.com/spf13/cobra"
 )
@@ -26,4 +27,5 @@ func init() {
 	GroupCmd.AddCommand(groupadd.AddCmd)
 	GroupCmd.AddCommand(groupremove.RemoveCmd)
 	GroupCmd.AddCommand(groupsearch.SearchCmd)
+	GroupCmd.AddCommand(groupupgrade.UpgradeCmd)
 }
