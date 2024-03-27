@@ -174,47 +174,56 @@ func InstallPkg(
 			ml.Printf(argIndex, "Completed unpacking %s@%s", color.CyanString(pkg), color.MagentaString(ver))
 		}
 	}
+
 	using, err := pkgparse.CheckUsing(pkg)
 	if err != nil {
+		ml.Printf(argIndex, color.RedString("Failed to check using: %v", err))
 		CleanUpFailedInstall(pkg, extractPath)
-		panic(err)
+		return nil
 	}
+	usingVer := ""
 	if using != nil {
-		if removeOld {
-			if err = remove.RemovePkgVer(*using, using, pkg, pkgConf); err != nil {
-				ml.Printf(argIndex, color.RedString("Failed to remove old version: %v", err))
-			} else {
-				ml.Printf(argIndex, "Removed old version %s", color.CyanString(*using))
+		_, usingVer = utils.ParseStem(*using)
+	}
+	// if not already installed, or already installed but not using the same version
+	// we'll need to remove the old and link the new
+	if using == nil || usingVer != ver {
+		if using != nil {
+			if removeOld {
+				if err = remove.RemovePkgVer(*using, using, pkg, pkgConf); err != nil {
+					ml.Printf(argIndex, color.RedString("Failed to remove old version: %v", err))
+				} else {
+					ml.Printf(argIndex, "Removed old version %s", color.CyanString(*using))
+				}
 			}
 		}
+		if using == nil || switchFlag {
+			binPaths, err := pkgConf.GetMyBinPaths()
+			if err != nil {
+				CleanUpFailedInstall(pkg, extractPath)
+				ml.Printf(argIndex, color.RedString("%v", err))
+				return nil
+			}
+			renames, err := pkgConf.GetRenames()
+			if err != nil {
+				ml.Printf(argIndex, color.RedString("Failed creating links: %v", err))
+				return nil
+			}
+			madeLinks, err := link.CreateLinks(pkg, ver, binPaths, renames)
+			if err != nil {
+				CleanUpFailedInstall(pkg, extractPath)
+				ml.Printf(argIndex, color.RedString("Failed creating links: %v", err))
+				return nil
+			}
+			if !madeLinks {
+				CleanUpFailedInstall(pkg, extractPath)
+				ml.Printf(argIndex, color.RedString("Failed creating links"))
+				return nil
+			}
+			ml.Printf(argIndex, "Now using %s@%s", color.CyanString(pkg), color.MagentaString(ver))
+		}
+		ml.Printf(argIndex, color.GreenString("Successfully installed!"))
 	}
-	if using == nil || switchFlag {
-		binPaths, err := pkgConf.GetMyBinPaths()
-		if err != nil {
-			CleanUpFailedInstall(pkg, extractPath)
-			ml.Printf(argIndex, color.RedString("%v", err))
-			return nil
-		}
-		renames, err := pkgConf.GetRenames()
-		if err != nil {
-			ml.Printf(argIndex, color.RedString("Failed creating links: %v", err))
-			return nil
-		}
-		madeLinks, err := link.CreateLinks(pkg, ver, binPaths, renames)
-		if err != nil {
-			CleanUpFailedInstall(pkg, extractPath)
-			ml.Printf(argIndex, color.RedString("Failed creating links: %v", err))
-			return nil
-		}
-		if !madeLinks {
-			CleanUpFailedInstall(pkg, extractPath)
-			ml.Printf(argIndex, color.RedString("Failed creating links"))
-			return nil
-		}
-		ml.Printf(argIndex, "Now using %s@%s", color.CyanString(pkg), color.MagentaString(ver))
-	}
-
-	ml.Printf(argIndex, color.GreenString("Successfully installed!"))
 	if p, err := exec.LookPath(pkg); err == nil && !strings.Contains(p, utils.WebmanBinDir) {
 		ml.Printf(argIndex, color.YellowString("Found another binary at %q that may interfere", p))
 	}
