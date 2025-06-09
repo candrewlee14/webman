@@ -14,7 +14,7 @@ import (
 	"github.com/candrewlee14/webman/schema"
 	"github.com/candrewlee14/webman/utils"
 
-	"github.com/mholt/archiver/v3"
+	"github.com/mholt/archives"
 	"gopkg.in/yaml.v3"
 )
 
