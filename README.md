@@ -10,6 +10,10 @@
 ![bintest](https://github.com/candrewlee14/webman-pkgs/actions/workflows/bintest.yml/badge.svg)
 ![report-card](https://goreportcard.com/badge/github.com/candrewlee14/webman)
 
+> [!WARNING]  
+> This has been part of my workflow for a couple years now, but I'd recommend using [mise](https://mise.jdx.dev/) instead going forward.
+> That will have better community support.
+
 Add, remove, and manage different versions of web-distributed software binaries.
 No elevated permissions required!
 
